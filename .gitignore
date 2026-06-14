@@ -1,0 +1,12 @@
+# YottaDB runtime artifacts
+.ydb/
+.objects/
+*.o
+
+# Built m binary (lives in m-cli; never committed here)
+/dist/m
+
+# Test + coverage outputs
+test-results.tap
+*.lcov
+coverage.out

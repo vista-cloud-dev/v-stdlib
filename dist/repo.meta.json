@@ -1,0 +1,10 @@
+{
+  "id": "tool:v-stdlib",
+  "repo": "https://github.com/vista-cloud-dev/v-stdlib",
+  "role": "VistA Standard Library — VSL* routines (VistA-specific; consumes the engine-neutral STD* base upward)",
+  "language": ["m"],
+  "layer": "v",
+  "license": "AGPL-3.0",
+  "consumes": ["tool:m-stdlib"],
+  "verification_commands": ["make check"]
+}

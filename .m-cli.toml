@@ -1,0 +1,12 @@
+# m-cli configuration — modern VistA M library (pythonic-lower, not
+# VistA-compact). v-stdlib ships VSL* routines; dual-engine (YDB + IRIS).
+
+[lint]
+rules = "modern"
+target-engine = "any"
+
+[fmt]
+rules = "pythonic-lower"
+
+[lsp]
+"hover.format" = "markdown"

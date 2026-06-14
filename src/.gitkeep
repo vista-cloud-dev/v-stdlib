@@ -1,0 +1,2 @@
+# VSL* routines land here (VSLCFG, VSLIO, VSLFS, …). Empty at the T0b.1
+# scaffold; the first module (VSLCFG) arrives at M1/T1.2.
