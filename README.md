@@ -16,7 +16,7 @@ below.
 This is the **T0b.1 scaffold** — toolchain + gates wired, an empty (smoke-only)
 suite green. The first real module, `VSLCFG` (XPAR-backed config), lands at M1.
 See the VSL effort tracker in
-[`m-stdlib/docs/tracking/vsl-implementation-tracker.md`](https://github.com/vista-cloud-dev/m-stdlib/blob/master/docs/tracking/vsl-implementation-tracker.md).
+[`docs/vsl-msl/vsl-implementation-tracker.md`](https://github.com/vista-cloud-dev/docs/blob/main/vsl-msl/vsl-implementation-tracker.md).
 
 ## Layout
 

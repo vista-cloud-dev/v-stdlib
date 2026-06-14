@@ -33,4 +33,4 @@ v-stdlib is **VistA-specific** (needs Kernel/FileMan/KIDS). The waterline rule
 
 **T0b.1 scaffold** (2026-06-13): toolchain + gates wired, smoke suite green.
 No `VSL*` modules yet — `VSLCFG` (XPAR config, binds `STDENV`) is first at M1.
-Tracker: `m-stdlib/docs/tracking/vsl-implementation-tracker.md`.
+Tracker: the `docs` repo `docs/vsl-msl/vsl-implementation-tracker.md`.
