@@ -1,0 +1,13 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # m/v waterline G1 gate — v-stdlib is layer v (passes trivially: v -> m is
+  # allowed). The engine-bound M suite (fmt/lint/test under YDB+IRIS) lands
+  # as v-stdlib grows real VSL* modules.
+  arch:
+    uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
