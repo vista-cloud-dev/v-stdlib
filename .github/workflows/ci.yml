@@ -12,12 +12,15 @@ jobs:
   arch:
     uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
 
-  # VSL T0b.3 — the four registry-driven drift gates. Pure-Python (system
-  # python3), engine-free: engine-targets is empty so m-ci.yml skips the engine
-  # container. fmt-check/lint + the engine-bound suite join engine-free-targets/
-  # engine-targets here once v-stdlib grows real VSL* modules.
+  # VSL T0b.3/T0b.4 — the registry-driven drift gates + the cross-repo MSL
+  # seam-contract pin. Pure-Python (system python3), engine-free: engine-targets
+  # is empty so m-ci.yml skips the engine container. check-msl-pin SKIPs green
+  # in CI (the sibling m-stdlib is not checked out → MSL unreachable, the same
+  # cadence-degradation as check-citations); the network fetch-at-tag path is
+  # the T1.1 extension. fmt-check/lint + the engine-bound suite join here once
+  # v-stdlib grows real VSL* modules.
   ci:
     uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
     with:
-      engine-free-targets: "check-seams check-icr check-citations check-namespaces"
+      engine-free-targets: "check-seams check-icr check-citations check-namespaces check-msl-pin"
       engine-targets: ""
