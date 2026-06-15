@@ -12,8 +12,9 @@ v-stdlib is **VistA-specific** (needs Kernel/FileMan/KIDS). The waterline rule
 
 - **Dependency is one-way: `v → m`.** A `VSL*` routine MAY call an `STD*`
   routine; an `STD*` routine MUST NOT call a `VSL*` routine. Never invert it.
-- Layer is declared in `dist/repo.meta.json` (`"layer": "v"`) and enforced by
-  `m arch check` (G1). v-stdlib passes G1 trivially but must keep the tag.
+- Layer is declared in the root `repo.meta.json` (`"layer": "v"`) and enforced
+  by `m arch check` (G1–G4 + meta-shape). v-stdlib passes G1/G2 trivially but
+  must keep the tag and a well-formed meta.
 - VistA vocabulary (FileMan globals, KIDS, XPAR, Broker) lives **here**, never
   below the waterline in m-stdlib.
 

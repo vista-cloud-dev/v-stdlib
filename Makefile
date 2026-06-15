@@ -30,9 +30,9 @@ fmt-check:
 lint:
 	$(M) lint --check $(SRC) $(TESTS)
 
-# m/v waterline G1 gate (dependency-direction). v-stdlib is layer v
-# (dist/repo.meta.json); it passes G1 trivially (v -> m is allowed) but must
-# declare its layer so the gate runs everywhere with no exception.
+# m/v waterline gates. v-stdlib is layer v (root repo.meta.json); it passes
+# G1/G2 trivially (v -> m, and VistA above the line, are allowed) but must
+# declare its layer so the gates run everywhere with no exception.
 arch:
 	$(M) arch check .
 
