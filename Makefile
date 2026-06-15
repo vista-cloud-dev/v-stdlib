@@ -17,7 +17,8 @@ DOCKER ?=
 ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER))
 
 .PHONY: all check fmt fmt-check lint arch test coverage clean \
-        seams check-seams icr check-icr check-citations namespaces check-namespaces gates
+        seams check-seams icr check-icr check-citations namespaces check-namespaces \
+        pin check-msl-pin gates
 
 all: check
 
@@ -75,8 +76,22 @@ namespaces:
 check-namespaces:
 	@python3 tools/gen_namespace_registry.py --check
 
-# Aggregate of the four engine-free drift gates.
-gates: check-seams check-icr check-citations check-namespaces
+# ── VSL T0b.4: the cross-repo MSL seam-contract pin (v -> m) ──
+# v-stdlib pins the frozen MSL seam contract it built against (a git tag in
+# m-stdlib) and asserts it has not drifted (coordination plan §5.2/§6). `pin`
+# syncs dist/msl-seam-pin.json from the sibling MSL @ msl_ref; `check-msl-pin`
+# is the gate — well-formedness + drift, SKIP-green when MSL is unreachable
+# (override the checkout with MSTDLIB=...). The network fetch-at-tag path is
+# the T1.1 extension.
+pin:
+	python3 tools/msl_seam_pin.py --write
+
+check-msl-pin:
+	@python3 tools/msl_seam_pin.py --check
+
+# Aggregate of the engine-free drift gates (the four own-tier gates + the
+# upward MSL pin).
+gates: check-seams check-icr check-citations check-namespaces check-msl-pin
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.
