@@ -5,6 +5,10 @@
   "language": ["m"],
   "layer": "v",
   "license": "AGPL-3.0",
+  "namespaces": {
+    "routines": ["VSL"],
+    "globals": ["VSL"]
+  },
   "consumes": ["tool:m-stdlib"],
   "verification_commands": ["make check"]
 }

@@ -16,7 +16,8 @@ ENGINE ?=
 DOCKER ?=
 ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER))
 
-.PHONY: all check fmt fmt-check lint arch test coverage clean
+.PHONY: all check fmt fmt-check lint arch test coverage clean \
+        seams check-seams icr check-icr check-citations namespaces check-namespaces gates
 
 all: check
 
@@ -44,12 +45,45 @@ test:
 coverage:
 	$(M) coverage $(ENGINE_FLAGS) --routines $(MSTDLIB)/src --min-percent=85 $(SRC) $(TESTS)
 
-# Engine-free gates (fmt/lint/arch) + the engine-bound suite. CI runs the full
-# set; `make check-fast` (fmt-check lint arch) needs no engine.
-check: fmt-check lint arch test
+# ── VSL T0b.3 drift gates (registry-driven; pure Python, engine-free) ──
+# The same four `source-tag → generate → registry → red-gate` gates m-stdlib
+# carries, mirrored here for the VSL* tier (coordination plan §5.2/§5.4/§5.5/§9):
+#   seams      — @seam → dist/seam-snapshot.json + git-HEAD bump-forcer
+#   icr        — @icr  → dist/icr-registry.json + DBIA/no-direct-global gate
+#   citations  — @source cited doc_keys vs the vdocs gold corpus (SKIP if absent)
+#   namespaces — repo.meta.json prefixes vs discovered VSL* routines/globals
+# All green on the (currently empty) VSL* source; they go red on a planted
+# violation, so the contract machinery is in place before VSLCFG (M1) lands.
+seams:
+	python3 tools/seam_contract.py --write
+
+check-seams:
+	@python3 tools/seam_contract.py --check
+
+icr:
+	python3 tools/gen-icr.py --write
+
+check-icr:
+	@python3 tools/gen-icr.py --check
+
+check-citations:
+	@python3 tools/check_citations.py --check
+
+namespaces:
+	python3 tools/gen_namespace_registry.py --write
+
+check-namespaces:
+	@python3 tools/gen_namespace_registry.py --check
+
+# Aggregate of the four engine-free drift gates.
+gates: check-seams check-icr check-citations check-namespaces
+
+# Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
+# runs the full set; `make check-fast` needs no engine.
+check: fmt-check lint arch gates test
 
 .PHONY: check-fast
-check-fast: fmt-check lint arch
+check-fast: fmt-check lint arch gates
 
 clean:
 	rm -f test-results.tap *.lcov coverage.out

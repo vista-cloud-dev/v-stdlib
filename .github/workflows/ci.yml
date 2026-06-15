@@ -11,3 +11,13 @@ jobs:
   # as v-stdlib grows real VSL* modules.
   arch:
     uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
+
+  # VSL T0b.3 — the four registry-driven drift gates. Pure-Python (system
+  # python3), engine-free: engine-targets is empty so m-ci.yml skips the engine
+  # container. fmt-check/lint + the engine-bound suite join engine-free-targets/
+  # engine-targets here once v-stdlib grows real VSL* modules.
+  ci:
+    uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
+    with:
+      engine-free-targets: "check-seams check-icr check-citations check-namespaces"
+      engine-targets: ""

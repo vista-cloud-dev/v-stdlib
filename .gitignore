@@ -10,3 +10,7 @@
 test-results.tap
 *.lcov
 coverage.out
+
+# Python drift-gate generator caches (tools/*.py)
+__pycache__/
+*.pyc

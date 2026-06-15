@@ -1,0 +1,14 @@
+{
+  "declared": {
+    "globals": [
+      "VSL"
+    ],
+    "routines": [
+      "VSL"
+    ]
+  },
+  "discovered": {
+    "globals": [],
+    "routines": []
+  }
+}
