@@ -1,4 +1,35 @@
 {
-  "msl_ref": "v0.6.0",
-  "seams": {}
+  "msl_ref": "v0.7.0",
+  "seams": {
+    "STDENV": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "by-ref env tree",
+              "name": "env",
+              "type": "array"
+            },
+            {
+              "doc": "env key",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "fallback when key is absent",
+              "name": "default",
+              "type": "string"
+            }
+          ],
+          "label": "$$get^STDENV(env, key, default)",
+          "raises": [],
+          "returns": {
+            "doc": "env(key) or default",
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
 }

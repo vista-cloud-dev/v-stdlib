@@ -1,1 +1,24 @@
-{}
+{
+  "VSLCFG": [
+    {
+      "call": "$$GET^XPAR",
+      "custodian": "XU",
+      "icr": 2263,
+      "source": {
+        "anchor": "getxpar-return-an-instance-of-a-parameter",
+        "doc_key": "XU/krn_8_0_dg_toolkit_ug"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "EN^XPAR",
+      "custodian": "XU",
+      "icr": 2263,
+      "source": {
+        "anchor": "enxpar-add-change-delete-parameters",
+        "doc_key": "XU/krn_8_0_dg_toolkit_ug"
+      },
+      "status": "Supported"
+    }
+  ]
+}
