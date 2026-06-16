@@ -1,0 +1,19 @@
+{
+  "package": "VSL",
+  "version": "1.0",
+  "patch": "1",
+  "components": {
+    "routines": ["VSLCFG"],
+    "parameterDefinitions": [
+      {
+        "name": "VPNG GREETING",
+        "displayText": "VPNG greeting (read by VPNG via $$get^VSLCFG at SYS)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      }
+    ]
+  },
+  "requiredBuilds": [
+    { "name": "MSL*0.1*1", "action": "DON'T INSTALL, LEAVE GLOBAL" }
+  ]
+}
