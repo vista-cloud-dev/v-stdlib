@@ -1,5 +1,5 @@
 {
-  "msl_ref": "v0.7.0",
+  "msl_ref": "v0.8.0",
   "seams": {
     "STDENV": {
       "contract_version": 1,
@@ -27,6 +27,136 @@
           "returns": {
             "doc": "env(key) or default",
             "type": "string"
+          }
+        }
+      ]
+    },
+    "STDNET": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "a listener handle from $$listen",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for a connection",
+              "name": "timeout",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$accept^STDNET(id, timeout)",
+          "raises": [],
+          "returns": {
+            "doc": "a connected handle (>0), or 0 on timeout/failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a handle from $$listen/$$accept/$$connect",
+              "name": "id",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$close^STDNET(id)",
+          "raises": [],
+          "returns": {
+            "doc": "1 (idempotent)",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "host/IP to connect to",
+              "name": "host",
+              "type": "string"
+            },
+            {
+              "doc": "TCP port",
+              "name": "port",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for the connect",
+              "name": "timeout",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$connect^STDNET(host, port, timeout)",
+          "raises": [],
+          "returns": {
+            "doc": "a connected handle (>0), or 0 on failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "TCP port to bind; 0 lets the OS choose",
+              "name": "port",
+              "type": "numeric"
+            }
+          ],
+          "label": "$$listen^STDNET(port)",
+          "raises": [],
+          "returns": {
+            "doc": "a listener handle (>0), or 0 on failure",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a connected handle",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "maximum bytes to read",
+              "name": "maxlen",
+              "type": "numeric"
+            },
+            {
+              "doc": "seconds to wait for data",
+              "name": "timeout",
+              "type": "numeric"
+            },
+            {
+              "doc": "by-ref; receives the bytes read",
+              "name": "buf",
+              "type": "string"
+            }
+          ],
+          "label": "$$read^STDNET(id, maxlen, timeout, buf)",
+          "raises": [],
+          "returns": {
+            "doc": "bytes read (0 on timeout/EOF)",
+            "type": "numeric"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "a connected handle",
+              "name": "id",
+              "type": "numeric"
+            },
+            {
+              "doc": "bytes to write (raw, no delimiter)",
+              "name": "buf",
+              "type": "string"
+            }
+          ],
+          "label": "$$write^STDNET(id, buf)",
+          "raises": [],
+          "returns": {
+            "doc": "1 on success; 0 on failure",
+            "type": "bool"
           }
         }
       ]

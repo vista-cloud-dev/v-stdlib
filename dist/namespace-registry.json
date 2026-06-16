@@ -10,7 +10,8 @@
   "discovered": {
     "globals": [],
     "routines": [
-      "VSLCFG"
+      "VSLCFG",
+      "VSLIO"
     ]
   }
 }
