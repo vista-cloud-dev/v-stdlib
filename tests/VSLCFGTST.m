@@ -1,20 +1,13 @@
 VSLCFGTST	; v-stdlib — VSLCFG (XPAR config adapter) test suite.
-	; Exercises VSLCFG against a live VistA's XPAR (Parameter Tools).
-	;
-	; BLOCKED on a toolchain gap (see docs/plans/t1.2-vslcfg-design.md): the
-	; `m test --docker vehu` staging path honors M_YDB_GBLDIR (globals visible)
-	; but NOT M_YDB_ROUTINES, so vehu's VistA routines (^XPAR, ^XLFDT) are absent
-	; from $ZROUTINES and $$GET^XPAR/EN^XPAR do not resolve — the suite aborts
-	; 0/0. The harness must layer the engine's resident routine base under the
-	; staged routines (mirroring the m-ydb $ZGBLDIR fix), or this runs test-in-
-	; place via `m test --resident` against installed routines. The fixture and
-	; assertions below are correct and ready once a real engine resolves XPAR.
-	;
-	; Driver-stack invocation (the ONLY path; m/v waterline):
-	;   M_YDB_GBLDIR=/home/vehu/g/vehu.gld M_YDB_ROUTINES='<vehu gtmroutines>' \
-	;     m test --engine ydb --docker vehu --chset m \
-	;       --routines src --routines <m-stdlib>/src tests/VSLCFGTST.m
-	;   (IRIS: --engine iris --docker foia-t12 --namespace VISTA)
+	; Exercises VSLCFG against a live VistA's XPAR (Parameter Tools). GREEN 3/3 on
+	; BOTH engines via the driver stack (m/v waterline — the ONLY path):
+	;   m test --engine ydb  --docker vehu     --chset m \
+	;     --routines src --routines <m-stdlib>/src tests/VSLCFGTST.m
+	;   m test --engine iris --docker foia-t12 --namespace VISTA \
+	;     --routines src --routines <m-stdlib>/src tests/VSLCFGTST.m
+	; (No M_YDB_* host vars needed — the container's `bash -l` env supplies
+	; gtmgbldir + gtmroutines once m-cli's DockerEngine layers the resident routine
+	; base; see m-cli memory `docker-routines-gtmroutines-fallback`.)
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
 	;
