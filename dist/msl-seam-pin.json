@@ -1,5 +1,5 @@
 {
-  "msl_ref": "v0.8.0",
+  "msl_ref": "v0.9.0",
   "seams": {
     "STDENV": {
       "contract_version": 1,
@@ -27,6 +27,111 @@
           "returns": {
             "doc": "env(key) or default",
             "type": "string"
+          }
+        }
+      ]
+    },
+    "STDKV": {
+      "contract_version": 1,
+      "entry_points": [
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            }
+          ],
+          "label": "$$exists^STDKV(coll, key)",
+          "raises": [],
+          "returns": {
+            "doc": "1 iff the record exists; 0 otherwise",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "field id within the record",
+              "name": "field",
+              "type": "string"
+            },
+            {
+              "doc": "value returned when the field is unset",
+              "name": "default",
+              "type": "string"
+            }
+          ],
+          "label": "$$get^STDKV(coll, key, field, default)",
+          "raises": [],
+          "returns": {
+            "doc": "the stored value, or `default` when unset",
+            "type": "string"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key",
+              "name": "key",
+              "type": "string"
+            }
+          ],
+          "label": "$$kill^STDKV(coll, key)",
+          "raises": [],
+          "returns": {
+            "doc": "1 (idempotent — absent record is a no-op)",
+            "type": "bool"
+          }
+        },
+        {
+          "args": [
+            {
+              "doc": "collection id (VSLFS: a FileMan file number)",
+              "name": "coll",
+              "type": "string"
+            },
+            {
+              "doc": "record key (VSLFS: an IENS)",
+              "name": "key",
+              "type": "string"
+            },
+            {
+              "doc": "field id within the record (VSLFS: a field number)",
+              "name": "field",
+              "type": "string"
+            },
+            {
+              "doc": "the value to store (raw bytes; byte-faithful)",
+              "name": "value",
+              "type": "string"
+            }
+          ],
+          "label": "$$set^STDKV(coll, key, field, value)",
+          "raises": [],
+          "returns": {
+            "doc": "1 on success",
+            "type": "bool"
           }
         }
       ]

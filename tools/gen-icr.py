@@ -56,6 +56,17 @@ VISTA_API_PREFIXES = (
 # (Private, Supplemental, Retired, …) is a violation when a call relies on it.
 OK_STATUSES = frozenset({"Supported", "Controlled Subscription"})
 
+# Notional ICR markers (in place of a number). The VistA DBIA/ICR *registry* is
+# a manually human-curated FORUM list — not in code, not in a FileMan DD, not
+# enforced programmatically — so the *number* is notional and must never be a
+# hard gate requirement (coordination plan §5.4; user directive 2026-06-16). A
+# declaration may carry one of these markers instead of a number; the gate's
+# real invariants stay (@status Supported + no direct global access), and the
+# missing number raises NO warning. The canonical case is the FileMan DBS API
+# (GETS^DIQ / $$GET1^DIQ / UPDATE^DIE / FILE^DIE / $$FIND1^DIC), for which no ICR
+# number exists in the gold corpus by design.
+NOTIONAL_MARKERS = frozenset({"DBS", "notional"})
+
 # A reference to an external routine or global: ^NAME or label^NAME.
 REF_RE = re.compile(r"\^(%?[A-Z][A-Z0-9]*)")
 # A direct set/kill against a global (point 3): SET ^NAME(...) / KILL ^NAME(...).
@@ -89,17 +100,30 @@ def is_l4_name(name: str) -> bool:
 def parse_icr_tag(body: str) -> dict:
     """Parse an `@icr …` doc-tag body into a registry entry.
 
-    Body shape: `<number> @call <ref> @status <s> @custodian <c> @source <src>`.
-    Fields after the leading number are `@key value` segments; a value runs to
-    the next `@key` (so multi-word statuses like "Controlled Subscription" work).
+    Body shape: `<icr> @call <ref> @status <s> @custodian <c> @source <src>`,
+    where `<icr>` is either a number (a real DBIA) or a notional marker
+    (`DBS`/`notional` — see NOTIONAL_MARKERS; the number is notional and never a
+    gate requirement). Fields after the leading token are `@key value` segments;
+    a value runs to the next `@key` (so multi-word statuses like "Controlled
+    Subscription" work).
     """
     body = body.strip()
-    # Leading number.
-    m = re.match(r"(\d+)\s*(.*)$", body, re.DOTALL)
-    if not m:
-        raise ValueError(f"@icr tag missing leading ICR number: {body!r}")
-    entry: dict = {"icr": int(m.group(1))}
-    rest = m.group(2)
+    # Leading ICR token: a number, or a notional marker.
+    m = re.match(r"(?P<icr>\S+)\s*(?P<rest>.*)$", body, re.DOTALL)
+    if not m or m.group("icr").startswith("@"):
+        raise ValueError(f"@icr tag missing leading ICR number/marker: {body!r}")
+    first = m.group("icr")
+    if first.isdigit():
+        icr_val: object = int(first)
+    elif first in NOTIONAL_MARKERS:
+        icr_val = first
+    else:
+        raise ValueError(
+            f"@icr leading token {first!r} is neither a number nor a notional "
+            f"marker {sorted(NOTIONAL_MARKERS)}: {body!r}"
+        )
+    entry: dict = {"icr": icr_val}
+    rest = m.group("rest")
     # Split into @key value segments.
     for seg in re.split(r"(?=@[a-z])", rest):
         seg = seg.strip()
@@ -248,6 +272,21 @@ def self_test() -> int:
     # multi-word status
     e2 = parse_icr_tag("10063 @call $$EN^XPAR @status Controlled Subscription @custodian XT")
     expect(e2["status"] == "Controlled Subscription", f"multiword status wrong: {e2}")
+
+    # notional ICR marker (FileMan DBS — no number exists; never a blocker)
+    e3 = parse_icr_tag("DBS @call $$GET1^DIQ @status Supported @custodian DI "
+                       "@source DI/fm22_2dg#get1diq-data-retriever-single-field")
+    expect(e3["icr"] == "DBS", f"notional icr marker wrong: {e3}")
+    expect(e3["call"] == "$$GET1^DIQ" and e3["status"] == "Supported", f"notional fields wrong: {e3}")
+    # a notional-Supported call is conformant (green) — the number is not required
+    expect(find_icr_violations({"VSLFS": [e3]}, [("VSLFS", "DIQ", 9, "call")]) == [],
+           "notional Supported DBS call should be green")
+    # a bogus leading token (typo) is rejected, not silently accepted
+    try:
+        parse_icr_tag("DBZ @call X^Y @status Supported")
+        expect(False, "bogus icr marker should raise")
+    except ValueError:
+        pass
 
     # is_l4_name
     expect(is_l4_name("DIC") and is_l4_name("%ZISTCP") and is_l4_name("XPAR"), "L4 names misclassified")
