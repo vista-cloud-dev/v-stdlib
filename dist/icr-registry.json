@@ -20,5 +20,27 @@
       },
       "status": "Supported"
     }
+  ],
+  "VSLIO": [
+    {
+      "call": "CALL^%ZISTCP",
+      "custodian": "XU",
+      "icr": 2118,
+      "source": {
+        "anchor": "callzistcp-make-tcpip-connection-remote-system",
+        "doc_key": "XU/krn_8_0_dg_device_handler_ug"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "CLOSE^%ZISTCP",
+      "custodian": "XU",
+      "icr": 2118,
+      "source": {
+        "anchor": "closezistcp-close-tcpip-connection-remote-system",
+        "doc_key": "XU/krn_8_0_dg_device_handler_ug"
+      },
+      "status": "Supported"
+    }
   ]
 }

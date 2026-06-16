@@ -41,7 +41,7 @@ arch:
 # Engine-bound: stage STDASSERT (+ harness) from m-stdlib so VSL*TST suites
 # resolve ^STDASSERT. Pass --engine ydb|iris and --docker <container>.
 test:
-	$(M) test $(ENGINE_FLAGS) --routines $(MSTDLIB)/src $(TESTS)
+	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(TESTS)
 
 coverage:
 	$(M) coverage $(ENGINE_FLAGS) --routines $(MSTDLIB)/src --min-percent=85 $(SRC) $(TESTS)
