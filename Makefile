@@ -18,7 +18,7 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 
 .PHONY: all check fmt fmt-check lint arch test coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
-        pin check-msl-pin gates
+        pin check-msl-pin check-engine-access gates
 
 all: check
 
@@ -89,9 +89,17 @@ pin:
 check-msl-pin:
 	@python3 tools/msl_seam_pin.py --check
 
+# Transport-monopoly gate: no committed test/script/Makefile may hand-roll engine
+# access (raw docker-exec into an engine, iris-session, gtm-dist, etc.). All
+# engine work goes through the m-driver-sdk -> m-ydb/m-iris stack (`m test
+# --docker`, `m vista exec`). The committed-artifact backstop to the PreToolUse
+# engine-stack-guard hook. Org CLAUDE.md §"m/v waterline" -> "Engine access".
+check-engine-access:
+	@python3 tools/check_engine_access.py --check
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
-# upward MSL pin).
-gates: check-seams check-icr check-citations check-namespaces check-msl-pin
+# upward MSL pin + the transport-monopoly gate).
+gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.
