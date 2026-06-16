@@ -21,6 +21,48 @@
       "status": "Supported"
     }
   ],
+  "VSLFS": [
+    {
+      "call": "UPDATE^DIE",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "updatedie-updater",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "$$GET1^DIQ",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "get1diq-data-retriever-single-field",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "$$GET1^DIQ",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "get1diq-data-retriever-single-field",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "FILE^DIE",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "filedie-filer",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    }
+  ],
   "VSLIO": [
     {
       "call": "CALL^%ZISTCP",
