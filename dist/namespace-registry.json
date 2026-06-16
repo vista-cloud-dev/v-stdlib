@@ -12,7 +12,9 @@
     "routines": [
       "VSLCFG",
       "VSLFS",
-      "VSLIO"
+      "VSLIO",
+      "VSLLOG",
+      "VSLSEC"
     ]
   }
 }
