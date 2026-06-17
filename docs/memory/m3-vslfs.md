@@ -1,6 +1,6 @@
 ---
 name: m3-vslfs
-description: VSL/MSL M3 Lane B DONE — VSLFS binds the STDKV storage seam (MSL v0.9.0) to VistA's FileMan DBS (UPDATE^DIE / $$GET1^DIQ / FILE^DIE). Re-pinned msl_ref v0.8.0→v0.9.0. Dual-engine GREEN 7/7 (vehu YDB + foia-t12 IRIS) over #8989.51: create/get byte-identical, exists, kill (FDA .01="@"), DIERR→,U-VSL-FS-DIERR, $ECODE. 3 boundaries green; ICR notional (DBS marker).
+description: VSL/MSL M3 Lane B DONE — VSLFS binds the STDKV storage seam (MSL v0.9.0) to VistA's FileMan DBS (UPDATE^DIE / $$GET1^DIQ / FILE^DIE). Re-pinned msl_ref v0.8.0→v0.9.0. Dual-engine GREEN 7/7 (vehu YDB + foia-t12 IRIS): create/get byte-identical, exists, kill (FDA .01="@"), DIERR→,U-VSL-FS-DIERR, $ECODE. 3 boundaries green; ICR notional (DBS marker). M3.T1 (2026-06-17): re-proven against the DEDICATED #999000 ZZVSLFS installed by the v-pkg FileMan-DD enabler (borrowed #8989.51 retired).
 metadata:
   type: project
 ---
@@ -40,13 +40,24 @@ A DIERR on a **write** maps to a clean **`,U-VSL-FS-DIERR,`** `$ECODE` (via
 land in the adapter's own array, never the shared `^TMP("DIERR",$J)`. `kill` is
 idempotent (records a DIERR, still returns 1).
 
-## Test file — an EXISTING low-risk file (no DD install; that's the deferred v-pkg track)
-**#8989.51 PARAMETER DEFINITION**: `.01` (NAME) is free-text with **NO other
-required fields** (verified live via a DD probe — `^DD(8989.51,*)`), so a
-throwaway **ZZ-namespaced** record (`"ZZVSLFS "_$job_<tag>`) is created and
-deleted cleanly through the DBS API. The NAME is uppercase, so the round-trip
-value is **transform-invariant** → byte-identical set→get over real FileMan.
-Present on both engines.
+## Test file — NOW the DEDICATED throwaway #999000 ZZVSLFS (M3.T1 part 2, 2026-06-17)
+`tests/VSLFSTST.m setup()` points at **#999000 ZZVSLFS**, a dedicated throwaway
+file the **v-pkg FileMan-DD enabler installs from scratch** (`.01` NAME free text,
+1–30 chars, data global `^DIZ(999000,` — see v-pkg `fileman-dd-component.md`). The
+ZZ-namespaced record (`"ZZVSLFS "_$job_<tag>`) round-trips byte-identical; VSLFS.m
+is unchanged (file-number parameterized) — only `setup()` `8989.51`→`999000` + the
+header comment changed.
+**Original M3 acceptance used a BORROWED file** (#8989.51 PARAMETER DEFINITION,
+free-text `.01`, no other required fields) — no DD install needed; that was the
+decoupled track now closed.
+**Fixture-install acceptance harness (driver stack only), per engine:** `v pkg
+install /tmp/ZZVSLFS.kids --engine <e> --transport docker` (DD must be RESIDENT
+before `m test`) → `m test --engine <e> --docker <c> [...] tests/VSLFSTST.m` → `v pkg
+uninstall …`. The `.KID` is built from v-pkg `testdata/zzvslfs/kids/ZZVSLFS.build.json`
+(v-pkg branch `m3t1-fileman-dd`, byte-identical to the committed golden). **Re-proven
+dual-engine 7/7 (vehu YDB + foia-t12 IRIS), clean back-out each (`^DD/^DIC/^DIZ(999000)`
++ #9.7 all gone); full suite 56/56 with the fixture resident.** Note: `m test --docker`
+and `v pkg --transport docker` are two engine paths — don't cross their flags.
 
 ## Acceptance — dual-engine GREEN 7/7 (the exit criterion)
 3 tests / 7 assertions on **BOTH** `vehu`(YDB) and `foia-t12`(IRIS): create→get
@@ -78,9 +89,9 @@ gold corpus — DI/fm22_2dg anchors verified)** + check-namespaces (3 VSL routin
 
 ## Owed / next
 - **M2 tail** (parallel, unblocked): STDNET IRIS leg + tier-3 TLS.
-- **DD-install enabler** (deferred v-pkg track): teach `v pkg` the FileMan
-  FILE-DD component, then re-test VSLFS with a throwaway *dedicated* file
-  instead of #8989.51. The "DD install" the M3 milestone bundles.
+- **DD-install enabler + re-test — DONE (M3.T1, 2026-06-17).** v-pkg learned the
+  FileMan FILE-DD component (`fileman-dd-component.md`); VSLFS re-proven against the
+  dedicated #999000 ZZVSLFS, dual-engine 7/7, borrowed #8989.51 out of the loop.
 - **Next: M4** (VSLSEC + VSLLOG — security + audit seams, §12.2). VSLLOG reuses
   this FileMan-DBS binding (S3) for the audit-file sink.
 Companion to [[m2-vslio]] (the Lane-B adapter rhythm) + the m-stdlib leaf
