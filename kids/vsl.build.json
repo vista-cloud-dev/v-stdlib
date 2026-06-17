@@ -1,9 +1,10 @@
 {
   "package": "VSL",
   "version": "1.0",
-  "patch": "1",
+  "patch": "2",
+  "envCheck": "VSLENV",
   "components": {
-    "routines": ["VSLCFG"],
+    "routines": ["VSLBLD", "VSLCFG", "VSLENV", "VSLFS", "VSLIO", "VSLLOG", "VSLSEC", "VSLTASK"],
     "parameterDefinitions": [
       {
         "name": "VPNG GREETING",
