@@ -84,5 +84,17 @@
       },
       "status": "Supported"
     }
+  ],
+  "VSLSEC": [
+    {
+      "call": "^XUSEC",
+      "custodian": "XU",
+      "icr": "notional",
+      "source": {
+        "anchor": "key-lookup",
+        "doc_key": "XU/krn_8_0_dg_security_keys_ug"
+      },
+      "status": "Supported"
+    }
   ]
 }
