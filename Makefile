@@ -8,6 +8,10 @@ SRC     := src
 TESTS   := tests
 # STDASSERT/STDHARN live in m-stdlib and are staged for engine-bound tests.
 MSTDLIB ?= $(HOME)/vista-cloud-dev/m-stdlib
+# v-pkg — the host tool that builds the VSL KIDS base from kids/vsl.build.json
+# (VSL T1.3). Defaults to the sibling checkout's standalone binary; override
+# with `make kids VPKG=/path/to/v-pkg`.
+VPKG ?= $(HOME)/vista-cloud-dev/v-pkg/dist/v-pkg
 
 # Engine selection for the engine-bound targets (test/coverage):
 #   make test ENGINE=ydb  DOCKER=m-test-engine
@@ -18,7 +22,7 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 
 .PHONY: all check fmt fmt-check lint arch test coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
-        pin check-msl-pin check-engine-access gates
+        pin check-msl-pin check-engine-access kids check-kids gates
 
 all: check
 
@@ -97,9 +101,36 @@ check-msl-pin:
 check-engine-access:
 	@python3 tools/check_engine_access.py --check
 
+# ── VSL T1.3: the VSL KIDS base build (drift-gated artifact) ──────────
+# kids/vsl.build.json declares the VSL layer as an installable KIDS build:
+# the VSLCFG routine + the VPNG GREETING #8989.51 PARAMETER DEFINITION (SYS)
+# + a Required Build on the MSL base (MSL*0.1*1). `make kids` builds the
+# deterministic, normalized .KID via v-pkg; `make check-kids` re-gates it —
+# a fresh rebuild must be byte-identical (deterministic-build invariant) AND
+# match the committed dist/kids/VSL.kids (drift gate), same discipline as
+# m-stdlib's check-kids. Engine-free — needs only the v-pkg binary. SKIP-green
+# when v-pkg is absent (mirrors check-citations) so CI without it stays green.
+kids:
+	$(VPKG) build kids/vsl.build.json --src $(SRC) --out dist/kids/VSL.kids
+
+check-kids:
+	@if [ ! -x "$(VPKG)" ]; then \
+	  echo "check-kids: v-pkg not found at $(VPKG) — SKIP (build it in v-pkg or set VPKG=…)"; \
+	  exit 0; \
+	fi
+	@tmp=$$(mktemp); \
+	$(VPKG) build kids/vsl.build.json --src $(SRC) --out $$tmp >/dev/null; \
+	if diff -q $$tmp dist/kids/VSL.kids >/dev/null 2>&1; then \
+	  echo "check-kids: dist/kids/VSL.kids matches a fresh deterministic build ✓"; \
+	  rm -f $$tmp; \
+	else \
+	  echo "ERROR: dist/kids/VSL.kids drifted from kids/vsl.build.json + src/ — run 'make kids' and commit" >&2; \
+	  rm -f $$tmp; exit 1; \
+	fi
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
-# upward MSL pin + the transport-monopoly gate).
-gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access
+# upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate).
+gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.

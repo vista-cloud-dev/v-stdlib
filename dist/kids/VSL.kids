@@ -1,0 +1,116 @@
+KIDS Distribution saved by v-pkg
+m-kids reassembled output
+**KIDS**:VSL*1.0*1^
+
+**INSTALL NAME**
+VSL*1.0*1
+"BLD",1,0)
+VSL*1.0*1^VSL^0^0
+"BLD",1,"KRN",0)
+^9.67PA^8989.51^1
+"BLD",1,"KRN",8989.51,0)
+8989.51
+"BLD",1,"KRN",8989.51,"NM",0)
+^9.68A^1^1
+"BLD",1,"KRN",8989.51,"NM",1,0)
+VPNG GREETING^^0
+"BLD",1,"KRN",8989.51,"NM","B","VPNG GREETING",1)
+
+"BLD",1,"KRN","B",8989.51,8989.51)
+
+"BLD",1,"REQB",0)
+^9.611^1^1
+"BLD",1,"REQB",1,0)
+MSL*0.1*1^2
+"BLD",1,"REQB","B","MSL*0.1*1",1)
+
+"RTN")
+1
+"RTN","VSLCFG")
+0^32^0^0
+"RTN","VSLCFG",1,0)
+VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
+"RTN","VSLCFG",2,0)
+	;
+"RTN","VSLCFG",3,0)
+	; Binds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter
+"RTN","VSLCFG",4,0)
+	; store at the SYS (system) entity — the faithful analog of STDENV's flat
+"RTN","VSLCFG",5,0)
+	; key->value config read. The adapter contains ONLY the VistA binding; no
+"RTN","VSLCFG",6,0)
+	; parsing or formatting (that stays in STD*, called up; m/v waterline).
+"RTN","VSLCFG",7,0)
+	;
+"RTN","VSLCFG",8,0)
+	; Public extrinsics:
+"RTN","VSLCFG",9,0)
+	;   $$get^VSLCFG(key,default)   — read a SYS-level parameter value, else default
+"RTN","VSLCFG",10,0)
+	;   $$set^VSLCFG(key,value)     — set a parameter value at the SYS entity
+"RTN","VSLCFG",11,0)
+	;
+"RTN","VSLCFG",12,0)
+	; XPAR is a Supported API (Kernel Toolkit, ICR #2263).
+"RTN","VSLCFG",13,0)
+	;
+"RTN","VSLCFG",14,0)
+	quit
+"RTN","VSLCFG",15,0)
+	;
+"RTN","VSLCFG",16,0)
+get(key,default)	; Read parameter `key` at the SYS entity; return `default` when unset.
+"RTN","VSLCFG",17,0)
+	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
+"RTN","VSLCFG",18,0)
+	; doc: @param default  string  value returned when the parameter is unset
+"RTN","VSLCFG",19,0)
+	; doc: @returns        string  the SYS-level value, or `default` when unset
+"RTN","VSLCFG",20,0)
+	; doc: @example        set greeting=$$get^VSLCFG("VPNG GREETING","hello")
+"RTN","VSLCFG",21,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLCFG",22,0)
+	new v
+"RTN","VSLCFG",23,0)
+	set v=$$GET^XPAR("SYS",key,1)
+"RTN","VSLCFG",24,0)
+	quit $select(v="":default,1:v)
+"RTN","VSLCFG",25,0)
+	;
+"RTN","VSLCFG",26,0)
+set(key,value)	; Set parameter `key` to `value` at the SYS entity.
+"RTN","VSLCFG",27,0)
+	; doc: @param key    string  XPAR parameter name (#8989.51)
+"RTN","VSLCFG",28,0)
+	; doc: @param value  string  value to store at the SYS level
+"RTN","VSLCFG",29,0)
+	; doc: @returns      void    side-effecting; no return value
+"RTN","VSLCFG",30,0)
+	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
+"RTN","VSLCFG",31,0)
+	do EN^XPAR("SYS",key,1,value)
+"RTN","VSLCFG",32,0)
+	quit
+"ORD",1,8989.51)
+8989.51;1;1;;;;;;;
+"ORD",1,8989.51,0)
+PARAMETER DEFINITION
+"KRN",8989.51,1,-1)
+0
+"KRN",8989.51,1,0)
+VPNG GREETING^VPNG greeting (read by VPNG via $$get^VSLCFG at SYS)^
+"KRN",8989.51,1,1)
+F^^
+"KRN",8989.51,1,30,0)
+^8989.513I^1^1
+"KRN",8989.51,1,30,1,0)
+1^4.2
+"KRN",8989.51,1,30,"B",1,1)
+
+"MBREQ")
+1
+"VER")
+8.0^22.2
+**END**
+**END**
