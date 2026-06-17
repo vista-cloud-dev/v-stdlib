@@ -6,13 +6,14 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	;   m test --engine iris --docker foia-t12 --namespace VISTA \
 	;     --routines src --routines <m-stdlib>/src tests/VSLFSTST.m
 	;
-	; The "test FileMan file" is an EXISTING low-risk file — #8989.51 PARAMETER
-	; DEFINITION — whose .01 (NAME) is free-text with NO other required fields, so
-	; a throwaway, ZZ-namespaced record can be created and deleted cleanly through
-	; the DBS API (no DD install needed; the DD-install enabler is a deferred
-	; v-pkg track). Each test creates a uniquely-named record and removes it; the
-	; .01 NAME is uppercase free text, so the round-trip value is chosen
-	; transform-invariant (byte-identical set->get over real FileMan).
+	; The "test FileMan file" is a DEDICATED throwaway file — #999000 ZZVSLFS —
+	; installed from scratch by `v pkg install` (the FileMan FILE-DD enabler) for
+	; the duration of this run, then backed out. Its single .01 (NAME) is uppercase
+	; free text, 1-30 chars, with NO other required fields, so a ZZ-namespaced
+	; record can be created and deleted cleanly through the DBS API. Each test
+	; creates a uniquely-named record and removes it; the .01 NAME is uppercase
+	; free text, so the round-trip value is transform-invariant (byte-identical
+	; set->get over real FileMan). The DD must be RESIDENT before this suite runs.
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
 	;
@@ -55,9 +56,9 @@ tDierrIsLoud(pass,fail)	;@TEST "a FileMan DIERR maps to a clean ,U-VSL-FS-..., $
 	;
 	; ---------- fixtures ----------
 	;
-setup(file)	; FileMan programmer context + the safe test file (#8989.51).
+setup(file)	; FileMan programmer context + the dedicated test file (#999000 ZZVSLFS).
 	set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT
-	set file=8989.51
+	set file=999000
 	quit
 	;
 teardown(file,iens)	; Remove the throwaway record if it still exists.
