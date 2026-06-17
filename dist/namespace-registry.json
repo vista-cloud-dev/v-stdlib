@@ -10,11 +10,14 @@
   "discovered": {
     "globals": [],
     "routines": [
+      "VSLBLD",
       "VSLCFG",
+      "VSLENV",
       "VSLFS",
       "VSLIO",
       "VSLLOG",
-      "VSLSEC"
+      "VSLSEC",
+      "VSLTASK"
     ]
   }
 }

@@ -48,6 +48,7 @@ REGISTRY_PATH = DIST_DIR / "icr-registry.json"
 # (The repo's own STD*/VSL* and pure-M scratch globals are NOT L4.)
 VISTA_API_PREFIXES = (
     "DIC", "DIE", "DIQ", "DIK", "DID", "DIR", "DIWP", "DIWF", "DIW", "DGENV", "DG",
+    "XPDUTL", "XPDIL", "XPDIJ", "XPDID", "XPDI", "XPD",
     "XPAR", "XUS", "XUSEC", "XUSHSH", "XU", "XLFDT", "XLFSTR", "XLF", "XQ",
     "%ZIS", "%ZISTCP", "%ZISH", "%ZTLOAD", "%ZTER", "VA", "XM",
 )
@@ -290,7 +291,8 @@ def self_test() -> int:
 
     # is_l4_name
     expect(is_l4_name("DIC") and is_l4_name("%ZISTCP") and is_l4_name("XPAR"), "L4 names misclassified")
-    expect(not is_l4_name("STDENV") and not is_l4_name("VSLCFG"), "own namespaces flagged as L4")
+    expect(is_l4_name("XPDUTL") and is_l4_name("%ZTLOAD"), "KIDS/TaskMan L4 names misclassified")
+    expect(not is_l4_name("STDENV") and not is_l4_name("VSLCFG") and not is_l4_name("VSLENV"), "own namespaces flagged as L4")
 
     # strip_comment keeps quoted ;, drops real comment
     expect(strip_comment('  set x="a;b" ; note') == '  set x="a;b" ', "strip_comment wrong")

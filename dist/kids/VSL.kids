@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*1^
+**KIDS**:VSL*1.0*2^
 
 **INSTALL NAME**
-VSL*1.0*1
+VSL*1.0*2
 "BLD",1,0)
-VSL*1.0*1^VSL^0^0
+VSL*1.0*2^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -25,7 +25,161 @@ MSL*0.1*1^2
 "BLD",1,"REQB","B","MSL*0.1*1",1)
 
 "RTN")
-1
+8
+"RTN","VSLBLD")
+0^76^0^0
+"RTN","VSLBLD",1,0)
+VSLBLD	; v-stdlib — the VSL KIDS base build definition + env-check binding (packaging seam).
+"RTN","VSLBLD",2,0)
+	;
+"RTN","VSLBLD",3,0)
+	; Defines the VSL layer's KIDS base build and the build-time facts a consumer
+"RTN","VSLBLD",4,0)
+	; needs. The build itself is the drift-gated artifact kids/vsl.build.json ->
+"RTN","VSLBLD",5,0)
+	; dist/kids/VSL.kids (gated by `make check-kids`): all the VSL* routines + the
+"RTN","VSLBLD",6,0)
+	; VPNG GREETING #8989.51 PARAMETER DEFINITION + a Required Build on the m-stdlib
+"RTN","VSLBLD",7,0)
+	; base (MSL*0.1*1, so STD* is reused from one shared install, never copied in)
+"RTN","VSLBLD",8,0)
+	; + the VSLENV environment-check routine. VSLBLD binds ONLY the KIDS/Kernel
+"RTN","VSLBLD",9,0)
+	; programmer API (ICR #10141, XPDUTL); the actual install / verify / back-out
+"RTN","VSLBLD",10,0)
+	; is performed by v-pkg over the driver — VSLBLD does NOT duplicate v-pkg's
+"RTN","VSLBLD",11,0)
+	; install mechanics (the in-`v` no-duplication rule; architecture §7.2).
+"RTN","VSLBLD",12,0)
+	;
+"RTN","VSLBLD",13,0)
+	; Public API:
+"RTN","VSLBLD",14,0)
+	;   $$manifest^VSLBLD(out)     — fill out() with the base routines + Required Build + patch identity
+"RTN","VSLBLD",15,0)
+	;   $$envCheck^VSLBLD(facts)   — the environment facts (engine/version/Kernel/TLS) via VSLENV (v->v)
+"RTN","VSLBLD",16,0)
+	;   $$requireBase^VSLBLD(build) — 1 iff KIDS build `build` is installed (the R6 version-skew check)
+"RTN","VSLBLD",17,0)
+	;   $$lastError^VSLBLD()       — last error detail, else ""
+"RTN","VSLBLD",18,0)
+	;
+"RTN","VSLBLD",19,0)
+	; *** ERROR CONTRACT — loud on a malformed call, never on a normal negative ***
+"RTN","VSLBLD",20,0)
+	; A malformed call (an empty build name) maps to a clean ,U-VSL-BLD-ARG, $ECODE
+"RTN","VSLBLD",21,0)
+	; with the detail in ^TMP($job,"vslbld","err") for $$lastError. A base that is
+"RTN","VSLBLD",22,0)
+	; simply NOT installed is a normal 0 from $$requireBase — NOT an error (kickoff
+"RTN","VSLBLD",23,0)
+	; decision 4, the VSLSEC DENY-is-not-an-error posture).
+"RTN","VSLBLD",24,0)
+	;
+"RTN","VSLBLD",25,0)
+	quit
+"RTN","VSLBLD",26,0)
+	;
+"RTN","VSLBLD",27,0)
+	; ---------- the build self-description (structural) ----------
+"RTN","VSLBLD",28,0)
+	;
+"RTN","VSLBLD",29,0)
+manifest(out)	; Fill out() with the VSL base's routines, its Required Build and patch identity; return the routine count.
+"RTN","VSLBLD",30,0)
+	; doc: @param   out      array    (by ref) out("routines",n)=routine; out("requiredBuild"); out("patch")
+"RTN","VSLBLD",31,0)
+	; doc: @returns          numeric  the number of routines the VSL base ships
+"RTN","VSLBLD",32,0)
+	new n
+"RTN","VSLBLD",33,0)
+	kill out
+"RTN","VSLBLD",34,0)
+	set n=0
+"RTN","VSLBLD",35,0)
+	do add(.out,.n,"VSLBLD")
+"RTN","VSLBLD",36,0)
+	do add(.out,.n,"VSLCFG")
+"RTN","VSLBLD",37,0)
+	do add(.out,.n,"VSLENV")
+"RTN","VSLBLD",38,0)
+	do add(.out,.n,"VSLFS")
+"RTN","VSLBLD",39,0)
+	do add(.out,.n,"VSLIO")
+"RTN","VSLBLD",40,0)
+	do add(.out,.n,"VSLLOG")
+"RTN","VSLBLD",41,0)
+	do add(.out,.n,"VSLSEC")
+"RTN","VSLBLD",42,0)
+	do add(.out,.n,"VSLTASK")
+"RTN","VSLBLD",43,0)
+	set out("requiredBuild")="MSL*0.1*1"
+"RTN","VSLBLD",44,0)
+	set out("patch")="VSL*1.0*2"
+"RTN","VSLBLD",45,0)
+	quit n
+"RTN","VSLBLD",46,0)
+	;
+"RTN","VSLBLD",47,0)
+add(out,n,rtn)	; (private) append routine `rtn` to the manifest list.
+"RTN","VSLBLD",48,0)
+	set n=n+1
+"RTN","VSLBLD",49,0)
+	set out("routines",n)=rtn
+"RTN","VSLBLD",50,0)
+	quit
+"RTN","VSLBLD",51,0)
+	;
+"RTN","VSLBLD",52,0)
+	; ---------- the environment-check + version-skew bindings ----------
+"RTN","VSLBLD",53,0)
+	;
+"RTN","VSLBLD",54,0)
+envCheck(facts)	; The environment facts (engine/version/Kernel/TLS) via the self-contained VSLENV (v->v).
+"RTN","VSLBLD",55,0)
+	; doc: @param   facts    array    (by ref) receives engine/version/kernel/tls facts
+"RTN","VSLBLD",56,0)
+	; doc: @returns          bool     1 on success
+"RTN","VSLBLD",57,0)
+	quit $$check^VSLENV(.facts)
+"RTN","VSLBLD",58,0)
+	;
+"RTN","VSLBLD",59,0)
+requireBase(build)	; 1 iff KIDS build `build` is installed on this system (the R6 version-skew check).
+"RTN","VSLBLD",60,0)
+	; doc: @param   build    string   a KIDS build/patch identity (e.g. "MSL*0.1*1")
+"RTN","VSLBLD",61,0)
+	; doc: @returns          bool     1 iff installed; 0 (a normal not-installed result) otherwise
+"RTN","VSLBLD",62,0)
+	; doc: @raises  U-VSL-BLD-ARG    the call is malformed (an empty build name)
+"RTN","VSLBLD",63,0)
+	; doc: @icr 10141 @call $$PATCH^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#verifying-patch-installation
+"RTN","VSLBLD",64,0)
+	if $get(build)="" do raise("U-VSL-BLD-ARG","requireBase: a build name is required") quit ""
+"RTN","VSLBLD",65,0)
+	quit ''$$PATCH^XPDUTL(build)
+"RTN","VSLBLD",66,0)
+	;
+"RTN","VSLBLD",67,0)
+lastError()	; The last VSLBLD error message (the composed malformed-call detail).
+"RTN","VSLBLD",68,0)
+	; doc: @returns          string   ^TMP($job,"vslbld","err"), or "" if none
+"RTN","VSLBLD",69,0)
+	quit $get(^TMP($job,"vslbld","err"))
+"RTN","VSLBLD",70,0)
+	;
+"RTN","VSLBLD",71,0)
+	; ---------- internals ----------
+"RTN","VSLBLD",72,0)
+	;
+"RTN","VSLBLD",73,0)
+raise(code,msg)	; (private) stash the detail, then raise the clean ,<code>, $ECODE.
+"RTN","VSLBLD",74,0)
+	set ^TMP($job,"vslbld","err")=msg
+"RTN","VSLBLD",75,0)
+	set $ecode=","_code_","
+"RTN","VSLBLD",76,0)
+	quit
 "RTN","VSLCFG")
 0^32^0^0
 "RTN","VSLCFG",1,0)
@@ -91,6 +245,1116 @@ set(key,value)	; Set parameter `key` to `value` at the SYS entity.
 "RTN","VSLCFG",31,0)
 	do EN^XPAR("SYS",key,1,value)
 "RTN","VSLCFG",32,0)
+	quit
+"RTN","VSLENV")
+0^60^0^0
+"RTN","VSLENV",1,0)
+VSLENV	; v-stdlib — the VSL KIDS environment-check routine (the XPDENV hook).
+"RTN","VSLENV",2,0)
+	;
+"RTN","VSLENV",3,0)
+	; The single, SELF-CONTAINED environment-check routine named by the VSL KIDS
+"RTN","VSLENV",4,0)
+	; base build (kids/vsl.build.json "envCheck"). KIDS loads ONLY this routine on
+"RTN","VSLENV",5,0)
+	; the target at check time and runs it TWICE — once at Load a Distribution and
+"RTN","VSLENV",6,0)
+	; again at Install (the key variable XPDENV signals the phase) — so it must not
+"RTN","VSLENV",7,0)
+	; call any other VSL*/STD* routine from the build (none are loaded yet); it
+"RTN","VSLENV",8,0)
+	; uses only intrinsics + RESIDENT Kernel APIs (architecture §7.2, KIDS DG).
+"RTN","VSLENV",9,0)
+	;
+"RTN","VSLENV",10,0)
+	; It fails fast on a genuine showstopper (Kernel absent -> XPDQUIT) and reports
+"RTN","VSLENV",11,0)
+	; the engine type/version, Kernel patch level and TLS-config presence — the
+"RTN","VSLENV",12,0)
+	; facts a VWEB-class consumer Requires and extends (engine, TLS, Kernel level,
+"RTN","VSLENV",13,0)
+	; IRIS-for-Health minimum). The programmatic $$check entry returns those facts
+"RTN","VSLENV",14,0)
+	; without touching KIDS state, so VSLBLD/tests can read them off-install.
+"RTN","VSLENV",15,0)
+	;
+"RTN","VSLENV",16,0)
+	; Public API:
+"RTN","VSLENV",17,0)
+	;   VSLENV            — the KIDS env-check entry (run by KIDS; honors XPDENV/XPDQUIT)
+"RTN","VSLENV",18,0)
+	;   $$check^VSLENV(facts) — fill facts(engine,version,kernel,tls); always returns 1
+"RTN","VSLENV",19,0)
+	;
+"RTN","VSLENV",20,0)
+	new facts,x
+"RTN","VSLENV",21,0)
+	do BMES^XPDUTL("VSL environment check (XPDENV="_$get(XPDENV)_")")
+"RTN","VSLENV",22,0)
+	set x=$$check(.facts)
+"RTN","VSLENV",23,0)
+	do MES^XPDUTL("  engine:  "_facts("engine")_" / "_facts("version"))
+"RTN","VSLENV",24,0)
+	do MES^XPDUTL("  Kernel:  "_$select(facts("kernel")'="":facts("kernel"),1:"NOT FOUND"))
+"RTN","VSLENV",25,0)
+	do MES^XPDUTL("  TLS cfg: "_$select(facts("tls")'="":"present",1:"(none)"))
+"RTN","VSLENV",26,0)
+	if facts("kernel")="" do abort
+"RTN","VSLENV",27,0)
+	quit
+"RTN","VSLENV",28,0)
+	;
+"RTN","VSLENV",29,0)
+abort	; (private) a genuine showstopper — Kernel (XU) is not present; abort the install.
+"RTN","VSLENV",30,0)
+	; doc: @icr 10141 @call MES^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#mesxpdutl-output-a-message
+"RTN","VSLENV",31,0)
+	do MES^XPDUTL("  ABORT: Kernel (XU) is not present — the VSL base Requires it")
+"RTN","VSLENV",32,0)
+	set XPDQUIT=2
+"RTN","VSLENV",33,0)
+	quit
+"RTN","VSLENV",34,0)
+	;
+"RTN","VSLENV",35,0)
+	; ---------- the programmatic environment facts (self-contained) ----------
+"RTN","VSLENV",36,0)
+	;
+"RTN","VSLENV",37,0)
+check(facts)	; Fill facts(engine,version,kernel,tls) from intrinsics + resident Kernel; return 1.
+"RTN","VSLENV",38,0)
+	; doc: @param   facts    array    (by ref) receives engine/version/kernel/tls facts
+"RTN","VSLENV",39,0)
+	; doc: @returns          bool     always 1 (faultable reads are isolated + trapped)
+"RTN","VSLENV",40,0)
+	set facts("engine")=$select($zversion["IRIS":"IRIS",$zversion["YottaDB":"YottaDB",1:$piece($zversion," ",1))
+"RTN","VSLENV",41,0)
+	set facts("version")=$zversion
+"RTN","VSLENV",42,0)
+	set facts("kernel")=$$kernelVer()
+"RTN","VSLENV",43,0)
+	set facts("tls")=$$tlsConfig()
+"RTN","VSLENV",44,0)
+	quit 1
+"RTN","VSLENV",45,0)
+	;
+"RTN","VSLENV",46,0)
+kernelVer()	; (private) the Kernel (#9.4 XU) current version, "" if unavailable.
+"RTN","VSLENV",47,0)
+	; doc: @icr 10141 @call $$VERSION^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#versionxpdutl-package-file-current-version
+"RTN","VSLENV",48,0)
+	new $etrap,v
+"RTN","VSLENV",49,0)
+	set v=""
+"RTN","VSLENV",50,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLENV",51,0)
+	set v=$$VERSION^XPDUTL("XU")
+"RTN","VSLENV",52,0)
+	quit v
+"RTN","VSLENV",53,0)
+	;
+"RTN","VSLENV",54,0)
+tlsConfig()	; (private) the DEFAULT TLS SERVER CONFIG Kernel System Parameter (presence), "" if unset.
+"RTN","VSLENV",55,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLENV",56,0)
+	new $etrap,v
+"RTN","VSLENV",57,0)
+	set v=""
+"RTN","VSLENV",58,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLENV",59,0)
+	set v=$$GET^XPAR("SYS","DEFAULT TLS SERVER CONFIG",1)
+"RTN","VSLENV",60,0)
+	quit v
+"RTN","VSLFS")
+0^124^0^0
+"RTN","VSLFS",1,0)
+VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
+"RTN","VSLFS",2,0)
+	; m-lint: disable-file=M-MOD-024
+"RTN","VSLFS",3,0)
+	; M-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays
+"RTN","VSLFS",4,0)
+	; (FDA / IEN / ERR, written by the called DBS routine by-reference) as
+"RTN","VSLFS",5,0)
+	; locals-before-def; they are the documented GETS/UPDATE/FILE convention.
+"RTN","VSLFS",6,0)
+	; Same suppression as VSLIO/STDNET.
+"RTN","VSLFS",7,0)
+	;
+"RTN","VSLFS",8,0)
+	; Binds the MSL storage seam (STDKV, S1) to VistA's FileMan Database Server
+"RTN","VSLFS",9,0)
+	; (DBS) API: a record store addressed by (file, iens, field). It exposes the
+"RTN","VSLFS",10,0)
+	; same four-verb signature as STDKV — $$set/$$get/$$exists/$$kill — backed by
+"RTN","VSLFS",11,0)
+	; FileMan DBS calls, never direct global access (architecture §3.2). The
+"RTN","VSLFS",12,0)
+	; adapter contains ONLY the VistA binding; any non-FileMan logic stays in the
+"RTN","VSLFS",13,0)
+	; MSL seam, called up (m/v waterline §9 no-duplication).
+"RTN","VSLFS",14,0)
+	;
+"RTN","VSLFS",15,0)
+	; Public API (the handle is a FileMan IENS; values are field values):
+"RTN","VSLFS",16,0)
+	;   $$set^VSLFS(file,iens,field,value) — file a field (UPDATE^DIE); add a
+"RTN","VSLFS",17,0)
+	;                                         record with iens "+1," -> resolved IENS
+"RTN","VSLFS",18,0)
+	;   $$get^VSLFS(file,iens,field,default)— read a field ($$GET1^DIQ), else default
+"RTN","VSLFS",19,0)
+	;   $$exists^VSLFS(file,iens)           — 1 iff the record exists
+"RTN","VSLFS",20,0)
+	;   $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01="@")
+"RTN","VSLFS",21,0)
+	;   $$lastError^VSLFS()                 — last FileMan DIERR detail, else ""
+"RTN","VSLFS",22,0)
+	;
+"RTN","VSLFS",23,0)
+	; *** ERROR CONTRACT — loud, never a silent wrong value ***
+"RTN","VSLFS",24,0)
+	; A FileMan DIERR on a write maps to a clean ,U-VSL-FS-DIERR, $ECODE, with the
+"RTN","VSLFS",25,0)
+	; DIERR text composed into ^TMP($job,"vslfs","err") for $$lastError. Reads of
+"RTN","VSLFS",26,0)
+	; an absent record/field are NOT errors — $$get returns the default and
+"RTN","VSLFS",27,0)
+	; $$exists returns 0 (the STDKV "absent -> default" semantics). Every DBS call
+"RTN","VSLFS",28,0)
+	; passes an explicit MSG_ROOT ("ERR") so errors land in this adapter's own
+"RTN","VSLFS",29,0)
+	; array, never the shared ^TMP("DIERR",$J).
+"RTN","VSLFS",30,0)
+	;
+"RTN","VSLFS",31,0)
+	; ICR note: the FileMan DBS API is the public DBS programmer API (FileMan
+"RTN","VSLFS",32,0)
+	; Developer's Guide, custodian DI). The DBIA/ICR *number* is notional — a
+"RTN","VSLFS",33,0)
+	; manually-curated FORUM list, not enforced programmatically — so each call is
+"RTN","VSLFS",34,0)
+	; tagged `@icr DBS` (the notional marker), with a real @status/@custodian/
+"RTN","VSLFS",35,0)
+	; @source. See docs/memory notional-dbia-not-a-blocker + plan §5.4.
+"RTN","VSLFS",36,0)
+	;
+"RTN","VSLFS",37,0)
+	quit
+"RTN","VSLFS",38,0)
+	;
+"RTN","VSLFS",39,0)
+	; ---------- the storage seam, bound to FileMan DBS (4 verbs) ----------
+"RTN","VSLFS",40,0)
+	;
+"RTN","VSLFS",41,0)
+set(file,iens,field,value)	; File `value` into (file,iens,field); return the resolved IENS, else raise.
+"RTN","VSLFS",42,0)
+	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",43,0)
+	; doc: @param   iens     string   IENS; "+1," (etc.) adds a new record
+"RTN","VSLFS",44,0)
+	; doc: @param   field    string   field number within the file
+"RTN","VSLFS",45,0)
+	; doc: @param   value    string   external value to file
+"RTN","VSLFS",46,0)
+	; doc: @returns          string   the resolved IENS on success (the new IENS for an add)
+"RTN","VSLFS",47,0)
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+"RTN","VSLFS",48,0)
+	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
+"RTN","VSLFS",49,0)
+	new FDA,IEN,ERR
+"RTN","VSLFS",50,0)
+	set FDA(file,iens,field)=value
+"RTN","VSLFS",51,0)
+	do UPDATE^DIE("","FDA","IEN","ERR")
+"RTN","VSLFS",52,0)
+	if $data(ERR("DIERR")) do raiseDierr("set",.ERR) quit ""
+"RTN","VSLFS",53,0)
+	quit $$resolveIens(iens,.IEN)
+"RTN","VSLFS",54,0)
+	;
+"RTN","VSLFS",55,0)
+get(file,iens,field,default)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+"RTN","VSLFS",56,0)
+	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",57,0)
+	; doc: @param   iens     string   IENS of the record
+"RTN","VSLFS",58,0)
+	; doc: @param   field    string   field number
+"RTN","VSLFS",59,0)
+	; doc: @param   default  string   value returned when the field/record is unset
+"RTN","VSLFS",60,0)
+	; doc: @returns          string   the external field value, or `default`
+"RTN","VSLFS",61,0)
+	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+"RTN","VSLFS",62,0)
+	new val,ERR
+"RTN","VSLFS",63,0)
+	set val=$$GET1^DIQ(file,iens,field,"","","ERR")
+"RTN","VSLFS",64,0)
+	if $data(ERR("DIERR")) quit default
+"RTN","VSLFS",65,0)
+	quit $select(val="":default,1:val)
+"RTN","VSLFS",66,0)
+	;
+"RTN","VSLFS",67,0)
+exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
+"RTN","VSLFS",68,0)
+	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",69,0)
+	; doc: @param   iens     string   IENS of the record
+"RTN","VSLFS",70,0)
+	; doc: @returns          bool     1 iff the record exists; 0 otherwise
+"RTN","VSLFS",71,0)
+	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+"RTN","VSLFS",72,0)
+	new val,ERR
+"RTN","VSLFS",73,0)
+	set val=$$GET1^DIQ(file,iens,".01","","","ERR")
+"RTN","VSLFS",74,0)
+	if $data(ERR("DIERR")) quit 0
+"RTN","VSLFS",75,0)
+	quit $select(val="":0,1:1)
+"RTN","VSLFS",76,0)
+	;
+"RTN","VSLFS",77,0)
+kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
+"RTN","VSLFS",78,0)
+	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",79,0)
+	; doc: @param   iens     string   IENS of the record to delete
+"RTN","VSLFS",80,0)
+	; doc: @returns          bool     1 (idempotent — a DIERR is recorded, not raised)
+"RTN","VSLFS",81,0)
+	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+"RTN","VSLFS",82,0)
+	new FDA,ERR
+"RTN","VSLFS",83,0)
+	set FDA(file,iens,".01")="@"
+"RTN","VSLFS",84,0)
+	do FILE^DIE("","FDA","ERR")
+"RTN","VSLFS",85,0)
+	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
+"RTN","VSLFS",86,0)
+	quit 1
+"RTN","VSLFS",87,0)
+	;
+"RTN","VSLFS",88,0)
+lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
+"RTN","VSLFS",89,0)
+	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+"RTN","VSLFS",90,0)
+	quit $get(^TMP($job,"vslfs","err"))
+"RTN","VSLFS",91,0)
+	;
+"RTN","VSLFS",92,0)
+	; ---------- internals ----------
+"RTN","VSLFS",93,0)
+	;
+"RTN","VSLFS",94,0)
+raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
+"RTN","VSLFS",95,0)
+	do stashDierr(who,.ERR)
+"RTN","VSLFS",96,0)
+	set $ecode=",U-VSL-FS-DIERR,"
+"RTN","VSLFS",97,0)
+	quit
+"RTN","VSLFS",98,0)
+	;
+"RTN","VSLFS",99,0)
+stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
+"RTN","VSLFS",100,0)
+	new m,nl,seq
+"RTN","VSLFS",101,0)
+	set nl=$char(10)
+"RTN","VSLFS",102,0)
+	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
+"RTN","VSLFS",103,0)
+	set seq=$order(ERR("DIERR",""))
+"RTN","VSLFS",104,0)
+	for  quit:seq=""  do
+"RTN","VSLFS",105,0)
+	. do:seq=+seq addText(seq,.ERR,.m,nl)
+"RTN","VSLFS",106,0)
+	. set seq=$order(ERR("DIERR",seq))
+"RTN","VSLFS",107,0)
+	set ^TMP($job,"vslfs","err")=m
+"RTN","VSLFS",108,0)
+	quit
+"RTN","VSLFS",109,0)
+	;
+"RTN","VSLFS",110,0)
+addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
+"RTN","VSLFS",111,0)
+	new ln
+"RTN","VSLFS",112,0)
+	set ln=$order(ERR("DIERR",seq,"TEXT",""))
+"RTN","VSLFS",113,0)
+	for  quit:ln=""  do
+"RTN","VSLFS",114,0)
+	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",115,0)
+	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",116,0)
+	quit
+"RTN","VSLFS",117,0)
+	;
+"RTN","VSLFS",118,0)
+resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
+"RTN","VSLFS",119,0)
+	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
+"RTN","VSLFS",120,0)
+	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
+"RTN","VSLFS",121,0)
+	new n
+"RTN","VSLFS",122,0)
+	if $extract(iens,1)'="+" quit iens
+"RTN","VSLFS",123,0)
+	set n=+$piece($extract(iens,2,$length(iens)),",")
+"RTN","VSLFS",124,0)
+	quit $get(IEN(n))_","
+"RTN","VSLIO")
+0^134^0^0
+"RTN","VSLIO",1,0)
+VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
+"RTN","VSLIO",2,0)
+	; m-lint: disable-file=M-MOD-024
+"RTN","VSLIO",3,0)
+	; M-MOD-024 false positives: the analyser reads the Kernel device-handler
+"RTN","VSLIO",4,0)
+	; input variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ
+"RTN","VSLIO",5,0)
+	; targets as locals-before-def; they are the documented ^%ZISTCP I/O
+"RTN","VSLIO",6,0)
+	; convention. Same suppression as STDJSON/STDHTTP/STDNET.
+"RTN","VSLIO",7,0)
+	;
+"RTN","VSLIO",8,0)
+	; Binds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:
+"RTN","VSLIO",9,0)
+	; outbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It
+"RTN","VSLIO",10,0)
+	; exposes the CLIENT subset of STDNET's signature (connect/read/write/close)
+"RTN","VSLIO",11,0)
+	; — VistA has NO Supported Kernel listen/accept (server) API (Kernel Device
+"RTN","VSLIO",12,0)
+	; Handler DG; inbound is the listener-process/JOB pattern), so the SERVER side
+"RTN","VSLIO",13,0)
+	; of a connection stays in the portable STDNET seam, never duplicated here.
+"RTN","VSLIO",14,0)
+	; The adapter contains ONLY the VistA binding; framing/buffering stays in
+"RTN","VSLIO",15,0)
+	; STD* and is called up (m/v waterline).
+"RTN","VSLIO",16,0)
+	;
+"RTN","VSLIO",17,0)
+	; Public API (raw bytes; the handle is the opened device, $$connect's return):
+"RTN","VSLIO",18,0)
+	;   $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0
+"RTN","VSLIO",19,0)
+	;   $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count
+"RTN","VSLIO",20,0)
+	;   $$write^VSLIO(id,buf)                — raw write -> 1/0
+"RTN","VSLIO",21,0)
+	;   $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1
+"RTN","VSLIO",22,0)
+	;   $$lastError^VSLIO()                  — last error message, else ""
+"RTN","VSLIO",23,0)
+	;
+"RTN","VSLIO",24,0)
+	; *** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***
+"RTN","VSLIO",25,0)
+	; This adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,
+"RTN","VSLIO",26,0)
+	; using a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)
+"RTN","VSLIO",27,0)
+	; is NOT wired: it requires engine TLS infrastructure absent on the test
+"RTN","VSLIO",28,0)
+	; engines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs
+"RTN","VSLIO",29,0)
+	; entry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and
+"RTN","VSLIO",30,0)
+	; $$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError
+"RTN","VSLIO",31,0)
+	; carrying remediation) rather than fall back to plaintext. This is a GATING
+"RTN","VSLIO",32,0)
+	; cleanup before the MSL/VSL stack is complete — see STDNET's TLS gap
+"RTN","VSLIO",33,0)
+	; (m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.
+"RTN","VSLIO",34,0)
+	;
+"RTN","VSLIO",35,0)
+	; The last error message is stashed at ^TMP($job,"vslio","err") for $$lastError.
+"RTN","VSLIO",36,0)
+	; Errors set $ECODE to one of:
+"RTN","VSLIO",37,0)
+	;   ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)
+"RTN","VSLIO",38,0)
+	;
+"RTN","VSLIO",39,0)
+	quit
+"RTN","VSLIO",40,0)
+	;
+"RTN","VSLIO",41,0)
+	; ---------- outbound TCP client (the VistA binding) ----------
+"RTN","VSLIO",42,0)
+	;
+"RTN","VSLIO",43,0)
+connect(host,port,timeout)	; Open an outbound TCP connection; return the device handle, else 0.
+"RTN","VSLIO",44,0)
+	; doc: @param   host     string   host/IP to connect to (IPADDRESS)
+"RTN","VSLIO",45,0)
+	; doc: @param   port     numeric  remote TCP port (SOCKET)
+"RTN","VSLIO",46,0)
+	; doc: @param   timeout  numeric  open timeout in seconds (default 10)
+"RTN","VSLIO",47,0)
+	; doc: @returns string   the opened device (handle) on POP=0, else 0
+"RTN","VSLIO",48,0)
+	; doc: @icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system
+"RTN","VSLIO",49,0)
+	; doc: WARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).
+"RTN","VSLIO",50,0)
+	new IO,POP,pio,dev
+"RTN","VSLIO",51,0)
+	set pio=$io
+"RTN","VSLIO",52,0)
+	do CALL^%ZISTCP(host,port,$get(timeout,30))
+"RTN","VSLIO",53,0)
+	if +$get(POP) use pio quit 0
+"RTN","VSLIO",54,0)
+	set dev=IO
+"RTN","VSLIO",55,0)
+	use pio
+"RTN","VSLIO",56,0)
+	quit dev
+"RTN","VSLIO",57,0)
+	;
+"RTN","VSLIO",58,0)
+read(id,maxlen,timeout,buf)	; Raw-read up to maxlen bytes from a handle.
+"RTN","VSLIO",59,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",60,0)
+	; doc: @param   maxlen   numeric  maximum bytes to read
+"RTN","VSLIO",61,0)
+	; doc: @param   timeout  numeric  seconds to wait for data
+"RTN","VSLIO",62,0)
+	; doc: @param   buf      string   by-ref; receives the bytes read
+"RTN","VSLIO",63,0)
+	; doc: @returns numeric  bytes read (0 on timeout/EOF)
+"RTN","VSLIO",64,0)
+	new x,pio
+"RTN","VSLIO",65,0)
+	set buf="",pio=$io
+"RTN","VSLIO",66,0)
+	use id read x#maxlen:timeout
+"RTN","VSLIO",67,0)
+	use pio
+"RTN","VSLIO",68,0)
+	set buf=x
+"RTN","VSLIO",69,0)
+	quit $length(x)
+"RTN","VSLIO",70,0)
+	;
+"RTN","VSLIO",71,0)
+write(id,buf)	; Raw-write `buf` to a connected handle.
+"RTN","VSLIO",72,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",73,0)
+	; doc: @param   buf      string   bytes to write (raw, no delimiter)
+"RTN","VSLIO",74,0)
+	; doc: @returns bool     1 on success
+"RTN","VSLIO",75,0)
+	new pio
+"RTN","VSLIO",76,0)
+	set pio=$io
+"RTN","VSLIO",77,0)
+	use id write buf
+"RTN","VSLIO",78,0)
+	use pio
+"RTN","VSLIO",79,0)
+	quit 1
+"RTN","VSLIO",80,0)
+	;
+"RTN","VSLIO",81,0)
+close(id)	; Close an outbound connection opened by $$connect.
+"RTN","VSLIO",82,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",83,0)
+	; doc: @returns bool     1 (idempotent)
+"RTN","VSLIO",84,0)
+	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
+"RTN","VSLIO",85,0)
+	new IO,pio
+"RTN","VSLIO",86,0)
+	set pio=$io,IO=id
+"RTN","VSLIO",87,0)
+	do CLOSE^%ZISTCP
+"RTN","VSLIO",88,0)
+	use pio
+"RTN","VSLIO",89,0)
+	quit 1
+"RTN","VSLIO",90,0)
+	;
+"RTN","VSLIO",91,0)
+lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
+"RTN","VSLIO",92,0)
+	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
+"RTN","VSLIO",93,0)
+	quit $get(^TMP($job,"vslio","err"))
+"RTN","VSLIO",94,0)
+	;
+"RTN","VSLIO",95,0)
+	; ---------- TLS (known gap — loud, never silent) ----------
+"RTN","VSLIO",96,0)
+	;
+"RTN","VSLIO",97,0)
+tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
+"RTN","VSLIO",98,0)
+	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
+"RTN","VSLIO",99,0)
+	; doc: Check before any secure use; $$tlsHelp has remediation.
+"RTN","VSLIO",100,0)
+	quit 0
+"RTN","VSLIO",101,0)
+	;
+"RTN","VSLIO",102,0)
+tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
+"RTN","VSLIO",103,0)
+	; doc: @returns string  multi-line: why there is no TLS + how to remedy
+"RTN","VSLIO",104,0)
+	quit $$noTlsMsg()
+"RTN","VSLIO",105,0)
+	;
+"RTN","VSLIO",106,0)
+connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
+"RTN","VSLIO",107,0)
+	; doc: @param   host     string   host/IP (ignored — not implemented)
+"RTN","VSLIO",108,0)
+	; doc: @param   port     numeric  TCP port (ignored — not implemented)
+"RTN","VSLIO",109,0)
+	; doc: @param   timeout  numeric  seconds (ignored — not implemented)
+"RTN","VSLIO",110,0)
+	; doc: @param   config   string   named TLS config (ignored — not implemented)
+"RTN","VSLIO",111,0)
+	; doc: @returns string   never returns a handle; always raises
+"RTN","VSLIO",112,0)
+	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
+"RTN","VSLIO",113,0)
+	do raiseNoTls("connectTls")
+"RTN","VSLIO",114,0)
+	quit 0
+"RTN","VSLIO",115,0)
+	;
+"RTN","VSLIO",116,0)
+	; ---------- internals ----------
+"RTN","VSLIO",117,0)
+	;
+"RTN","VSLIO",118,0)
+noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
+"RTN","VSLIO",119,0)
+	new m,nl
+"RTN","VSLIO",120,0)
+	set nl=$char(10)
+"RTN","VSLIO",121,0)
+	set m="VSLIO-NOTLS: VSLIO opens RAW PLAINTEXT TCP — TLS is NOT wired (a known, tracked gap)."
+"RTN","VSLIO",122,0)
+	set m=m_nl_"Do NOT use it for secure transport: a plaintext socket would silently expose credentials/PHI."
+"RTN","VSLIO",123,0)
+	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
+"RTN","VSLIO",124,0)
+	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
+"RTN","VSLIO",125,0)
+	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
+"RTN","VSLIO",126,0)
+	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
+"RTN","VSLIO",127,0)
+	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
+"RTN","VSLIO",128,0)
+	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
+"RTN","VSLIO",129,0)
+	quit m
+"RTN","VSLIO",130,0)
+	;
+"RTN","VSLIO",131,0)
+raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not silent).
+"RTN","VSLIO",132,0)
+	set ^TMP($job,"vslio","err")=who_": "_$$noTlsMsg()
+"RTN","VSLIO",133,0)
+	set $ecode=",U-VSLIO-NOTLS,"
+"RTN","VSLIO",134,0)
+	quit
+"RTN","VSLLOG")
+0^63^0^0
+"RTN","VSLLOG",1,0)
+VSLLOG	; v-stdlib — VistA FileMan audit-sink adapter (the S3 audit seam).
+"RTN","VSLLOG",2,0)
+	;
+"RTN","VSLLOG",3,0)
+	; Binds the observability sink to a VistA FileMan audit file. VSLLOG is the
+"RTN","VSLLOG",4,0)
+	; first v->v composition: it writes audit records by REUSING VSLFS (the
+"RTN","VSLLOG",5,0)
+	; FileMan DBS record writer) rather than re-binding UPDATE^DIE/$$GET1^DIQ
+"RTN","VSLLOG",6,0)
+	; itself — the in-`v` analog of the waterline no-duplication rule (a `v` tool
+"RTN","VSLLOG",7,0)
+	; consumes a lower `v` capability; only `v->m`/leaked-VistA-symbols are
+"RTN","VSLLOG",8,0)
+	; forbidden, never a VSL*->VSL* call). VSLLOG adds ONLY the log-record ->
+"RTN","VSLLOG",9,0)
+	; FileMan-field mapping: it composes a timestamped audit line (the timestamp
+"RTN","VSLLOG",10,0)
+	; from $$now^STDDATE(), portable, called up — v->m) and files it as the
+"RTN","VSLLOG",11,0)
+	; record's .01 via $$set^VSLFS.
+"RTN","VSLLOG",12,0)
+	;
+"RTN","VSLLOG",13,0)
+	; Public API (the handle is the FileMan IENS VSLFS returns):
+"RTN","VSLLOG",14,0)
+	;   $$write^VSLLOG(file,event,detail) — file one audit record -> resolved IENS
+"RTN","VSLLOG",15,0)
+	;   $$read^VSLLOG(file,iens)          — read an audit line back, else ""
+"RTN","VSLLOG",16,0)
+	;   $$lastError^VSLLOG()              — last error detail, else ""
+"RTN","VSLLOG",17,0)
+	;
+"RTN","VSLLOG",18,0)
+	; *** ERROR CONTRACT — loud, never a silent lost record ***
+"RTN","VSLLOG",19,0)
+	; A FileMan write failure surfaces from VSLFS as ,U-VSL-FS-DIERR,; VSLLOG
+"RTN","VSLLOG",20,0)
+	; catches it and re-raises a clean ,U-VSL-LOG-WRITE, $ECODE, carrying the
+"RTN","VSLLOG",21,0)
+	; underlying VSLFS detail in ^TMP($job,"vsllog","err") for $$lastError. The
+"RTN","VSLLOG",22,0)
+	; "audit log must never silently drop a record" goal (§6.2): a sink failure is
+"RTN","VSLLOG",23,0)
+	; loud, not swallowed. Reads of an absent record return "" (as VSLFS reads do).
+"RTN","VSLLOG",24,0)
+	;
+"RTN","VSLLOG",25,0)
+	; No @icr declarations here: VSLLOG makes NO direct L4 call — every FileMan
+"RTN","VSLLOG",26,0)
+	; DBS call is inside VSLFS (declared there), and $$now^STDDATE is an `m`-layer
+"RTN","VSLLOG",27,0)
+	; (STD*) call up, not an L4 reference. The v->v + v->m composition is correct
+"RTN","VSLLOG",28,0)
+	; by construction and invisible to the ICR/no-direct-global gate.
+"RTN","VSLLOG",29,0)
+	;
+"RTN","VSLLOG",30,0)
+	quit
+"RTN","VSLLOG",31,0)
+	;
+"RTN","VSLLOG",32,0)
+	; ---------- the audit sink, bound to FileMan via VSLFS (v->v) ----------
+"RTN","VSLLOG",33,0)
+	;
+"RTN","VSLLOG",34,0)
+write(file,event,detail)	; File one audit record into `file`; return the resolved IENS, else raise.
+"RTN","VSLLOG",35,0)
+	; doc: @param   file     numeric  FileMan audit-file number
+"RTN","VSLLOG",36,0)
+	; doc: @param   event    string   short event name (audit category)
+"RTN","VSLLOG",37,0)
+	; doc: @param   detail   string   free-text detail for the record
+"RTN","VSLLOG",38,0)
+	; doc: @returns          string   the resolved IENS of the new audit record
+"RTN","VSLLOG",39,0)
+	; doc: @raises  U-VSL-LOG-WRITE  the FileMan write failed (detail in $$lastError)
+"RTN","VSLLOG",40,0)
+	new $etrap,iens,line,ok
+"RTN","VSLLOG",41,0)
+	set ok=1
+"RTN","VSLLOG",42,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLLOG",43,0)
+	set line=$$now^STDDATE()_" "_event_" "_detail
+"RTN","VSLLOG",44,0)
+	set iens=$$set^VSLFS(file,"+1,",".01",line)
+"RTN","VSLLOG",45,0)
+	if ok quit iens
+"RTN","VSLLOG",46,0)
+	set $etrap="" do raiseWrite quit ""
+"RTN","VSLLOG",47,0)
+	;
+"RTN","VSLLOG",48,0)
+raiseWrite	; (private) map a downstream VSLFS fault to a loud ,U-VSL-LOG-WRITE,.
+"RTN","VSLLOG",49,0)
+	new detail
+"RTN","VSLLOG",50,0)
+	set detail=$$lastError^VSLFS()
+"RTN","VSLLOG",51,0)
+	set ^TMP($job,"vsllog","err")="write: "_$select(detail'="":detail,1:"FileMan write failed")
+"RTN","VSLLOG",52,0)
+	set $ecode=",U-VSL-LOG-WRITE,"
+"RTN","VSLLOG",53,0)
+	quit
+"RTN","VSLLOG",54,0)
+	;
+"RTN","VSLLOG",55,0)
+read(file,iens)	; Read the audit line stored at (file,iens) .01, else "".
+"RTN","VSLLOG",56,0)
+	; doc: @param   file     numeric  FileMan audit-file number
+"RTN","VSLLOG",57,0)
+	; doc: @param   iens     string   IENS of the audit record
+"RTN","VSLLOG",58,0)
+	; doc: @returns          string   the stored audit line, or "" if absent
+"RTN","VSLLOG",59,0)
+	quit $$get^VSLFS(file,iens,".01","")
+"RTN","VSLLOG",60,0)
+	;
+"RTN","VSLLOG",61,0)
+lastError()	; The last VSLLOG error message (the composed FileMan detail).
+"RTN","VSLLOG",62,0)
+	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
+"RTN","VSLLOG",63,0)
+	quit $get(^TMP($job,"vsllog","err"))
+"RTN","VSLSEC")
+0^78^0^0
+"RTN","VSLSEC",1,0)
+VSLSEC	; v-stdlib — VistA identity/authorization adapter (Kernel).
+"RTN","VSLSEC",2,0)
+	;
+"RTN","VSLSEC",3,0)
+	; Binds the VistA *authorization decision* — the part of the security seam
+"RTN","VSLSEC",4,0)
+	; that has NO portable analog and so cannot live below the waterline. Three
+"RTN","VSLSEC",5,0)
+	; bindings, each VistA-only:
+"RTN","VSLSEC",6,0)
+	;   - the security-key check ($$hasKey, over Kernel's ^XUSEC);
+"RTN","VSLSEC",7,0)
+	;   - the ambient principal ($$duz, the NEW PERSON #200 IEN);
+"RTN","VSLSEC",8,0)
+	;   - the principal -> #200 NAME resolution ($$user), which REUSES VSLFS
+"RTN","VSLSEC",9,0)
+	;     (v->v composition; no FileMan DBS re-bind — waterline §9 no-duplication
+"RTN","VSLSEC",10,0)
+	;     applies within `v` too).
+"RTN","VSLSEC",11,0)
+	;
+"RTN","VSLSEC",12,0)
+	; *** NO portable crypto here — STDCRYPTO owns it. *** Portable token crypto
+"RTN","VSLSEC",13,0)
+	; (SHA digests, HMAC, constant-time compare) lives in STDCRYPTO (libcrypto on
+"RTN","VSLSEC",14,0)
+	; YDB / $SYSTEM.Encryption on IRIS, dual-engine proven) and is called up by a
+"RTN","VSLSEC",15,0)
+	; consumer that needs it. VSLSEC binds NO Kernel hash back end: grounded
+"RTN","VSLSEC",16,0)
+	; 2026-06-16, there is no portable Kernel generic-hash entry point —
+"RTN","VSLSEC",17,0)
+	; $$SHAHASH^XUSHSH is absent on the YDB-VistA test engine (pre XU*8.0*655)
+"RTN","VSLSEC",18,0)
+	; and the classic top-level ^XUSHSH returns a constant on both engines. The
+"RTN","VSLSEC",19,0)
+	; architecture (§3.4) is explicit: "Portable token crypto stays in STD*; the
+"RTN","VSLSEC",20,0)
+	; VistA authorization decision lives in VSL." This module is that decision.
+"RTN","VSLSEC",21,0)
+	;
+"RTN","VSLSEC",22,0)
+	; Public API:
+"RTN","VSLSEC",23,0)
+	;   $$hasKey^VSLSEC(key,duz) — 1 iff `duz` holds security key `key`, else 0
+"RTN","VSLSEC",24,0)
+	;   $$duz^VSLSEC()           — the ambient principal (+$GET(DUZ), the #200 IEN)
+"RTN","VSLSEC",25,0)
+	;   $$user^VSLSEC(duz)       — the #200 NAME for `duz` (via VSLFS), else ""
+"RTN","VSLSEC",26,0)
+	;   $$lastError^VSLSEC()     — last error detail, else ""
+"RTN","VSLSEC",27,0)
+	;
+"RTN","VSLSEC",28,0)
+	; *** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***
+"RTN","VSLSEC",29,0)
+	; An authorization DENY is a normal `0` from $$hasKey — NOT an error. A
+"RTN","VSLSEC",30,0)
+	; malformed call (an empty key name) maps to a clean ,U-VSL-SEC-ARG, $ECODE,
+"RTN","VSLSEC",31,0)
+	; with the detail in ^TMP($job,"vslsec","err") for $$lastError. This mirrors
+"RTN","VSLSEC",32,0)
+	; VSLFS's loud-failure posture (a real fault is loud; an absent value is not).
+"RTN","VSLSEC",33,0)
+	;
+"RTN","VSLSEC",34,0)
+	; ICR note: ^XUSEC is the documented Supported *reference* for security-key
+"RTN","VSLSEC",35,0)
+	; membership ("do not reference the SECURITY KEY (#19.1) file ... check the
+"RTN","VSLSEC",36,0)
+	; ^XUSEC global ... this is (and continues to be) a supported reference" —
+"RTN","VSLSEC",37,0)
+	; Kernel DG, Security Keys). It carries no numeric DBIA in the gold corpus, so
+"RTN","VSLSEC",38,0)
+	; the call is tagged with the notional ICR marker (a read, never a write — the
+"RTN","VSLSEC",39,0)
+	; no-direct-global rule forbids set/kill, not the Supported $D reference). See
+"RTN","VSLSEC",40,0)
+	; docs/memory notional-dbia-not-a-blocker + plan §5.4.
+"RTN","VSLSEC",41,0)
+	;
+"RTN","VSLSEC",42,0)
+	quit
+"RTN","VSLSEC",43,0)
+	;
+"RTN","VSLSEC",44,0)
+	; ---------- the authorization decision (the VistA binding) ----------
+"RTN","VSLSEC",45,0)
+	;
+"RTN","VSLSEC",46,0)
+hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key`.
+"RTN","VSLSEC",47,0)
+	; doc: @param   key      string   security-key name (SECURITY KEY #19.1 .01)
+"RTN","VSLSEC",48,0)
+	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
+"RTN","VSLSEC",49,0)
+	; doc: @returns          bool     1 iff the user holds the key; 0 (a normal DENY) otherwise
+"RTN","VSLSEC",50,0)
+	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty key name)
+"RTN","VSLSEC",51,0)
+	; doc: @icr notional @call ^XUSEC @status Supported @custodian XU @source XU/krn_8_0_dg_security_keys_ug#key-lookup
+"RTN","VSLSEC",52,0)
+	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
+"RTN","VSLSEC",53,0)
+	quit ''$data(^XUSEC(key,$$pduz(duz)))
+"RTN","VSLSEC",54,0)
+	;
+"RTN","VSLSEC",55,0)
+duz()	; The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
+"RTN","VSLSEC",56,0)
+	; doc: @returns          numeric  the ambient DUZ (0 when no signon context is set)
+"RTN","VSLSEC",57,0)
+	quit +$get(DUZ)
+"RTN","VSLSEC",58,0)
+	;
+"RTN","VSLSEC",59,0)
+user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
+"RTN","VSLSEC",60,0)
+	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
+"RTN","VSLSEC",61,0)
+	; doc: @returns          string   the NEW PERSON (#200) .01 NAME, or "" if absent
+"RTN","VSLSEC",62,0)
+	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
+"RTN","VSLSEC",63,0)
+	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
+"RTN","VSLSEC",64,0)
+	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
+"RTN","VSLSEC",65,0)
+	;
+"RTN","VSLSEC",66,0)
+lastError()	; The last VSLSEC error message (the composed malformed-call detail).
+"RTN","VSLSEC",67,0)
+	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
+"RTN","VSLSEC",68,0)
+	quit $get(^TMP($job,"vslsec","err"))
+"RTN","VSLSEC",69,0)
+	;
+"RTN","VSLSEC",70,0)
+	; ---------- internals ----------
+"RTN","VSLSEC",71,0)
+	;
+"RTN","VSLSEC",72,0)
+pduz(duz)	; Resolve the effective principal: `duz` if supplied, else the ambient DUZ.
+"RTN","VSLSEC",73,0)
+	quit $select($get(duz)'="":duz,1:+$get(DUZ))
+"RTN","VSLSEC",74,0)
+	;
+"RTN","VSLSEC",75,0)
+raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
+"RTN","VSLSEC",76,0)
+	set ^TMP($job,"vslsec","err")=who_": "_msg
+"RTN","VSLSEC",77,0)
+	set $ecode=",U-VSL-SEC-ARG,"
+"RTN","VSLSEC",78,0)
+	quit
+"RTN","VSLTASK")
+0^90^0^0
+"RTN","VSLTASK",1,0)
+VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process seam).
+"RTN","VSLTASK",2,0)
+	;
+"RTN","VSLTASK",3,0)
+	; Binds the persistent-listener seam to Kernel TaskMan. A long-running VSL/
+"RTN","VSLTASK",4,0)
+	; VWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks
+"RTN","VSLTASK",5,0)
+	; a queued task persistent, so TaskMan automatically RE-RUNS it when the lock
+"RTN","VSLTASK",6,0)
+	; on ^%ZTSCH("TASK",n) is dropped — a self-healing listener (architecture
+"RTN","VSLTASK",7,0)
+	; §3.5). VSLTASK is a thin binding over the Supported ^%ZTLOAD programmer API
+"RTN","VSLTASK",8,0)
+	; (ICR #10063), NOT new machinery; portable diagnostics belong in STDLOG (v->m),
+"RTN","VSLTASK",9,0)
+	; never re-implemented here.
+"RTN","VSLTASK",10,0)
+	;
+"RTN","VSLTASK",11,0)
+	; Public API:
+"RTN","VSLTASK",12,0)
+	;   $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)
+"RTN","VSLTASK",13,0)
+	;   $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)
+"RTN","VSLTASK",14,0)
+	;   $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)
+"RTN","VSLTASK",15,0)
+	;   $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#
+"RTN","VSLTASK",16,0)
+	;   $$lastError^VSLTASK()         — last error detail, else ""
+"RTN","VSLTASK",17,0)
+	;
+"RTN","VSLTASK",18,0)
+	; *** ERROR CONTRACT — loud on a malformed call / a real TaskMan fault ***
+"RTN","VSLTASK",19,0)
+	; A malformed call (no entry / no task#) or a TaskMan queue fault maps to a
+"RTN","VSLTASK",20,0)
+	; clean ,U-VSL-TASK-ARG, / ,U-VSL-TASK-QUEUE, $ECODE, with the detail in
+"RTN","VSLTASK",21,0)
+	; ^TMP($job,"vsltask","err") for $$lastError. A normal negative — "the
+"RTN","VSLTASK",22,0)
+	; scheduler is not running here" ($$running=0) or "no stop requested"
+"RTN","VSLTASK",23,0)
+	; ($$stop=0) — is NOT an error (kickoff decision 4). The flag-based $ETRAP
+"RTN","VSLTASK",24,0)
+	; pattern is used (NEVER zgoto — a zgoto trap aborts the resident harness 0/0,
+"RTN","VSLTASK",25,0)
+	; the M4 VSLLOG gotcha); OUR trap is cleared before any re-raise.
+"RTN","VSLTASK",26,0)
+	;
+"RTN","VSLTASK",27,0)
+	; Self-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks
+"RTN","VSLTASK",28,0)
+	; ^%ZTSCH("TASK",n,"P"); TaskMan re-runs on a lock drop). Observing a live
+"RTN","VSLTASK",29,0)
+	; restart needs the task body installed as a RESIDENT routine (the VSLBLD/
+"RTN","VSLTASK",30,0)
+	; v-pkg path) + lock manipulation, and a persistent task is deliberately
+"RTN","VSLTASK",31,0)
+	; un-KILLable — out of scope for a safe unit test (see VSLTASKTST).
+"RTN","VSLTASK",32,0)
+	;
+"RTN","VSLTASK",33,0)
+	quit
+"RTN","VSLTASK",34,0)
+	;
+"RTN","VSLTASK",35,0)
+	; ---------- the TaskMan binding (ICR #10063, Supported) ----------
+"RTN","VSLTASK",36,0)
+	;
+"RTN","VSLTASK",37,0)
+running()	; 1 iff the TaskMan scheduler is live (its ^%ZTSCH("RUN") heartbeat is fresh).
+"RTN","VSLTASK",38,0)
+	; doc: @returns          bool     1 iff TaskMan is running (the self-heal precondition); 0 otherwise
+"RTN","VSLTASK",39,0)
+	; doc: @icr 10063 @call $$TM^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#tmztload-check-if-taskman-is-running
+"RTN","VSLTASK",40,0)
+	quit ''$$TM^%ZTLOAD()
+"RTN","VSLTASK",41,0)
+	;
+"RTN","VSLTASK",42,0)
+stop()	; 1 iff a stop has been requested of the currently-running task (cooperative stop).
+"RTN","VSLTASK",43,0)
+	; doc: @returns          bool     1 iff the listener loop should stop; 0 when not in a task / no stop pending
+"RTN","VSLTASK",44,0)
+	; doc: @icr 10063 @call $$S^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#sztload-check-for-task-stop-request
+"RTN","VSLTASK",45,0)
+	quit ''$$S^%ZTLOAD
+"RTN","VSLTASK",46,0)
+	;
+"RTN","VSLTASK",47,0)
+persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
+"RTN","VSLTASK",48,0)
+	; doc: @param   ztsk     numeric  the task number (from $$schedule / ^%ZTLOAD)
+"RTN","VSLTASK",49,0)
+	; doc: @returns          bool     1 iff the task was marked persistent, else 0 (task not queued)
+"RTN","VSLTASK",50,0)
+	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
+"RTN","VSLTASK",51,0)
+	; doc: @icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent
+"RTN","VSLTASK",52,0)
+	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","persist: a positive task number is required") quit ""
+"RTN","VSLTASK",53,0)
+	quit ''$$PSET^%ZTLOAD(ztsk)
+"RTN","VSLTASK",54,0)
+	;
+"RTN","VSLTASK",55,0)
+schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; return its task number.
+"RTN","VSLTASK",56,0)
+	; doc: @param   entry    string   the task entry reference (TAG^ROUTINE)
+"RTN","VSLTASK",57,0)
+	; doc: @param   desc     string   a human description (optional)
+"RTN","VSLTASK",58,0)
+	; doc: @param   when     string   $H start time (optional; default now). MUST be <=5-digit $H or "@"
+"RTN","VSLTASK",59,0)
+	; doc: @returns          numeric  the queued task number
+"RTN","VSLTASK",60,0)
+	; doc: @raises  U-VSL-TASK-ARG    no entry reference supplied
+"RTN","VSLTASK",61,0)
+	; doc: @raises  U-VSL-TASK-QUEUE  the TaskMan queue / persist failed
+"RTN","VSLTASK",62,0)
+	new $etrap,ztsk,ok
+"RTN","VSLTASK",63,0)
+	if $get(entry)="" do raise("U-VSL-TASK-ARG","schedule: an entry reference is required") quit ""
+"RTN","VSLTASK",64,0)
+	set ok=1
+"RTN","VSLTASK",65,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLTASK",66,0)
+	set ztsk=$$queue(entry,$get(desc),$get(when))
+"RTN","VSLTASK",67,0)
+	set $etrap=""
+"RTN","VSLTASK",68,0)
+	if 'ok!(+ztsk'>0) do raise("U-VSL-TASK-QUEUE","schedule: TaskMan queue failed") quit ""
+"RTN","VSLTASK",69,0)
+	if '$$PSET^%ZTLOAD(ztsk) do raise("U-VSL-TASK-QUEUE","schedule: could not mark task "_ztsk_" persistent") quit ""
+"RTN","VSLTASK",70,0)
+	quit ztsk
+"RTN","VSLTASK",71,0)
+	;
+"RTN","VSLTASK",72,0)
+lastError()	; The last VSLTASK error message (the composed malformed-call / fault detail).
+"RTN","VSLTASK",73,0)
+	; doc: @returns          string   ^TMP($job,"vsltask","err"), or "" if none
+"RTN","VSLTASK",74,0)
+	quit $get(^TMP($job,"vsltask","err"))
+"RTN","VSLTASK",75,0)
+	;
+"RTN","VSLTASK",76,0)
+	; ---------- internals ----------
+"RTN","VSLTASK",77,0)
+	;
+"RTN","VSLTASK",78,0)
+queue(entry,desc,when)	; (private) headless ^%ZTLOAD queue (no device); return the task number, else 0.
+"RTN","VSLTASK",79,0)
+	; doc: @icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points
+"RTN","VSLTASK",80,0)
+	new ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSK
+"RTN","VSLTASK",81,0)
+	set ZTRTN=entry,ZTIO=""
+"RTN","VSLTASK",82,0)
+	set ZTDESC=$select(desc'="":desc,1:"VSL persistent listener")
+"RTN","VSLTASK",83,0)
+	set ZTDTH=$select(when'="":when,1:$horolog)
+"RTN","VSLTASK",84,0)
+	do ^%ZTLOAD
+"RTN","VSLTASK",85,0)
+	quit +$get(ZTSK)
+"RTN","VSLTASK",86,0)
+	;
+"RTN","VSLTASK",87,0)
+raise(code,msg)	; (private) stash the detail, then raise the clean ,<code>, $ECODE.
+"RTN","VSLTASK",88,0)
+	set ^TMP($job,"vsltask","err")=msg
+"RTN","VSLTASK",89,0)
+	set $ecode=","_code_","
+"RTN","VSLTASK",90,0)
 	quit
 "ORD",1,8989.51)
 8989.51;1;1;;;;;;;
