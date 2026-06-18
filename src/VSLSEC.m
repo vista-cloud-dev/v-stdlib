@@ -63,6 +63,33 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
 	;
+bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
+	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
+	; doc: @returns          numeric  the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
+	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty SecID)
+	; doc: @icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file
+	; doc: The SSOi/2FA identity binding: a federated subject (the SecID claim of a
+	; doc: validated token) -> the local #200 IEN, the way Kernel's own XUSAML/
+	; doc: XUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID
+	; doc: (param 2; null last name in param 3) and stuffs a by-ref result array
+	; doc: (result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare
+	; doc: engine (EN1^XUPSQRY absent) this returns "" — the caller $text-gates the
+	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
+	; doc: Subscription API and the IEN is read from the returned array (waterline).
+	new RESULT
+	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
+	if $text(EN1^XUPSQRY)="" quit ""
+	do EN1^XUPSQRY(.RESULT,secid,"")
+	quit $$parseQry(.RESULT)
+	;
+parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
+	; doc: @internal
+	; doc: result(1) is the found-flag (1 found / 0 not found); result(1,0) is the
+	; doc: first record, VPID^IEN^LastName~First~Middle^SSN^DOB^SEX^ — the IEN is
+	; doc: ^-piece 2. Pure (no VistA) so it is unit-tested on a bare engine.
+	if +$get(result(1))'=1 quit ""
+	quit $piece($get(result(1,0)),"^",2)
+	;
 lastError()	; The last VSLSEC error message (the composed malformed-call detail).
 	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
 	quit $get(^TMP($job,"vslsec","err"))
