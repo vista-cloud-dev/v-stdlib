@@ -139,6 +139,16 @@
         "doc_key": "XU/krn_8_0_dg_security_keys_ug"
       },
       "status": "Supported"
+    },
+    {
+      "call": "EN1^XUPSQRY",
+      "custodian": "XU",
+      "icr": 4575,
+      "source": {
+        "anchor": "en1xupsqry-query-new-person-file",
+        "doc_key": "XU/krn_8_0_dg_common_services_ug"
+      },
+      "status": "Controlled Subscription"
     }
   ],
   "VSLTASK": [
