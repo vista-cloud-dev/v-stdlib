@@ -8,7 +8,9 @@
     ]
   },
   "discovered": {
-    "globals": [],
+    "globals": [
+      "VSLTAP"
+    ],
     "routines": [
       "VSLBLD",
       "VSLCFG",
@@ -16,7 +18,10 @@
       "VSLFS",
       "VSLIO",
       "VSLLOG",
+      "VSLRPCTAP",
       "VSLSEC",
+      "VSLTAP",
+      "VSLTAPHL",
       "VSLTASK"
     ]
   }
