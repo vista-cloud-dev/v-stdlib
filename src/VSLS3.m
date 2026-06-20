@@ -33,7 +33,7 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 	;   $$fidelityKey(station,ymd)                 traffic/<st>/_fidelity/Y/M/D.json
 	;   $$ctx(ctx,opt)                             build the S3 ctx+opt from the seam -> bucket
 	;   $$ship(ctx,bucket,key,body,opt,resp)       PUT one object (status; egress)
-	;   $$readback(ctx,bucket,key,resp)            GET one object (status; egress)
+	;   $$readback(ctx,bucket,key,opt,resp)        GET one object (status; egress)
 	;   $$drain(res)                               flush the ^XTMP ring -> ship -> trim
 	;
 	quit
@@ -146,15 +146,18 @@ ship(ctx,bucket,key,body,opt,resp)	; PUT one object to S3 / the S3-equivalent vi
 	set opt("contentType")=$get(opt("contentType"),"application/x-ndjson")
 	quit $$putObject^STDS3(.ctx,bucket,key,$get(body),.opt,.resp)
 	;
-readback(ctx,bucket,key,resp)	; GET one object back from S3 / the S3-equivalent via STDS3.
+readback(ctx,bucket,key,opt,resp)	; GET one object back from S3 / the S3-equivalent via STDS3.
 	; doc: @param ctx     array  the credential context (from $$ctx), by-ref
 	; doc: @param bucket  string the source bucket
 	; doc: @param key     string the object key
+	; doc: @param opt     array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
 	; doc: @param resp    array  OUT by-ref: resp("body") holds the bytes on 200
 	; doc: @returns       int    HTTP status (200 ok); 0 on transport failure
 	; doc: The fidelity-harness read leg (spec §15.2 step 4): read the shipped
-	; doc: object back and compare byte-for-byte (VSLTAPFC).
-	quit $$getObject^STDS3(.ctx,bucket,key,.resp)
+	; doc: object back and compare byte-for-byte (VSLTAPFC). `opt` carries the
+	; doc: endpoint override (from $$ctx) so the GET reaches the same endpoint the
+	; doc: PUT used — without it the read op signs+sends to real AWS, not MinIO.
+	quit $$getObject^STDS3(.ctx,bucket,key,.opt,.resp)
 	;
 	; ---------- the drain loop (VSLTASK-driven flush; spec §4.1.3) ----------
 	;

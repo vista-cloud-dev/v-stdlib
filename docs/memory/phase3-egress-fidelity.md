@@ -1,8 +1,37 @@
 ---
 name: phase3-egress-fidelity
-description: Traffic-tap Phase 3 (M2) egress-independent core — VSLS3 (LDJSON envelope + drain) + VSLTAPFC (byte-equality comparator) + VSLTAP $$drainTo, dual-engine green; the live MinIO round-trip carved (blocked on G-HTTP-*).
+description: Traffic-tap Phase 3 (M2) — VSLS3 (LDJSON envelope + drain) + VSLTAPFC (byte-equality comparator) + VSLTAP $$drainTo, dual-engine green; the live MinIO round-trip now GREEN on IRIS (VSLS3E2ETST 6/6) after fixing the egress blockers; YDB leg still blocked on an engine-image call-out defect.
 metadata:
   type: project
+---
+
+**EGRESS BLOCKERS — UPDATE (2026-06-20).** Resolved the IRIS egress blocker and ran
+the live byte-exact round-trip: **`VSLS3E2ETST` is GREEN on IRIS, 6/6** (generate RPC
+corpus → tap → `$$drain` ships LDJSON to MinIO → `$$readback` GET → `$$reconcile`
+byte-for-byte). The "G-HTTP-IRIS-GET (`%Net` fails bodyless GET)" finding was a
+**misdiagnosis** — the real causes were two **m-stdlib `STDS3` bugs** (fixed on
+`m-stdlib` branch `phase1-s3-sigv4`, pushed): (1) `getObject`/`headObject`/
+`deleteObject`/`listObjectsV2`/the multipart trio took **no `opt`** arg, so
+`opt("endpoint")` never reached `buildRequest` — every read op signed+sent to **real
+AWS** instead of MinIO (→ `sc=0`); now all seven request-building ops take `opt`
+(breaking arity; callers updated). (2) `STDHTTP` `irisPerform` charset-translated
+high bytes → signed-binary `x-amz-content-sha256` mismatch; now sets
+`REQ.WriteRawMode=1`. v-stdlib side: **`VSLS3 $$readback` now takes `opt`** and the
+harness threads it; the harness bucket points at the s3-testbed bucket
+`vista-test-logs`. **YDB leg still blocked**, re-triaged as an **engine-image
+call-out defect** (NOT M code): the `stdhttp` `$ZF` package fails to LOAD on
+`m-test-engine` YDB r2.07 — every `$&stdhttp.*` fails to compile (`%YDB-E-EXPR`,
+package-wide); `http.so`+`std_http.xc`+`ydb_xc_stdhttp`+libcurl are all present and
+ldd-clean. Not buffer size (`std_compress.xc` uses the same `[1048576]` and works);
+prime suspect = the **zero-arg `http_available()` table entry** (every working
+call-out has ≥1 param). Fix + verify need the m-test-engine image rebake (no
+compiler in-image; writing into the shared engine is correctly forbidden here). See
+m-stdlib `docs/tracking/discoveries.md` (both 2026-06-19 P1 rows re-triaged) +
+[[phase2-vsltap]]. **GOTCHA:** `m-test-iris` poisons the job after a failed `%Net.Send`
+(a stale 0/0 abort lingers across suites) — `docker restart m-test-iris` clears it
+(known m-cli runner discovery). Verification exfil trick: write `$zstatus`/error into
+a MinIO object via the working PUT and read it off MinIO's host data dir (the engines
+have no host mount).
 ---
 
 **RPC+HL7→S3 traffic tap — Phase 3 / M2: egress-independent CORE DONE (2026-06-19,

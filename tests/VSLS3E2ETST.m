@@ -39,7 +39,10 @@ cfg()	; (private) configure the tap to ship to the MinIO testbed (path-style end
 	set ^VSLTAP("cfg","s3secretkey")="minioadmin"
 	set ^VSLTAP("cfg","s3region")="us-east-1"
 	set ^VSLTAP("cfg","s3endpoint")="http://m-s3-minio:9000"
-	set ^VSLTAP("cfg","s3bucket")="vista-traffic"
+	; the bucket the s3-testbed stands up (scripts/s3-testbed.sh BUCKET default,
+	; same one m-stdlib's STDS3MINIOTST uses) — a real S3 deployment points this
+	; at the production traffic bucket with no code change.
+	set ^VSLTAP("cfg","s3bucket")="vista-test-logs"
 	set ^VSLTAP("cfg","s3station")="500"
 	set ^VSLTAP("cfg","s3proto")="rpc"
 	quit
@@ -75,7 +78,7 @@ tRoundTripByteExact(pass,fail)	;@TEST "round-trip: every generated RPC lands byt
 	do eq^STDASSERT(.pass,.fail,n,7,"all 7 corpus records shipped in one batch")
 	; read back: GET the shipped object from MinIO
 	set bucket=$$ctx^VSLS3(.ctx,.opt),key=res("key")
-	set sc=$$readback^VSLS3(.ctx,bucket,key,.resp)
+	set sc=$$readback^VSLS3(.ctx,bucket,key,.opt,.resp)
 	do eq^STDASSERT(.pass,.fail,sc,200,"read-back GET returns 200 (needs G-HTTP-* resolved)")
 	set body=$get(resp("body"))
 	; reconcile: split the read-back NDJSON into per-record envelopes by seq
