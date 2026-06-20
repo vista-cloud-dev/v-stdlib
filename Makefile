@@ -139,5 +139,15 @@ check: fmt-check lint arch gates test
 .PHONY: check-fast
 check-fast: fmt-check lint arch gates
 
+# CI entrypoint — the full gate, identical to `check`. The engine-bound `test`
+# step runs the VSLTAPBENCHTST 3-arm non-interference benchmark (spec §6.4/§7,
+# D-7) as a hard gate alongside the functional suites: it asserts the tapped
+# RPC-dispatch latency stays within the pre-registered bound on small AND large
+# payloads, on whichever engine is selected. Run it once per engine in CI:
+#   make ci ENGINE=ydb  DOCKER=m-test-engine
+#   make ci ENGINE=iris DOCKER=m-test-iris
+.PHONY: ci
+ci: check
+
 clean:
 	rm -f test-results.tap *.lcov coverage.out

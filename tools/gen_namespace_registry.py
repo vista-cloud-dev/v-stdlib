@@ -46,7 +46,12 @@ GLOBAL_WRITE_RE = re.compile(r"\b(?:set|kill|s|k)\s+\^(?P<name>[A-Za-z%|$][A-Za-
 
 # Scratch / temp global namespaces that no application owns — exempt from the
 # namespace rule (they are process-local or vendor-temp, not persistent app data).
-SCRATCH_GLOBAL_RE = re.compile(r"^(%|\$|\||mtmp|CacheTemp|IRIS\.Temp|utility|tmp)", re.IGNORECASE)
+# ^XTMP is Kernel's SAC-sanctioned, FileMan-exempt scratch global (SAC §2.3.2.5;
+# XU/krn_8_0_dg_xtmp_global_ug) — "transient data shared across processes", owned
+# by no application namespace and auto-purged by Kernel XQ82. VSLTAP's rolling
+# capture cache lives in ^XTMP("VSLTAP",…) by design (no FileMan file), so XTMP is
+# exempt here exactly as ^TMP / ^%* are.
+SCRATCH_GLOBAL_RE = re.compile(r"^(%|\$|\||mtmp|CacheTemp|IRIS\.Temp|utility|XTMP|tmp)", re.IGNORECASE)
 
 
 def strip_comment(line: str) -> str:
