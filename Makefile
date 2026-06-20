@@ -18,9 +18,14 @@ VPKG ?= $(HOME)/vista-cloud-dev/v-pkg/dist/v-pkg
 #   make test ENGINE=iris DOCKER=m-test-iris
 ENGINE ?=
 DOCKER ?=
-ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER))
+# Byte (M) charset by default: v-stdlib consumes byte-oriented m-stdlib modules
+# (STDCRYPTO/STDB64/STDJSON assume one M char == one byte), so the engine runs in
+# byte mode (the org rule m-stdlib also follows). YDB exports ydb_chset=M; IRIS
+# treats --chset as a no-op. Override with CHSET= to disable.
+CHSET  ?= m
+ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER)) $(if $(CHSET),--chset $(CHSET))
 
-.PHONY: all check fmt fmt-check lint arch test coverage clean \
+.PHONY: all check fmt fmt-check lint arch test test-s3 coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates
 
@@ -44,8 +49,21 @@ arch:
 
 # Engine-bound: stage STDASSERT (+ harness) from m-stdlib so VSL*TST suites
 # resolve ^STDASSERT. Pass --engine ydb|iris and --docker <container>.
+# NOTE: the integration harness tests/VSLS3E2ETST.m needs a live MinIO sink +
+# engine HTTP egress — run it via `make test-s3`, not here (carved, like
+# m-stdlib's STDS3MINIOTST).
 test:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(TESTS)
+
+# Integration: the end-to-end round-trip fidelity harness (spec §15.2) against a
+# LIVE S3-equivalent (MinIO/LocalStack). NOT in `make test`/`make ci` — it needs
+# engine HTTP egress (G-HTTP-YDB: bake stdhttp.so+libcurl into m-test-engine;
+# G-HTTP-IRIS-GET: STDHTTP %Net signed-bodyless-GET fix). Bring up the m-stdlib
+# s3-testbed MinIO first (shared docker network, host m-s3-minio:9000), e.g.
+#   ( cd $(MSTDLIB) && scripts/s3-testbed.sh up )
+# then: make test-s3 ENGINE=iris DOCKER=m-test-iris
+test-s3:
+	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m
 
 coverage:
 	$(M) coverage $(ENGINE_FLAGS) --routines $(MSTDLIB)/src --min-percent=85 $(SRC) $(TESTS)
