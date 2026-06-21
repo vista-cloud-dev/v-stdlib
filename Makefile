@@ -25,7 +25,21 @@ DOCKER ?=
 CHSET  ?= m
 ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOCKER)) $(if $(CHSET),--chset $(CHSET))
 
-.PHONY: all check fmt fmt-check lint arch test test-s3 coverage clean \
+# Bare-engine-green suites — the traffic-tap + S3 + auth tier, which run on a
+# plain M engine with NO VistA (no Kernel/FileMan). These are the engine-bound
+# CI gate (`make ci`). The VistA-dependent suites (VSLBLD/VSLCFG/VSLFS/VSLIO/
+# VSLLOG/VSLTASK — they need #-files + Kernel APIs and report 0/0 on a bare
+# engine) are NOT here; run them via `make test` on a VistA-equipped engine.
+# VSLS3E2ETST is the live round-trip — it runs in `make test-s3-matrix`, not here.
+BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
+              tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPHLTST.m \
+              tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m tests/VSLHL7TAPTST.m \
+              tests/VSLS3TST.m tests/VSLS3DRAINTST.m
+
+# The MinIO testbed for the live round-trip (vendored — see scripts/s3-testbed.sh).
+S3_TESTBED := scripts/s3-testbed.sh
+
+.PHONY: all check fmt fmt-check lint arch test test-bare test-s3 test-s3-matrix coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates
 
@@ -55,6 +69,12 @@ arch:
 test:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(TESTS)
 
+# Engine-bound but VistA-FREE: the bare-engine-green suite set ($(BARE_TESTS)) —
+# the traffic-tap + S3 + auth tier. Green on a plain m-test-engine / m-test-iris
+# with no VistA. This is what `make ci` runs per engine.
+test-bare:
+	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(BARE_TESTS)
+
 # Integration: the end-to-end round-trip fidelity harness (spec §15.2) against a
 # LIVE S3-equivalent (MinIO/LocalStack). NOT in `make test`/`make ci` — it needs
 # engine HTTP egress (G-HTTP-YDB: bake stdhttp.so+libcurl into m-test-engine;
@@ -64,6 +84,22 @@ test:
 # then: make test-s3 ENGINE=iris DOCKER=m-test-iris
 test-s3:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m
+
+# The Option-A round-trip MATRIX gate (spec §15.2, plan stage 3.4): the live
+# byte-exact harness VSLS3E2ETST run against MinIO on BOTH engines (the A ×
+# {YDB,IRIS} matrix). Self-contained — stands up the MinIO testbed, runs each
+# engine, and tears it down on the way out (trap, even on failure). A HARD gate:
+# fails if either engine's corpus→tap→drain→ship→read-back→reconcile is not
+# byte-exact. Part of `make ci`. Needs docker (MinIO + the two test engines).
+test-s3-matrix:
+	@rc=0; \
+	trap '$(S3_TESTBED) down' EXIT; \
+	$(S3_TESTBED) up || exit 1; \
+	echo "── Option A round-trip · YDB ──"; \
+	$(M) test --engine ydb  --docker m-test-engine --chset m --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m || rc=1; \
+	echo "── Option A round-trip · IRIS ──"; \
+	$(M) test --engine iris --docker m-test-iris            --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m || rc=1; \
+	exit $$rc
 
 coverage:
 	$(M) coverage $(ENGINE_FLAGS) --routines $(MSTDLIB)/src --min-percent=85 $(SRC) $(TESTS)
@@ -157,15 +193,20 @@ check: fmt-check lint arch gates test
 .PHONY: check-fast
 check-fast: fmt-check lint arch gates
 
-# CI entrypoint — the full gate, identical to `check`. The engine-bound `test`
-# step runs the VSLTAPBENCHTST 3-arm non-interference benchmark (spec §6.4/§7,
-# D-7) as a hard gate alongside the functional suites: it asserts the tapped
-# RPC-dispatch latency stays within the pre-registered bound on small AND large
-# payloads, on whichever engine is selected. Run it once per engine in CI:
-#   make ci ENGINE=ydb  DOCKER=m-test-engine
-#   make ci ENGINE=iris DOCKER=m-test-iris
+# CI entrypoint — self-contained, green on the bare test engines (no VistA). It
+# runs the engine-free gates, then the bare-engine-green suite set on BOTH
+# engines (incl. the VSLTAPBENCHTST 3-arm non-interference benchmark, spec
+# §6.4/§7 D-7), then the Option-A round-trip MATRIX (VSLS3E2ETST × {YDB,IRIS}
+# against MinIO, plan stage 3.4). The VistA-dependent functional suites
+# (VSLCFG/VSLFS/VSLIO/VSLLOG/VSLBLD/VSLTASK) are NOT here — they need a real
+# VistA; run the full set with `make check` on a VistA-equipped engine.
+# Just `make ci` (no ENGINE= needed — it drives both test engines + MinIO).
 .PHONY: ci
-ci: check
+ci:
+	$(MAKE) check-fast
+	$(MAKE) test-bare ENGINE=ydb  DOCKER=m-test-engine
+	$(MAKE) test-bare ENGINE=iris DOCKER=m-test-iris
+	$(MAKE) test-s3-matrix
 
 clean:
 	rm -f test-results.tap *.lcov coverage.out

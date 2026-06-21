@@ -103,8 +103,24 @@ pass** before commit → fixed the `$get` UNDEF guard + made the drain ship empt
 records (no silent drop). `make check-kids` is **pre-existing red on main** (v-pkg KIDS
 drift; SKIPs in CI) — the tap routines are correctly NOT in the VSL KIDS base. Left untouched.
 
-**REMAINS for M2 (next session):** the **Option A × {YDB,IRIS} matrix wired as a gate** (stage
-3.4); the HLO leg of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
+**OPTION-A MATRIX GATE WIRED INTO `make ci` (2026-06-20, stage 3.4).** New self-contained
+`test-s3-matrix` Makefile target: `trap`-guarded `scripts/s3-testbed.sh up` → `VSLS3E2ETST` on YDB
+(`m-test-engine`) **and** IRIS (`m-test-iris`) → `down`. Vendored `scripts/s3-testbed.sh` from
+m-stdlib (byte-compatible) so the gate needs no MSL checkout. Restructured `make ci` (was `: check`,
+red on bare engines) → **`check-fast` + `test-bare` (the 10 bare-engine-green suites, both engines,
+incl. the `VSLTAPBENCH` non-interference gate) + `test-s3-matrix`** — **green end-to-end, exit 0**
+(bare suites + YDB 6/6 + IRIS 6/6 round-trip; MinIO torn down). `BARE_TESTS` excludes the
+VistA-dependent suites (VSLBLD/CFG/FS/IO/LOG/TASK — 0/0 on a bare engine, need Kernel/FileMan; run via
+`make check`/`make test` on a VistA box) and `VSLS3E2ETST` (the live one, in the matrix gate).
+**GOTCHA:** `check-engine-access` flagged the vendored script's COMMENT for the literal token
+`docker exec` — reworded to "execs into an engine" (the regex `docker\s+(?:-\S+\s+)*exec\b` is
+text-blind). **Follow-up — GitHub `ci.yml` still runs only engine-free gates;** enabling the
+engine-bound `make ci` in Actions needs the reusable `m-ci.yml` to support a sibling-MSL checkout +
+two engine containers + a MinIO service (+ a YDB-hard/IRIS-soft split per org posture) — a separate
+infra lift.
+
+**REMAINS for M2 (next session):** the **GitHub `ci.yml` engine-CI enablement** (above); the HLO leg
+of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
 `VSLTAPFC` HL7 live-periodic fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the
 `_offwindows`/`_fidelity` manifests. **Option B (socket→sidecar, stage 3.5) DEFERRED** (decision
 2026-06-20) until a site mandates ZERO DB writes — A covers the technical need at near-zero footprint
