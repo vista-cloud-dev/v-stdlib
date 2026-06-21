@@ -123,14 +123,15 @@ on `intersystemsdc/iris-community` with `ENGINE_FLAGS='--engine iris --docker m-
 --namespace USER'` (best-effort, org IRIS posture). The drift gates stay in the reusable engine-free
 `ci` job (NOT re-run in engine-ydb — else `check-msl-pin` would actually execute against the cloned
 MSL and could drift-fail). **Deps verified present:** `m-test-engine:0.2.0` pullable; m-stdlib@master
-carries the STDS3 read-op `opt`-threading fix (`getObject(...,opt,resp)`, #20). **NOT yet run in
-Actions** — branch pushes don't trigger `ci.yml` (only `main` + PRs); the first PR run is the
-confirmation. (`ENGINE_FLAGS=` overrides the Makefile `:=` default on the command line — that's how
-the iris job injects `--namespace USER`.)
+carries the STDS3 read-op `opt`-threading fix (`getObject(...,opt,resp)`, #20). **CONFIRMED GREEN in Actions** on
+draft **PR #13** (run 27890221864, 2026-06-21): `engine-ydb` bare **165/0** + round-trip
+`VSLS3E2ETST` **6/6**; `engine-iris` (fail-soft) ALSO bare 165/0 + round-trip 6/6 — iris-community
+connected with `--namespace USER` + default creds and did the `%Net` egress to MinIO with **no
+tuning** (better than expected; the curated-local-vs-CI-iris worry didn't bite). Jobs ran in
+~50–70s (runner pulled `m-test-engine:0.2.0` fast). (`ENGINE_FLAGS=` overrides the Makefile `:=`
+default on the command line — that's how the iris job injects `--namespace USER`.)
 
-**REMAINS for M2 (next session):** confirm the new CI jobs on the first PR run (esp. `engine-iris` —
-iris-community is not the curated local m-test-iris, so its round-trip may need driver-auth/namespace
-tuning); the HLO leg of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
+**REMAINS for M2 (next session):** the HLO leg of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
 `VSLTAPFC` HL7 live-periodic fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the
 `_offwindows`/`_fidelity` manifests. **Option B (socket→sidecar, stage 3.5) DEFERRED** (decision
 2026-06-20) until a site mandates ZERO DB writes — A covers the technical need at near-zero footprint
