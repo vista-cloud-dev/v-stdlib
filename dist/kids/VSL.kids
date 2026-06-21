@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*2^
+**KIDS**:VSL*1.0*3^
 
 **INSTALL NAME**
-VSL*1.0*2
+VSL*1.0*3
 "BLD",1,0)
-VSL*1.0*2^VSL^0^0
+VSL*1.0*3^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -155,7 +155,7 @@ manifest(out)	; Fill out() with the VSL base's routines, its Required Build and 
 "RTN","VSLBLD",43,0)
 	set out("requiredBuild")="MSL*0.1*1"
 "RTN","VSLBLD",44,0)
-	set out("patch")="VSL*1.0*2"
+	set out("patch")="VSL*1.0*3"
 "RTN","VSLBLD",45,0)
 	quit n
 "RTN","VSLBLD",46,0)
@@ -2049,7 +2049,7 @@ raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
 "RTN","VSLSEC",105,0)
 	quit
 "RTN","VSLTAP")
-0^236^0^0
+0^279^0^0
 "RTN","VSLTAP",1,0)
 VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 "RTN","VSLTAP",2,0)
@@ -2199,328 +2199,414 @@ setAlwaysOn(flag)	; Opt-in always-on flight-recorder (D-8): capture even with no
 "RTN","VSLTAP",74,0)
 	;
 "RTN","VSLTAP",75,0)
-	; ---------- the capture gate + the rolling ring ----------
+seed()	; Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (self-configuring install).
 "RTN","VSLTAP",76,0)
-	;
+	; doc: The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path
 "RTN","VSLTAP",77,0)
-enabled()	; 1 iff capture should run now: armed AND not auto-disabled AND (consumer OR always-on).
+	; doc: gate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP("cfg",…), NOT XPAR (no
 "RTN","VSLTAP",78,0)
-	; doc: @returns bool  the single capture gate (fail-safe-OFF; consumer-gated default, D-8)
+	; doc: XPAR/FileMan read on the capture path). seed bridges the two: it copies
 "RTN","VSLTAP",79,0)
-	if $$cfg("mode","off")'="armed" quit 0
+	; doc: each set param into its cfg key once, at install/configure time. The
 "RTN","VSLTAP",80,0)
-	if $$disabled()'="" quit 0
+	; doc: fidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not
 "RTN","VSLTAP",81,0)
-	if +$$cfg("consumer",0) quit 1
+	; doc: mirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.
 "RTN","VSLTAP",82,0)
-	if +$$cfg("alwayson",0) quit 1
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 "RTN","VSLTAP",83,0)
-	quit 0
+	new $etrap,map,n,i
 "RTN","VSLTAP",84,0)
-	;
+	set $etrap="set $ecode="""" quit"
 "RTN","VSLTAP",85,0)
-append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim record.
+	if $text(GET^XPAR)="" quit
 "RTN","VSLTAP",86,0)
-	; doc: @param rec   string  the verbatim payload (no parse, no transform — D-1)
+	set n=$$seedMap(.map)
 "RTN","VSLTAP",87,0)
-	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
+	for i=1:1:n do seedOne(map(i,"param"),map(i,"cfg"))
 "RTN","VSLTAP",88,0)
-	; doc: The ONLY in-path op (besides the $G gate): one global SET + bounded trim.
+	quit
 "RTN","VSLTAP",89,0)
-	; doc: No LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:
+	;
 "RTN","VSLTAP",90,0)
-	; doc: ANY fault inside the write self-disables and returns 0 — never the caller.
+seedOne(param,cfgkey)	; (private) copy XPAR param `param` into ^VSLTAP("cfg",cfgkey) when it is set.
 "RTN","VSLTAP",91,0)
-	; doc: Flag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness
+	new v
 "RTN","VSLTAP",92,0)
-	; doc: gotcha). The write runs in a DO-invoked frame (write1) so the trap's
+	set v=$$get^VSLCFG(param,"")
 "RTN","VSLTAP",93,0)
-	; doc: argument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic
+	if v'="" set ^VSLTAP("cfg",cfgkey)=v
 "RTN","VSLTAP",94,0)
-	; doc: ($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).
+	quit
 "RTN","VSLTAP",95,0)
-	new ok,$etrap,wrote
+	;
 "RTN","VSLTAP",96,0)
-	if '$$enabled() quit 0
+seedMap(map)	; Map each installed XPAR param name to the ^VSLTAP("cfg") key the tap reads; return the count.
 "RTN","VSLTAP",97,0)
-	set ok=1,wrote=0
+	; doc: @param map  array  OUT by-ref: map(i,"param")=XPAR name, map(i,"cfg")=cfg key
 "RTN","VSLTAP",98,0)
-	set $etrap="set ok=0,$ecode="""" quit"
+	; doc: @returns    numeric  the number of param->cfg mappings (the fidelity cadence is read direct)
 "RTN","VSLTAP",99,0)
-	do write1(rec,.wrote)
+	new n
 "RTN","VSLTAP",100,0)
-	if ok quit wrote
+	kill map
 "RTN","VSLTAP",101,0)
-	set $etrap=""
+	set n=0
 "RTN","VSLTAP",102,0)
-	do disable("fault")
+	do sm(.map,.n,"VSL TAP CAP","cap")
 "RTN","VSLTAP",103,0)
-	quit 0
+	do sm(.map,.n,"VSL TAP MAXBYTES","maxbytes")
 "RTN","VSLTAP",104,0)
-	;
+	do sm(.map,.n,"VSL TAP HBSTALE","hbstale")
 "RTN","VSLTAP",105,0)
-write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's QUIT is legal.
+	do sm(.map,.n,"VSL TAP RETAIN","retain")
 "RTN","VSLTAP",106,0)
-	; doc: @param rec    string  the verbatim payload
+	do sm(.map,.n,"VSL TAP ALWAYSON","alwayson")
 "RTN","VSLTAP",107,0)
-	; doc: @param wrote  bool    by-ref; set 1 iff the record was appended
+	do sm(.map,.n,"VSL S3 ENDPOINT","s3endpoint")
 "RTN","VSLTAP",108,0)
-	new seq,cap
+	do sm(.map,.n,"VSL S3 BUCKET","s3bucket")
 "RTN","VSLTAP",109,0)
-	; fault-injection seam — the §6.2 "injected deviation" exit-gate (b) lever.
+	do sm(.map,.n,"VSL S3 REGION","s3region")
 "RTN","VSLTAP",110,0)
-	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
+	do sm(.map,.n,"VSL S3 PREFIX","s3station")
 "RTN","VSLTAP",111,0)
-	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
+	quit n
 "RTN","VSLTAP",112,0)
-	if $length(rec)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
+	;
 "RTN","VSLTAP",113,0)
-	set cap=+$$cfg("cap",1000)
+sm(map,n,param,cfg)	; (private) append one param->cfg mapping row.
 "RTN","VSLTAP",114,0)
-	set seq=+$get(^XTMP("VSLTAP","head"))+1
+	set n=n+1
 "RTN","VSLTAP",115,0)
-	set ^XTMP("VSLTAP","data",seq)=rec
+	set map(n,"param")=param,map(n,"cfg")=cfg
 "RTN","VSLTAP",116,0)
-	set ^XTMP("VSLTAP","head")=seq
+	quit
 "RTN","VSLTAP",117,0)
-	do trim(seq,cap)
+	;
 "RTN","VSLTAP",118,0)
-	do record^VSLTAPHL(0,$length(rec),0)
+	; ---------- the capture gate + the rolling ring ----------
 "RTN","VSLTAP",119,0)
-	set wrote=1
+	;
 "RTN","VSLTAP",120,0)
-	quit
+enabled()	; 1 iff capture should run now: armed AND not auto-disabled AND (consumer OR always-on).
 "RTN","VSLTAP",121,0)
-	;
+	; doc: @returns bool  the single capture gate (fail-safe-OFF; consumer-gated default, D-8)
 "RTN","VSLTAP",122,0)
-trim(seq,cap)	; (private) overwrite-oldest: drop entries until the ring holds at most `cap`.
+	if $$cfg("mode","off")'="armed" quit 0
 "RTN","VSLTAP",123,0)
-	new t
+	if $$disabled()'="" quit 0
 "RTN","VSLTAP",124,0)
-	set t=+$get(^XTMP("VSLTAP","tail"))
+	if +$$cfg("consumer",0) quit 1
 "RTN","VSLTAP",125,0)
-	for  quit:(seq-t)'>cap  do dropOldest(.t)
+	if +$$cfg("alwayson",0) quit 1
 "RTN","VSLTAP",126,0)
-	set ^XTMP("VSLTAP","tail")=t
+	quit 0
 "RTN","VSLTAP",127,0)
-	quit
+	;
 "RTN","VSLTAP",128,0)
-	;
+append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim record.
 "RTN","VSLTAP",129,0)
-dropOldest(t)	; (private) drop the oldest retained entry and advance the tail cursor.
+	; doc: @param rec   string  the verbatim payload (no parse, no transform — D-1)
 "RTN","VSLTAP",130,0)
-	set t=t+1
+	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
 "RTN","VSLTAP",131,0)
-	kill ^XTMP("VSLTAP","data",t)
+	; doc: The ONLY in-path op (besides the $G gate): one global SET + bounded trim.
 "RTN","VSLTAP",132,0)
-	quit
+	; doc: No LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:
 "RTN","VSLTAP",133,0)
-	;
+	; doc: ANY fault inside the write self-disables and returns 0 — never the caller.
 "RTN","VSLTAP",134,0)
-tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
+	; doc: Flag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness
 "RTN","VSLTAP",135,0)
-	; doc: @param rec   string  the verbatim payload
+	; doc: gotcha). The write runs in a DO-invoked frame (write1) so the trap's
 "RTN","VSLTAP",136,0)
-	; doc: @returns bool the $$append result (0 if gated or a fault was fenced)
+	; doc: argument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic
 "RTN","VSLTAP",137,0)
-	; doc: $$append is already self-fenced (a DO-framed $ETRAP that self-disables on
+	; doc: ($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).
 "RTN","VSLTAP",138,0)
-	; doc: any fault); tee is the stable adapter entry. Either leaves the caller's
+	new ok,$etrap,wrote
 "RTN","VSLTAP",139,0)
-	; doc: result / $ECODE / $T untouched.
+	if '$$enabled() quit 0
 "RTN","VSLTAP",140,0)
-	quit $$append(rec)
+	set ok=1,wrote=0
 "RTN","VSLTAP",141,0)
-	;
+	set $etrap="set ok=0,$ecode="""" quit"
 "RTN","VSLTAP",142,0)
-size()	; Current ring entry count (head - tail).
+	do write1(rec,.wrote)
 "RTN","VSLTAP",143,0)
-	quit +$get(^XTMP("VSLTAP","head"))-+$get(^XTMP("VSLTAP","tail"))
+	if ok quit wrote
 "RTN","VSLTAP",144,0)
-	;
+	set $etrap=""
 "RTN","VSLTAP",145,0)
-head()	; Highest written seq (0 if empty).
+	do disable("fault")
 "RTN","VSLTAP",146,0)
-	quit +$get(^XTMP("VSLTAP","head"))
+	quit 0
 "RTN","VSLTAP",147,0)
 	;
 "RTN","VSLTAP",148,0)
-tail()	; (lowest-retained seq) - 1 (0 if empty).
+write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's QUIT is legal.
 "RTN","VSLTAP",149,0)
-	quit +$get(^XTMP("VSLTAP","tail"))
+	; doc: @param rec    string  the verbatim payload
 "RTN","VSLTAP",150,0)
-	;
+	; doc: @param wrote  bool    by-ref; set 1 iff the record was appended
 "RTN","VSLTAP",151,0)
-read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
+	new seq,cap
 "RTN","VSLTAP",152,0)
-	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
+	; fault-injection seam — the §6.2 "injected deviation" exit-gate (b) lever.
 "RTN","VSLTAP",153,0)
-	;
+	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
 "RTN","VSLTAP",154,0)
-drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
+	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
 "RTN","VSLTAP",155,0)
-	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
+	if $length(rec)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
 "RTN","VSLTAP",156,0)
-	; doc: @returns    void     the drain self-KILLs shipped entries (spec §4.1.3)
+	set cap=+$$cfg("cap",1000)
 "RTN","VSLTAP",157,0)
-	; doc: Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships
+	set seq=+$get(^XTMP("VSLTAP","head"))+1
 "RTN","VSLTAP",158,0)
-	; doc: 200 — never from the RPC path. Idempotent; never advances past head.
+	set ^XTMP("VSLTAP","data",seq)=rec
 "RTN","VSLTAP",159,0)
-	new t,h
+	set ^XTMP("VSLTAP","head")=seq
 "RTN","VSLTAP",160,0)
-	set h=+$get(^XTMP("VSLTAP","head"))
+	do trim(seq,cap)
 "RTN","VSLTAP",161,0)
-	if +$get(seq)>h set seq=h
+	do record^VSLTAPHL(0,$length(rec),0)
 "RTN","VSLTAP",162,0)
-	set t=+$get(^XTMP("VSLTAP","tail"))
+	set wrote=1
 "RTN","VSLTAP",163,0)
-	for  quit:t'<+$get(seq)  do dropOldest(.t)
+	quit
 "RTN","VSLTAP",164,0)
-	set ^XTMP("VSLTAP","tail")=t
+	;
 "RTN","VSLTAP",165,0)
-	quit
+trim(seq,cap)	; (private) overwrite-oldest: drop entries until the ring holds at most `cap`.
 "RTN","VSLTAP",166,0)
-	;
+	new t
 "RTN","VSLTAP",167,0)
-	; ---------- auto-failover + state machine ----------
+	set t=+$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",168,0)
-	;
+	for  quit:(seq-t)'>cap  do dropOldest(.t)
 "RTN","VSLTAP",169,0)
-disable(reason)	; Auto-failover: disable the tap, record an off-window (explicit, never silent).
+	set ^XTMP("VSLTAP","tail")=t
 "RTN","VSLTAP",170,0)
-	; doc: @param reason  string  the interference signal (fault/copycost/latency/pressure)
+	quit
 "RTN","VSLTAP",171,0)
-	new n
+	;
 "RTN","VSLTAP",172,0)
-	if $get(^VSLTAP("disabled"))'="" quit
+dropOldest(t)	; (private) drop the oldest retained entry and advance the tail cursor.
 "RTN","VSLTAP",173,0)
-	set ^VSLTAP("disabled")=reason
+	set t=t+1
 "RTN","VSLTAP",174,0)
-	set n=+$get(^VSLTAP("_offwindows"))+1
+	kill ^XTMP("VSLTAP","data",t)
 "RTN","VSLTAP",175,0)
-	set ^VSLTAP("_offwindows")=n
+	quit
 "RTN","VSLTAP",176,0)
-	set ^VSLTAP("_offwindows",n)=$horolog_"^"_reason_"^"
+	;
 "RTN","VSLTAP",177,0)
-	quit
+tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
 "RTN","VSLTAP",178,0)
-	;
+	; doc: @param rec   string  the verbatim payload
 "RTN","VSLTAP",179,0)
-disabled()	; The auto-failover reason, or "" if armed/clean.
+	; doc: @returns bool the $$append result (0 if gated or a fault was fenced)
 "RTN","VSLTAP",180,0)
-	quit $get(^VSLTAP("disabled"))
+	; doc: $$append is already self-fenced (a DO-framed $ETRAP that self-disables on
 "RTN","VSLTAP",181,0)
-	;
+	; doc: any fault); tee is the stable adapter entry. Either leaves the caller's
 "RTN","VSLTAP",182,0)
-rearm()	; Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.
+	; doc: result / $ECODE / $T untouched.
 "RTN","VSLTAP",183,0)
-	new n
+	quit $$append(rec)
 "RTN","VSLTAP",184,0)
-	kill ^VSLTAP("disabled")
-"RTN","VSLTAP",185,0)
-	set n=+$get(^VSLTAP("_offwindows"))
-"RTN","VSLTAP",186,0)
-	if n,$piece($get(^VSLTAP("_offwindows",n)),"^",3)="" set $piece(^VSLTAP("_offwindows",n),"^",3)=$horolog
-"RTN","VSLTAP",187,0)
-	quit
-"RTN","VSLTAP",188,0)
 	;
+"RTN","VSLTAP",185,0)
+size()	; Current ring entry count (head - tail).
+"RTN","VSLTAP",186,0)
+	quit +$get(^XTMP("VSLTAP","head"))-+$get(^XTMP("VSLTAP","tail"))
+"RTN","VSLTAP",187,0)
+	;
+"RTN","VSLTAP",188,0)
+head()	; Highest written seq (0 if empty).
 "RTN","VSLTAP",189,0)
-offWindows(out)	; Populate out(1..N) with the recorded off-windows; return the count.
+	quit +$get(^XTMP("VSLTAP","head"))
 "RTN","VSLTAP",190,0)
-	; doc: @param out  array  by-ref; killed then filled with open^reason^close rows
+	;
 "RTN","VSLTAP",191,0)
-	new n,i
+tail()	; (lowest-retained seq) - 1 (0 if empty).
 "RTN","VSLTAP",192,0)
-	kill out
+	quit +$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",193,0)
-	set n=+$get(^VSLTAP("_offwindows"))
+	;
 "RTN","VSLTAP",194,0)
-	for i=1:1:n set out(i)=$get(^VSLTAP("_offwindows",i))
+read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
 "RTN","VSLTAP",195,0)
-	quit n
+	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
 "RTN","VSLTAP",196,0)
 	;
 "RTN","VSLTAP",197,0)
-state()	; The standby state-machine label (spec §8.1).
+drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
 "RTN","VSLTAP",198,0)
-	; doc: @returns string OFF | AUTO-DISABLED | UNHEALTHY | ACTIVE | ARMED-IDLE
+	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
 "RTN","VSLTAP",199,0)
-	if $$cfg("mode","off")'="armed" quit "OFF"
+	; doc: @returns    void     the drain self-KILLs shipped entries (spec §4.1.3)
 "RTN","VSLTAP",200,0)
-	if $$disabled()'="" quit "AUTO-DISABLED"
+	; doc: Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships
 "RTN","VSLTAP",201,0)
-	if '$$healthy() quit "UNHEALTHY"
+	; doc: 200 — never from the RPC path. Idempotent; never advances past head.
 "RTN","VSLTAP",202,0)
-	if $$enabled() quit "ACTIVE"
+	new t,h
 "RTN","VSLTAP",203,0)
-	quit "ARMED-IDLE"
+	set h=+$get(^XTMP("VSLTAP","head"))
 "RTN","VSLTAP",204,0)
-	;
+	if +$get(seq)>h set seq=h
 "RTN","VSLTAP",205,0)
-	; ---------- liveness ----------
+	set t=+$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",206,0)
-	;
+	for  quit:t'<+$get(seq)  do dropOldest(.t)
 "RTN","VSLTAP",207,0)
-heartbeat()	; Stamp the liveness heartbeat (the watchdog beats this every N seconds).
+	set ^XTMP("VSLTAP","tail")=t
 "RTN","VSLTAP",208,0)
-	set ^VSLTAP("hb")=$horolog
-"RTN","VSLTAP",209,0)
 	quit
+"RTN","VSLTAP",209,0)
+	;
 "RTN","VSLTAP",210,0)
-	;
+	; ---------- auto-failover + state machine ----------
 "RTN","VSLTAP",211,0)
-healthy()	; 1 iff the heartbeat is fresh within the staleness bound (k8s-style liveness).
-"RTN","VSLTAP",212,0)
-	; doc: @returns bool  a stale/absent heartbeat -> 0 (UNHEALTHY) even with zero traffic
-"RTN","VSLTAP",213,0)
-	new hb,age,now
-"RTN","VSLTAP",214,0)
-	set hb=$get(^VSLTAP("hb"))
-"RTN","VSLTAP",215,0)
-	if hb="" quit 0
-"RTN","VSLTAP",216,0)
-	set now=$horolog
-"RTN","VSLTAP",217,0)
-	set age=(($piece(now,",",1)-$piece(hb,",",1))*86400)+($piece(now,",",2)-$piece(hb,",",2))
-"RTN","VSLTAP",218,0)
-	quit (age'>+$$cfg("hbstale",60))
-"RTN","VSLTAP",219,0)
 	;
+"RTN","VSLTAP",212,0)
+disable(reason)	; Auto-failover: disable the tap, record an off-window (explicit, never silent).
+"RTN","VSLTAP",213,0)
+	; doc: @param reason  string  the interference signal (fault/copycost/latency/pressure)
+"RTN","VSLTAP",214,0)
+	new n
+"RTN","VSLTAP",215,0)
+	if $get(^VSLTAP("disabled"))'="" quit
+"RTN","VSLTAP",216,0)
+	set ^VSLTAP("disabled")=reason
+"RTN","VSLTAP",217,0)
+	set n=+$get(^VSLTAP("_offwindows"))+1
+"RTN","VSLTAP",218,0)
+	set ^VSLTAP("_offwindows")=n
+"RTN","VSLTAP",219,0)
+	set ^VSLTAP("_offwindows",n)=$horolog_"^"_reason_"^"
 "RTN","VSLTAP",220,0)
-	; ---------- Kernel auto-purge node (the cache backstop) ----------
+	quit
 "RTN","VSLTAP",221,0)
 	;
 "RTN","VSLTAP",222,0)
-purgeNode()	; Write ^XTMP("VSLTAP",0)=purgedate^createdate^description so Kernel XQ82 reaps it.
+disabled()	; The auto-failover reason, or "" if armed/clean.
 "RTN","VSLTAP",223,0)
-	; doc: The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of
+	quit $get(^VSLTAP("disabled"))
 "RTN","VSLTAP",224,0)
-	; doc: FileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No
+	;
 "RTN","VSLTAP",225,0)
-	; doc: FileMan file (§4.1.1). Scheduling the option is an install-time seam.
+rearm()	; Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.
 "RTN","VSLTAP",226,0)
-	new td,ret
+	new n
 "RTN","VSLTAP",227,0)
-	set ret=+$$cfg("retain",2)
+	kill ^VSLTAP("disabled")
 "RTN","VSLTAP",228,0)
-	set td=+$horolog
+	set n=+$get(^VSLTAP("_offwindows"))
 "RTN","VSLTAP",229,0)
-	set ^XTMP("VSLTAP",0)=$$fmDate(td+ret)_"^"_$$fmDate(td)_"^VSL RPC traffic-tap rolling cache"
+	if n,$piece($get(^VSLTAP("_offwindows",n)),"^",3)="" set $piece(^VSLTAP("_offwindows",n),"^",3)=$horolog
 "RTN","VSLTAP",230,0)
 	quit
 "RTN","VSLTAP",231,0)
 	;
 "RTN","VSLTAP",232,0)
-fmDate(hday)	; ($H day-count) -> FileMan internal date (YYYMMDD, YYY=year-1700).
+offWindows(out)	; Populate out(1..N) with the recorded off-windows; return the count.
 "RTN","VSLTAP",233,0)
-	new z,y,m,d
+	; doc: @param out  array  by-ref; killed then filled with open^reason^close rows
 "RTN","VSLTAP",234,0)
-	set z=hday-47117
+	new n,i
 "RTN","VSLTAP",235,0)
-	do civilFromDays^STDDATE(z,.y,.m,.d)
+	kill out
 "RTN","VSLTAP",236,0)
+	set n=+$get(^VSLTAP("_offwindows"))
+"RTN","VSLTAP",237,0)
+	for i=1:1:n set out(i)=$get(^VSLTAP("_offwindows",i))
+"RTN","VSLTAP",238,0)
+	quit n
+"RTN","VSLTAP",239,0)
+	;
+"RTN","VSLTAP",240,0)
+state()	; The standby state-machine label (spec §8.1).
+"RTN","VSLTAP",241,0)
+	; doc: @returns string OFF | AUTO-DISABLED | UNHEALTHY | ACTIVE | ARMED-IDLE
+"RTN","VSLTAP",242,0)
+	if $$cfg("mode","off")'="armed" quit "OFF"
+"RTN","VSLTAP",243,0)
+	if $$disabled()'="" quit "AUTO-DISABLED"
+"RTN","VSLTAP",244,0)
+	if '$$healthy() quit "UNHEALTHY"
+"RTN","VSLTAP",245,0)
+	if $$enabled() quit "ACTIVE"
+"RTN","VSLTAP",246,0)
+	quit "ARMED-IDLE"
+"RTN","VSLTAP",247,0)
+	;
+"RTN","VSLTAP",248,0)
+	; ---------- liveness ----------
+"RTN","VSLTAP",249,0)
+	;
+"RTN","VSLTAP",250,0)
+heartbeat()	; Stamp the liveness heartbeat (the watchdog beats this every N seconds).
+"RTN","VSLTAP",251,0)
+	set ^VSLTAP("hb")=$horolog
+"RTN","VSLTAP",252,0)
+	quit
+"RTN","VSLTAP",253,0)
+	;
+"RTN","VSLTAP",254,0)
+healthy()	; 1 iff the heartbeat is fresh within the staleness bound (k8s-style liveness).
+"RTN","VSLTAP",255,0)
+	; doc: @returns bool  a stale/absent heartbeat -> 0 (UNHEALTHY) even with zero traffic
+"RTN","VSLTAP",256,0)
+	new hb,age,now
+"RTN","VSLTAP",257,0)
+	set hb=$get(^VSLTAP("hb"))
+"RTN","VSLTAP",258,0)
+	if hb="" quit 0
+"RTN","VSLTAP",259,0)
+	set now=$horolog
+"RTN","VSLTAP",260,0)
+	set age=(($piece(now,",",1)-$piece(hb,",",1))*86400)+($piece(now,",",2)-$piece(hb,",",2))
+"RTN","VSLTAP",261,0)
+	quit (age'>+$$cfg("hbstale",60))
+"RTN","VSLTAP",262,0)
+	;
+"RTN","VSLTAP",263,0)
+	; ---------- Kernel auto-purge node (the cache backstop) ----------
+"RTN","VSLTAP",264,0)
+	;
+"RTN","VSLTAP",265,0)
+purgeNode()	; Write ^XTMP("VSLTAP",0)=purgedate^createdate^description so Kernel XQ82 reaps it.
+"RTN","VSLTAP",266,0)
+	; doc: The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of
+"RTN","VSLTAP",267,0)
+	; doc: FileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No
+"RTN","VSLTAP",268,0)
+	; doc: FileMan file (§4.1.1). Scheduling the option is an install-time seam.
+"RTN","VSLTAP",269,0)
+	new td,ret
+"RTN","VSLTAP",270,0)
+	set ret=+$$cfg("retain",2)
+"RTN","VSLTAP",271,0)
+	set td=+$horolog
+"RTN","VSLTAP",272,0)
+	set ^XTMP("VSLTAP",0)=$$fmDate(td+ret)_"^"_$$fmDate(td)_"^VSL RPC traffic-tap rolling cache"
+"RTN","VSLTAP",273,0)
+	quit
+"RTN","VSLTAP",274,0)
+	;
+"RTN","VSLTAP",275,0)
+fmDate(hday)	; ($H day-count) -> FileMan internal date (YYYMMDD, YYY=year-1700).
+"RTN","VSLTAP",276,0)
+	new z,y,m,d
+"RTN","VSLTAP",277,0)
+	set z=hday-47117
+"RTN","VSLTAP",278,0)
+	do civilFromDays^STDDATE(z,.y,.m,.d)
+"RTN","VSLTAP",279,0)
 	quit ((y-1700)*10000)+(m*100)+d
 "RTN","VSLTAPBO")
 0^168^0^0
@@ -2721,7 +2807,7 @@ delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.5
 "RTN","VSLTAPBO",98,0)
 	; doc: skip (there is nothing to remove); the $etrap still fences a genuine fault.
 "RTN","VSLTAPBO",99,0)
-	new $etrap,ien,fda,err
+	new $etrap,ien,FDA,ERR
 "RTN","VSLTAPBO",100,0)
 	set $etrap="set $ecode="""" quit"
 "RTN","VSLTAPBO",101,0)
@@ -2733,7 +2819,7 @@ delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.5
 "RTN","VSLTAPBO",104,0)
 	if ien'>0 quit
 "RTN","VSLTAPBO",105,0)
-	set fda(8989.51,ien_",",.01)="@"
+	set FDA(8989.51,ien_",",.01)="@"
 "RTN","VSLTAPBO",106,0)
 	do FILE^DIE("","FDA","ERR")
 "RTN","VSLTAPBO",107,0)

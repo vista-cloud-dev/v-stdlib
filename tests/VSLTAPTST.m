@@ -22,6 +22,8 @@ VSLTAPTST	; v-stdlib — VSLTAP non-interference core test suite.
 	do tStateMachineTransitions(.pass,.fail)
 	do tHeartbeatHealthVsUnhealthy(.pass,.fail)
 	do tDisableRearmRecordsOffWindow(.pass,.fail)
+	do tSeedMapCoversTapAndS3Knobs(.pass,.fail)
+	do tSeedIsNoopOnBareEngine(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -134,4 +136,20 @@ tDisableRearmRecordsOffWindow(pass,fail)	;@TEST "disable opens an off-window + b
 	do rearm^VSLTAP()
 	do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),"","re-arm clears the disable reason")
 	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=1,"re-arm restores capture")
+	quit
+	;
+tSeedMapCoversTapAndS3Knobs(pass,fail)	;@TEST "seedMap: maps the installed XPAR params to the ^VSLTAP(""cfg"") keys the tap reads"
+	new map,n,i,seen
+	set n=$$seedMap^VSLTAP(.map)
+	do true^STDASSERT(.pass,.fail,n'<9,"the seed maps the tap + S3 knobs")
+	set seen=""
+	for i=1:1:n set seen=seen_"|"_map(i,"param")_">"_map(i,"cfg")
+	do true^STDASSERT(.pass,.fail,seen["VSL TAP CAP>cap","TAP CAP -> cfg(cap) (the hot-path ring cap)")
+	do true^STDASSERT(.pass,.fail,seen["VSL S3 ENDPOINT>s3endpoint","S3 ENDPOINT -> cfg(s3endpoint) (the VSLS3 ctx seam)")
+	quit
+	;
+tSeedIsNoopOnBareEngine(pass,fail)	;@TEST "seed: bare-safe — no XPAR present, it sets no cfg and never aborts"
+	do reset()
+	do seed^VSLTAP()
+	do eq^STDASSERT(.pass,.fail,$data(^VSLTAP("cfg")),0,"with no XPAR the seed is a clean no-op")
 	quit

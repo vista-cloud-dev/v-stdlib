@@ -31,7 +31,7 @@ VSLBLDTST	; v-stdlib — VSLBLD (KIDS base build + env-check) test suite.
 	do report^STDASSERT(pass,fail)
 	quit
 	;
-tManifestListsBaseComponents(pass,fail)	;@TEST "$$manifest lists the VSL* base routines, the Required Build (MSL*0.1*1) and the patch identity (VSL*1.0*2)"
+tManifestListsBaseComponents(pass,fail)	;@TEST "$$manifest lists the VSL* base routines, the Required Build (MSL*0.1*1) and the patch identity (VSL*1.0*3)"
 	new out,n
 	set n=$$manifest^VSLBLD(.out)
 	do true^STDASSERT(.pass,.fail,n'<5,"the base ships at least the five M1-M4 VSL* modules (got "_n_" routines)")
@@ -40,7 +40,7 @@ tManifestListsBaseComponents(pass,fail)	;@TEST "$$manifest lists the VSL* base r
 	do true^STDASSERT(.pass,.fail,$$has(.out,"VSLTASK"),"manifest includes VSLTASK (the M5 listener adapter)")
 	do true^STDASSERT(.pass,.fail,$$has(.out,"VSLBLD"),"manifest includes VSLBLD (the build definition itself)")
 	do true^STDASSERT(.pass,.fail,$get(out("requiredBuild"))="MSL*0.1*1","manifest declares the Required Build on the m-stdlib base")
-	do true^STDASSERT(.pass,.fail,$get(out("patch"))="VSL*1.0*2","manifest declares the patch identity VSL*1.0*2")
+	do true^STDASSERT(.pass,.fail,$get(out("patch"))="VSL*1.0*3","manifest declares the patch identity VSL*1.0*3")
 	quit
 	;
 tEnvCheckReturnsFacts(pass,fail)	;@TEST "$$envCheck returns engine/version/Kernel/TLS facts via the self-contained VSLENV"

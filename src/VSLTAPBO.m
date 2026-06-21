@@ -96,13 +96,13 @@ delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.5
 	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 	; doc: $text-guarded: a bare engine has no XPAR/FileMan, so each leg is a clean
 	; doc: skip (there is nothing to remove); the $etrap still fences a genuine fault.
-	new $etrap,ien,fda,err
+	new $etrap,ien,FDA,ERR
 	set $etrap="set $ecode="""" quit"
 	if $text(EN^XPAR)'="" do EN^XPAR("SYS",name,1,"@")
 	if $text(FIND1^DIC)="" quit
 	set ien=+$$FIND1^DIC(8989.51,"","X",name,"B")
 	if ien'>0 quit
-	set fda(8989.51,ien_",",.01)="@"
+	set FDA(8989.51,ien_",",.01)="@"
 	do FILE^DIE("","FDA","ERR")
 	quit
 	;

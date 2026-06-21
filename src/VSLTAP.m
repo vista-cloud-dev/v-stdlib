@@ -72,6 +72,49 @@ setAlwaysOn(flag)	; Opt-in always-on flight-recorder (D-8): capture even with no
 	set ^VSLTAP("cfg","alwayson")=+$get(flag)
 	quit
 	;
+seed()	; Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (self-configuring install).
+	; doc: The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path
+	; doc: gate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP("cfg",…), NOT XPAR (no
+	; doc: XPAR/FileMan read on the capture path). seed bridges the two: it copies
+	; doc: each set param into its cfg key once, at install/configure time. The
+	; doc: fidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not
+	; doc: mirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+	new $etrap,map,n,i
+	set $etrap="set $ecode="""" quit"
+	if $text(GET^XPAR)="" quit
+	set n=$$seedMap(.map)
+	for i=1:1:n do seedOne(map(i,"param"),map(i,"cfg"))
+	quit
+	;
+seedOne(param,cfgkey)	; (private) copy XPAR param `param` into ^VSLTAP("cfg",cfgkey) when it is set.
+	new v
+	set v=$$get^VSLCFG(param,"")
+	if v'="" set ^VSLTAP("cfg",cfgkey)=v
+	quit
+	;
+seedMap(map)	; Map each installed XPAR param name to the ^VSLTAP("cfg") key the tap reads; return the count.
+	; doc: @param map  array  OUT by-ref: map(i,"param")=XPAR name, map(i,"cfg")=cfg key
+	; doc: @returns    numeric  the number of param->cfg mappings (the fidelity cadence is read direct)
+	new n
+	kill map
+	set n=0
+	do sm(.map,.n,"VSL TAP CAP","cap")
+	do sm(.map,.n,"VSL TAP MAXBYTES","maxbytes")
+	do sm(.map,.n,"VSL TAP HBSTALE","hbstale")
+	do sm(.map,.n,"VSL TAP RETAIN","retain")
+	do sm(.map,.n,"VSL TAP ALWAYSON","alwayson")
+	do sm(.map,.n,"VSL S3 ENDPOINT","s3endpoint")
+	do sm(.map,.n,"VSL S3 BUCKET","s3bucket")
+	do sm(.map,.n,"VSL S3 REGION","s3region")
+	do sm(.map,.n,"VSL S3 PREFIX","s3station")
+	quit n
+	;
+sm(map,n,param,cfg)	; (private) append one param->cfg mapping row.
+	set n=n+1
+	set map(n,"param")=param,map(n,"cfg")=cfg
+	quit
+	;
 	; ---------- the capture gate + the rolling ring ----------
 	;
 enabled()	; 1 iff capture should run now: armed AND not auto-disabled AND (consumer OR always-on).

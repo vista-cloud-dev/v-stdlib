@@ -118,18 +118,55 @@ The **DIBRG** written: `docs/traffic-tap-dibrg.md` — footprint table, install
 `do backout^VSLTAPBO()` THEN `v-pkg uninstall`** (runtime footprint first, then
 routines), verify-clean exit gate, rollback.
 
-## OWED (the remaining GA live work — ⚪)
-- **Live `install → verify → back-out → verify-clean` on BOTH VistA engines**
-  (vehu YDB + foia IRIS — stopped now, startable) over the driver. The real
-  G-UNINST exit gate; the bare suite proves the logic only.
-- **Patch bump** (`VSL*1.0*2`→`*3`) + sync `VSLBLD.$$manifest`/`VSLBLDTST`, done
-  with the live proof.
-- **XPAR→`^VSLTAP("cfg")` seed step** so the installed params actually feed the
-  hot-path knobs (cap/maxbytes/…) + the S3 config (`s3endpoint`/`s3bucket`/…);
-  the install should also `$$schedule^VSLTAPRUN`. (`cadence` already reads XPAR
-  directly; the hot-path cfg + VSLS3 read `^VSLTAP("cfg")`, so a seed is needed.)
+# Phase 5 / M4 (GA): LIVE install→back-out→verify-clean PROVEN dual-engine + the seed step (4th increment)
+
+Same branch. The **G-UNINST exit gate is GREEN on BOTH VistA engines** over the
+driver: full `install → verify → footprint → backout^VSLTAPBO() → verifyClean →
+uninstall` on **vehu (YDB-VistA, GT.M r2.02)** and **foia-t12 (IRIS-VistA
+2026.1)**. Footprint = all **10 XPAR `#8989.51` params installed** (IENs found)
++ scheduled fidelity task (in `^%ZTSCH`) + seeded `^VSLTAP("cfg")` + a ring
+record; after `backout`: **`clean=1`, paramsLeft=0, globals=0, task dequeued** on
+both engines.
+
+## The XPAR→cfg seed step (`seed`/`seedMap`/`seedOne` in VSLTAP)
+The installed params are INERT until copied into `^VSLTAP("cfg")` — the hot-path
+gate (`$$cfg`) and the VSLS3 ctx seam read `^VSLTAP("cfg")`, NOT XPAR (no XPAR
+read on the capture path). `do seed^VSLTAP()` bridges them via `$$seedMap` (9
+param→cfg mappings: `VSL TAP CAP→cap`, … `VSL S3 ENDPOINT→s3endpoint`,
+`VSL S3 PREFIX→s3station`; the fidelity cadence is read from XPAR directly by
+VSLTAPRUN, so it's not mirrored). `$text(GET^XPAR)`-guarded → bare no-op.
+**Live-proven**: XPAR `VSL TAP CAP`=777 → `^VSLTAP("cfg","cap")`=777 on both
+engines. The install/configure should `do seed^VSLTAP()` + `$$schedule^VSLTAPRUN`.
+
+## BUG the live proof caught (bare tests could NOT)
+`VSLTAPBO.delParam` built the FileMan FDA array as **`fda`** (lowercase) but
+passed **`"FDA"`** to `FILE^DIE` — M is case-sensitive, so DIE read an empty
+`FDA` and **deleted nothing**; the first live verify-clean returned 0 with
+"10 … parameter definition(s) survive". Fix: uppercase `FDA`/`ERR` (the VSLFS
+convention). On a BARE engine `FILE^DIE` is `$text`-skipped, so the mismatch was
+invisible — **this is exactly why the live proof is the real exit gate**, not the
+bare suite. (A direct `FDA`-cased `FILE^DIE .01="@"` deleted the record cleanly,
+confirming the delete mechanism + isolating the bug to the var name.)
+
+## Patch bump
+`VSL*1.0*2`→`VSL*1.0*3` across `kids/vsl.build.json`, `VSLBLD.$$manifest`, and
+`VSLBLDTST` (asserts it). **VSLBLDTST 15/15 + VSLTAPTST 42/42 live on vehu.**
+
+## Verification (this increment)
+- Live dual-engine: install/verify/back-out/verify-clean/uninstall green on vehu
+  + foia-t12 (driver path; `--transport docker`).
+- Bare: VSLTAPTST 42/42 (added 2 seed tests), full bare **198/198 both engines**
+  (12 suites); engine-free gates green (icr 26, check-kids golden at patch 3).
+
+## OWED (remaining GA — ⚪)
 - **`liveReconcile` source seam** (mirror / #772) + the **real-S3 endpoint flip**
   + **fleet rollout** runbook — plan §9 stages 5.2 / 5.4.
+
+> Live-engine driver env recipe (for the next live session): YDB
+> `M_YDB_CONTAINER=vehu M_YDB_GBLDIR=/home/vehu/g/vehu.gld M_YDB_ROUTINES='/home/vehu/{p,s,r}/r2.02_x86_64*(...) /home/vehu/lib/gtm/libgtmutil.so'`;
+> IRIS `M_IRIS_TRANSPORT=docker M_IRIS_CONTAINER=foia-t12 M_IRIS_NAMESPACE=VISTA M_IRIS_IRIS_INSTANCE=IRIS`.
+> `v-pkg install` refuses re-install of the same patch ("already-installed") —
+> uninstall first. Engines were stopped; `docker start vehu foia-t12`.
 
 Extends [[phase4-fidelity-persist]] / [[phase3-egress-fidelity]] /
 [[phase2-vsltap]].
