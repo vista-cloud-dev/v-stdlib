@@ -11,10 +11,50 @@ VSL*1.0*2^VSL^0^0
 "BLD",1,"KRN",8989.51,0)
 8989.51
 "BLD",1,"KRN",8989.51,"NM",0)
-^9.68A^1^1
+^9.68A^11^11
 "BLD",1,"KRN",8989.51,"NM",1,0)
 VPNG GREETING^^0
 "BLD",1,"KRN",8989.51,"NM","B","VPNG GREETING",1)
+
+"BLD",1,"KRN",8989.51,"NM",2,0)
+VSL TAP CAP^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP CAP",2)
+
+"BLD",1,"KRN",8989.51,"NM",3,0)
+VSL TAP MAXBYTES^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP MAXBYTES",3)
+
+"BLD",1,"KRN",8989.51,"NM",4,0)
+VSL TAP HBSTALE^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP HBSTALE",4)
+
+"BLD",1,"KRN",8989.51,"NM",5,0)
+VSL TAP RETAIN^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP RETAIN",5)
+
+"BLD",1,"KRN",8989.51,"NM",6,0)
+VSL TAP ALWAYSON^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP ALWAYSON",6)
+
+"BLD",1,"KRN",8989.51,"NM",7,0)
+VSL TAP FIDELITY CADENCE^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP FIDELITY CADENCE",7)
+
+"BLD",1,"KRN",8989.51,"NM",8,0)
+VSL S3 ENDPOINT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 ENDPOINT",8)
+
+"BLD",1,"KRN",8989.51,"NM",9,0)
+VSL S3 BUCKET^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 BUCKET",9)
+
+"BLD",1,"KRN",8989.51,"NM",10,0)
+VSL S3 REGION^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 REGION",10)
+
+"BLD",1,"KRN",8989.51,"NM",11,0)
+VSL S3 PREFIX^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 PREFIX",11)
 
 "BLD",1,"KRN","B",8989.51,8989.51)
 
@@ -3779,6 +3819,126 @@ F^^
 "KRN",8989.51,1,30,1,0)
 1^4.2
 "KRN",8989.51,1,30,"B",1,1)
+
+"KRN",8989.51,2,-1)
+0
+"KRN",8989.51,2,0)
+VSL TAP CAP^Traffic-tap rolling-ring capacity (records); VSLTAP cap knob^
+"KRN",8989.51,2,1)
+N^^
+"KRN",8989.51,2,30,0)
+^8989.513I^1^1
+"KRN",8989.51,2,30,1,0)
+1^4.2
+"KRN",8989.51,2,30,"B",1,1)
+
+"KRN",8989.51,3,-1)
+0
+"KRN",8989.51,3,0)
+VSL TAP MAXBYTES^Traffic-tap copy-cost ceiling (bytes); a larger record trips auto-failover OFF^
+"KRN",8989.51,3,1)
+N^^
+"KRN",8989.51,3,30,0)
+^8989.513I^1^1
+"KRN",8989.51,3,30,1,0)
+1^4.2
+"KRN",8989.51,3,30,"B",1,1)
+
+"KRN",8989.51,4,-1)
+0
+"KRN",8989.51,4,0)
+VSL TAP HBSTALE^Traffic-tap heartbeat staleness bound (seconds) for the liveness check^
+"KRN",8989.51,4,1)
+N^^
+"KRN",8989.51,4,30,0)
+^8989.513I^1^1
+"KRN",8989.51,4,30,1,0)
+1^4.2
+"KRN",8989.51,4,30,"B",1,1)
+
+"KRN",8989.51,5,-1)
+0
+"KRN",8989.51,5,0)
+VSL TAP RETAIN^Traffic-tap cache retain days (the ^XTMP Kernel auto-purge horizon)^
+"KRN",8989.51,5,1)
+N^^
+"KRN",8989.51,5,30,0)
+^8989.513I^1^1
+"KRN",8989.51,5,30,1,0)
+1^4.2
+"KRN",8989.51,5,30,"B",1,1)
+
+"KRN",8989.51,6,-1)
+0
+"KRN",8989.51,6,0)
+VSL TAP ALWAYSON^Traffic-tap always-on flight-recorder opt-in (capture with no consumer present)^
+"KRN",8989.51,6,1)
+Y^^
+"KRN",8989.51,6,30,0)
+^8989.513I^1^1
+"KRN",8989.51,6,30,1,0)
+1^4.2
+"KRN",8989.51,6,30,"B",1,1)
+
+"KRN",8989.51,7,-1)
+0
+"KRN",8989.51,7,0)
+VSL TAP FIDELITY CADENCE^Periodic fidelity-run period (seconds) read by VSLTAPRUN^
+"KRN",8989.51,7,1)
+N^^
+"KRN",8989.51,7,30,0)
+^8989.513I^1^1
+"KRN",8989.51,7,30,1,0)
+1^4.2
+"KRN",8989.51,7,30,"B",1,1)
+
+"KRN",8989.51,8,-1)
+0
+"KRN",8989.51,8,0)
+VSL S3 ENDPOINT^S3 endpoint override (empty=real AWS virtual-host; set=path-style S3-equivalent)^
+"KRN",8989.51,8,1)
+F^^
+"KRN",8989.51,8,30,0)
+^8989.513I^1^1
+"KRN",8989.51,8,30,1,0)
+1^4.2
+"KRN",8989.51,8,30,"B",1,1)
+
+"KRN",8989.51,9,-1)
+0
+"KRN",8989.51,9,0)
+VSL S3 BUCKET^S3 target bucket for the traffic-tap egress^
+"KRN",8989.51,9,1)
+F^^
+"KRN",8989.51,9,30,0)
+^8989.513I^1^1
+"KRN",8989.51,9,30,1,0)
+1^4.2
+"KRN",8989.51,9,30,"B",1,1)
+
+"KRN",8989.51,10,-1)
+0
+"KRN",8989.51,10,0)
+VSL S3 REGION^S3 region for SigV4 signing (e.g. us-gov-west-1 for GovCloud)^
+"KRN",8989.51,10,1)
+F^^
+"KRN",8989.51,10,30,0)
+^8989.513I^1^1
+"KRN",8989.51,10,30,1,0)
+1^4.2
+"KRN",8989.51,10,30,"B",1,1)
+
+"KRN",8989.51,11,-1)
+0
+"KRN",8989.51,11,0)
+VSL S3 PREFIX^Per-station S3 key prefix (the §11 partition for fleet rollout)^
+"KRN",8989.51,11,1)
+F^^
+"KRN",8989.51,11,30,0)
+^8989.513I^1^1
+"KRN",8989.51,11,30,1,0)
+1^4.2
+"KRN",8989.51,11,30,"B",1,1)
 
 "MBREQ")
 1

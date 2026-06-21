@@ -104,17 +104,32 @@ comparison.
   routines); dist + registries regenerated; engine-free gates green (icr 25,
   citations 25, kids golden).
 
-## OWED (next GA increments — still ⚪)
-- **The 10 XPAR `#8989.51` PARAMETER DEFINITIONs + patch bump** in
-  `kids/vsl.build.json`, then the **live install → verify → back-out →
-  verify-clean on BOTH VistA engines** (vehu YDB + foia IRIS, stopped now —
-  startable) over the driver. That live proof is the real G-UNINST exit gate;
-  the bare suite proves the logic only. The install should also **`$$schedule^VSLTAPRUN`**
-  the fidelity task as part of self-configuration.
-- **`liveReconcile` source seam** (mirror / #772) — lands with the real-S3
-  increment; that's what actually makes the console show a current match %.
-- **DIBRG** (deploy/install/back-out/rollback guide), real-S3 endpoint flip
-  config, fleet rollout runbook.
+# Phase 5 / M4 (GA): KIDS param definitions + DIBRG (3rd increment)
+
+Same branch. (a) The **10 tap XPAR `#8989.51` PARAMETER DEFINITIONs** added to
+`kids/vsl.build.json` — names **exactly match `$$params^VSLTAPBO`** (the back-out
++ verify-clean targets), dataTypes numeric/yes-no/free-text, SYS entity. Dist
+regenerated (16 routines / 11 params); **`check-kids` golden, all engine-free
+gates green**. **Patch kept at `VSL*1.0*2`** (NOT bumped): `VSLBLD.$$manifest` +
+`VSLBLDTST` assert `VSL*1.0*2` and run only on a live engine — the patch bump +
+VSLBLD sync rides with the live-proof increment (where VSLBLDTST re-runs). (b)
+The **DIBRG** written: `docs/traffic-tap-dibrg.md` — footprint table, install
+(exact `v-pkg` driver commands per engine), configure, **back-out =
+`do backout^VSLTAPBO()` THEN `v-pkg uninstall`** (runtime footprint first, then
+routines), verify-clean exit gate, rollback.
+
+## OWED (the remaining GA live work — ⚪)
+- **Live `install → verify → back-out → verify-clean` on BOTH VistA engines**
+  (vehu YDB + foia IRIS — stopped now, startable) over the driver. The real
+  G-UNINST exit gate; the bare suite proves the logic only.
+- **Patch bump** (`VSL*1.0*2`→`*3`) + sync `VSLBLD.$$manifest`/`VSLBLDTST`, done
+  with the live proof.
+- **XPAR→`^VSLTAP("cfg")` seed step** so the installed params actually feed the
+  hot-path knobs (cap/maxbytes/…) + the S3 config (`s3endpoint`/`s3bucket`/…);
+  the install should also `$$schedule^VSLTAPRUN`. (`cadence` already reads XPAR
+  directly; the hot-path cfg + VSLS3 read `^VSLTAP("cfg")`, so a seed is needed.)
+- **`liveReconcile` source seam** (mirror / #772) + the **real-S3 endpoint flip**
+  + **fleet rollout** runbook — plan §9 stages 5.2 / 5.4.
 
 Extends [[phase4-fidelity-persist]] / [[phase3-egress-fidelity]] /
 [[phase2-vsltap]].
