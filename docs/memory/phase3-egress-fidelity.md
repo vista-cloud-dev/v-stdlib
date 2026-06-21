@@ -114,13 +114,23 @@ VistA-dependent suites (VSLBLD/CFG/FS/IO/LOG/TASK — 0/0 on a bare engine, need
 `make check`/`make test` on a VistA box) and `VSLS3E2ETST` (the live one, in the matrix gate).
 **GOTCHA:** `check-engine-access` flagged the vendored script's COMMENT for the literal token
 `docker exec` — reworded to "execs into an engine" (the regex `docker\s+(?:-\S+\s+)*exec\b` is
-text-blind). **Follow-up — GitHub `ci.yml` still runs only engine-free gates;** enabling the
-engine-bound `make ci` in Actions needs the reusable `m-ci.yml` to support a sibling-MSL checkout +
-two engine containers + a MinIO service (+ a YDB-hard/IRIS-soft split per org posture) — a separate
-infra lift.
+text-blind). **GitHub `ci.yml` ENGINE-CI WIRED (2026-06-20).** Two self-contained jobs (the reusable `m-ci.yml`
+starts only one engine, has no MinIO, checks out only the caller — can't host this): **`engine-ydb`
+HARD** (build `m` from m-cli@main → clone m-stdlib@`master` for `STD*` routines → start
+`ghcr.io/m-dev-tools/m-test-engine:0.2.0` → vendored `scripts/s3-testbed.sh up` → `make test-bare`
++ `make test-s3` ENGINE=ydb → teardown) and **`engine-iris` fail-soft (continue-on-error, PRs only)**
+on `intersystemsdc/iris-community` with `ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m
+--namespace USER'` (best-effort, org IRIS posture). The drift gates stay in the reusable engine-free
+`ci` job (NOT re-run in engine-ydb — else `check-msl-pin` would actually execute against the cloned
+MSL and could drift-fail). **Deps verified present:** `m-test-engine:0.2.0` pullable; m-stdlib@master
+carries the STDS3 read-op `opt`-threading fix (`getObject(...,opt,resp)`, #20). **NOT yet run in
+Actions** — branch pushes don't trigger `ci.yml` (only `main` + PRs); the first PR run is the
+confirmation. (`ENGINE_FLAGS=` overrides the Makefile `:=` default on the command line — that's how
+the iris job injects `--namespace USER`.)
 
-**REMAINS for M2 (next session):** the **GitHub `ci.yml` engine-CI enablement** (above); the HLO leg
-of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
+**REMAINS for M2 (next session):** confirm the new CI jobs on the first PR run (esp. `engine-iris` —
+iris-community is not the curated local m-test-iris, so its round-trip may need driver-auth/namespace
+tuning); the HLO leg of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
 `VSLTAPFC` HL7 live-periodic fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the
 `_offwindows`/`_fidelity` manifests. **Option B (socket→sidecar, stage 3.5) DEFERRED** (decision
 2026-06-20) until a site mandates ZERO DB writes — A covers the technical need at near-zero footprint
