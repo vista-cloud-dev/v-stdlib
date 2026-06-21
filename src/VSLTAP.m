@@ -28,6 +28,8 @@ VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 	;   ^VSLTAP("disabled")          auto-failover reason, else absent
 	;   ^VSLTAP("hb")                liveness heartbeat ($H)
 	;   ^VSLTAP("_offwindows")       count; (,n)=open^reason^close (explicit, never silent)
+	;   ^VSLTAP("hl",…)              health counters/samples (VSLTAPHL)
+	;   ^VSLTAP("fc","last")         last fidelity manifest line (VSLTAPFC persist)
 	;
 	; Public API:
 	;   $$enabled^VSLTAP()           1 iff capture should run now (the one gate)

@@ -29,6 +29,8 @@ VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
 	;   $$matches(line,source)       1 iff payload byte-equals source AND verifies
 	;   $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)
 	;   $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line
+	;   do persist(res,ts)           store the last run at ^VSLTAP("fc","last")
+	;   $$lastFidelity()             the last persisted manifest line, or "" (none yet)
 	;
 	quit
 	;
@@ -109,3 +111,21 @@ manifest(res,ts)	; Serialise a fidelity run to a single JSON manifest line (the 
 	set m("extra")="n:"_(+$get(res("extra")))
 	set m("ok")=$select(ok:"t",1:"f")
 	quit $$encode^STDJSON(.m)
+	;
+	; ---------- the persisted last-fidelity result (the console getter, spec §8.1) ----------
+	;
+persist(res,ts)	; Store the last fidelity run so the console can read it (no live run on request).
+	; doc: @param res  array   by-ref: res("matched"/"mismatch"/"missing"/"extra")
+	; doc: @param ts   string  capture timestamp (default $H)
+	; doc: @returns    void     writes the manifest line to ^VSLTAP("fc","last")
+	; doc: $$verify/$$reconcile/$$manifest compute fidelity ON CALL against a corpus;
+	; doc: VWEBT (the console) needs a passive getter, so the periodic comparator (and
+	; doc: the make test-s3 round-trip) call persist after a run. Single "last" slot:
+	; doc: a newer run replaces the prior one (the console shows the latest result).
+	set ^VSLTAP("fc","last")=$$manifest(.res,$get(ts,$horolog))
+	quit
+	;
+lastFidelity()	; The last persisted _fidelity manifest line, or "" when no run has run yet.
+	; doc: @returns string  the JSON manifest stored by persist, or "" (console: "pending")
+	; doc: A pure read of the VSL control state — the snapshot reader (VWEBT) parses it.
+	quit $get(^VSLTAP("fc","last"))

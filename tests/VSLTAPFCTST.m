@@ -23,6 +23,9 @@ VSLTAPFCTST	; v-stdlib — VSLTAPFC fidelity comparator test suite.
 	do tReconcileDetectsMismatch(.pass,.fail)
 	do tReconcileDetectsMissingAndExtra(.pass,.fail)
 	do tManifestShape(.pass,.fail)
+	do tLastFidelityEmpty(.pass,.fail)
+	do tPersistThenLastFidelity(.pass,.fail)
+	do tPersistOverwritesPrevious(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -137,4 +140,38 @@ tManifestShape(pass,fail)	;@TEST "manifest: a fidelity run serialises to a JSON 
 	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"manifest is well-formed JSON")
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("matched")),10,"matched count carried")
 	do eq^STDASSERT(.pass,.fail,$$type^STDJSON(t("ok")),"true","ok is JSON true when fully faithful")
+	quit
+	;
+	; ---------- the persisted last-fidelity result (the console getter, spec §8.1) ----------
+	;
+tLastFidelityEmpty(pass,fail)	;@TEST "lastFidelity: returns '' before any run is persisted (console shows 'pending')"
+	new res
+	kill ^VSLTAP("fc")
+	do eq^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC(),"","no persisted run -> empty (the console shows last-run pending)")
+	quit
+	;
+tPersistThenLastFidelity(pass,fail)	;@TEST "persist: stores the manifest line for the console to read back as JSON"
+	new res,line,t
+	kill ^VSLTAP("fc")
+	set res("matched")=8,res("mismatch")=0,res("missing")=0,res("extra")=0
+	do persist^VSLTAPFC(.res,"65800,43200")
+	set line=$$lastFidelity^VSLTAPFC()
+	do true^STDASSERT(.pass,.fail,line'="","persist makes a last-run result readable")
+	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the persisted result is the well-formed _fidelity manifest")
+	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("matched")),8,"the matched count round-trips through persistence")
+	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("ts")),"65800,43200","the run timestamp is carried")
+	do eq^STDASSERT(.pass,.fail,$$type^STDJSON(t("ok")),"true","a clean run persists ok=true")
+	quit
+	;
+tPersistOverwritesPrevious(pass,fail)	;@TEST "persist: a newer run replaces the prior last-fidelity result (single 'last')"
+	new res,line,t
+	kill ^VSLTAP("fc")
+	set res("matched")=5,res("mismatch")=0,res("missing")=0,res("extra")=0
+	do persist^VSLTAPFC(.res,"65800,1")
+	set res("matched")=3,res("mismatch")=2,res("missing")=0,res("extra")=0
+	do persist^VSLTAPFC(.res,"65800,2")
+	set line=$$lastFidelity^VSLTAPFC()
+	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the last result parses")
+	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("ts")),"65800,2","lastFidelity reflects the most recent run")
+	do eq^STDASSERT(.pass,.fail,$$type^STDJSON(t("ok")),"false","a run with mismatches persists ok=false")
 	quit
