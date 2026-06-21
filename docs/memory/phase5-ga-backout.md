@@ -158,9 +158,50 @@ confirming the delete mechanism + isolating the bug to the var name.)
 - Bare: VSLTAPTST 42/42 (added 2 seed tests), full bare **198/198 both engines**
   (12 suites); engine-free gates green (icr 26, check-kids golden at patch 3).
 
-## OWED (remaining GA — ⚪)
-- **`liveReconcile` source seam** (mirror / #772) + the **real-S3 endpoint flip**
-  + **fleet rollout** runbook — plan §9 stages 5.2 / 5.4.
+# Phase 5 / M4 (GA): the fidelity source seam — console shows a real match % (5th increment)
+
+Same workstream, branch `s3tap-livereconcile` (v-stdlib). The console's fidelity
+panel was wired (`persist`/`$$lastFidelity`) but nothing produced a live result.
+**`$$fidelityNow^VSLTAPRUN`** is the source seam that lights it up.
+
+## What it does (`VSLTAPRUN.fidelityNow` + `VSLS3.list`)
+Production fidelity that needs **no generated corpus and no separate process**:
+1. `$$list^VSLS3` (new — wraps `listObjectsV2^STDS3`) enumerates the shipped
+   objects under `traffic/<station>/<proto>/` (the §11 per-station prefix);
+2. reads each back (`$$readback^VSLS3`), splits the NDJSON;
+3. runs **`$$verify^VSLTAPFC`** on every envelope — the shipped payload re-hashes
+   to the sha256 anchor captured at ship time → matched / mismatch;
+4. `do persist^VSLTAPFC(.res)` → `^VSLTAP("fc","last")`, which VWEBT reads.
+
+`run^VSLTAPRUN` now calls it (replacing the no-op `liveReconcile`): gate →
+`$$fidelityNow()` → reschedule. Bounded by `fcmax` (default 50, the most-recent
+keys); fenced; returns -1 (persists nothing) when there's no egress / nothing
+shipped, so the console stays honest.
+
+## What this proves — and the boundary
+It proves the **ship → store → read-back path is byte-faithful to what the tap
+captured** (catches storage / transport / encoding corruption — exactly the
+egress bugs the build hit: IRIS `WriteRawMode`, the YDB callout ABI). It is
+**round-trip integrity** (shipped == captured-and-hashed), NOT the deeper
+**capture == wire** check. That deeper leg still needs an independent durable
+source (passive mirror for RPC / #772 for HL7) and stays a documented future
+enhancement — but the operator console now shows a **real, current production
+match %** from actual shipped traffic, not `pending`.
+
+## Verification
+- **MinIO matrix GREEN on BOTH engines: `VSLS3E2ETST` 15/15** (YDB + IRIS) — the
+  round-trip + 2 new tests: `fidelityNow` integrity-verifies all 7 shipped
+  envelopes (matched=7, ok=true), and **catches a planted tampered object**
+  (payload≠hash → mismatch>0, ok=false). It's in `make ci` (`test-s3-matrix`).
+- Bare 198/198 (no regression — `fidelityNow` only runs with egress); engine-free
+  gates green (check-kids golden; `$$list^VSLS3` is v→m, no new ICR).
+
+## OWED (remaining GA — narrowed)
+- **Deeper capture==wire fidelity** (mirror / #772 independent source) — future
+  enhancement; round-trip integrity covers the egress path today.
+- **Real-S3 endpoint flip** smoke — code-complete, real-bucket smoke skipped (user).
+- **Fleet rollout (5.4)** — **deferred indefinitely (user, 2026-06-21)** until an
+  actual deployment need is established.
 
 > Live-engine driver env recipe (for the next live session): YDB
 > `M_YDB_CONTAINER=vehu M_YDB_GBLDIR=/home/vehu/g/vehu.gld M_YDB_ROUTINES='/home/vehu/{p,s,r}/r2.02_x86_64*(...) /home/vehu/lib/gtm/libgtmutil.so'`;

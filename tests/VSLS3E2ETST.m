@@ -26,6 +26,8 @@ VSLS3E2ETST	; v-stdlib — end-to-end round-trip fidelity harness (the M2 exit g
 	do start^STDASSERT(.pass,.fail)
 	;
 	do tRoundTripByteExact(.pass,.fail)
+	do tFidelityNowVerifiesShipped(.pass,.fail)
+	do tFidelityNowCatchesTamper(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -107,3 +109,61 @@ seqOf(line)	; (private) the seq field of one envelope line.
 	new t
 	if '$$parse^STDJSON(line,.t) quit ""
 	quit $$valueOf^STDJSON($get(t("seq")))
+	;
+tFidelityNowVerifiesShipped(pass,fail)	;@TEST "fidelityNow: lists shipped objects, integrity-verifies them, persists a real match% for the console"
+	new c,seq,res,n,st,m,t
+	do cfg()
+	; a unique per-run station so the LIST prefix is isolated (no cross-run bleed)
+	set st="fidok"_$job set ^VSLTAP("cfg","s3station")=st
+	do corpus(.c)
+	set seq=""
+	for  do drive(.seq,.c) quit:seq=""
+	set n=$$drain^VSLS3(.res)
+	do eq^STDASSERT(.pass,.fail,n,7,"the 7-record batch shipped to the S3-equivalent")
+	kill ^VSLTAP("fc")
+	set m=$$fidelityNow^VSLTAPRUN()
+	do eq^STDASSERT(.pass,.fail,m,7,"fidelityNow integrity-verified all 7 shipped envelopes (payload re-hashes to its anchor)")
+	if '$$parse^STDJSON($$lastFidelity^VSLTAPFC(),.t)
+	do eq^STDASSERT(.pass,.fail,$$type^STDJSON($get(t("ok"))),"true","the console's persisted fidelity is ok=true (round-trip integrity)")
+	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON($get(t("mismatch"))),0,"no integrity mismatches on a faithful round-trip")
+	quit
+	;
+tFidelityNowCatchesTamper(pass,fail)	;@TEST "fidelityNow: a corrupt shipped object (payload != hash) drops the console match to ok=false"
+	new c,seq,res,n,st,bucket,ctx,opt,key,sc,m,t,line
+	do cfg()
+	set st="fidbad"_$job set ^VSLTAP("cfg","s3station")=st
+	do corpus(.c)
+	set seq=""
+	for  do drive(.seq,.c) quit:seq=""
+	set n=$$drain^VSLS3(.res)
+	do eq^STDASSERT(.pass,.fail,n,7,"the good batch shipped")
+	; plant a tampered object under the same per-station prefix (payload altered, hash kept)
+	set bucket=$$ctx^VSLS3(.ctx,.opt)
+	set line=$$tamperLine()
+	set key="traffic/"_st_"/rpc/2099/01/01/9999.ndjson"
+	set sc=$$ship^VSLS3(.ctx,bucket,key,line_$char(10),.opt,.res)
+	do eq^STDASSERT(.pass,.fail,sc,200,"the tampered object was stored in the S3-equivalent")
+	kill ^VSLTAP("fc")
+	set m=$$fidelityNow^VSLTAPRUN()
+	if '$$parse^STDJSON($$lastFidelity^VSLTAPFC(),.t)
+	do true^STDASSERT(.pass,.fail,$$valueOf^STDJSON($get(t("mismatch")))>0,"fidelityNow caught the corrupt (payload!=hash) object")
+	do eq^STDASSERT(.pass,.fail,$$type^STDJSON($get(t("ok"))),"false","the console fidelity goes ok=false when a shipped object is corrupt")
+	quit
+	;
+tamperLine()	; (private) one envelope line whose payload was altered while the hash anchor was kept (verify -> 0).
+	new o,good,t,env
+	set o("ts")="65800,43200"
+	set good=$$envelope^VSLS3("original-payload-bytes","rpc","resp",500,1,.o)
+	if '$$parse^STDJSON(good,.t) quit good
+	set env="o"
+	set env("ts")="s:"_$$valueOf^STDJSON(t("ts"))
+	set env("proto")="s:"_$$valueOf^STDJSON(t("proto"))
+	set env("dir")="s:"_$$valueOf^STDJSON(t("dir"))
+	set env("station")="s:"_$$valueOf^STDJSON(t("station"))
+	set env("conn")="s:"_$$valueOf^STDJSON(t("conn"))
+	set env("seq")="n:"_$$valueOf^STDJSON(t("seq"))
+	set env("len")="n:"_$$valueOf^STDJSON(t("len"))
+	set env("hash")="s:"_$$valueOf^STDJSON(t("hash"))
+	set env("enc")="s:"_$$valueOf^STDJSON(t("enc"))
+	set env("payload")="s:TAMPERED bytes that differ from the kept hash"
+	quit $$encode^STDJSON(.env)

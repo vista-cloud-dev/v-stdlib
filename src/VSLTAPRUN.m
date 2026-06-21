@@ -10,12 +10,13 @@ VSLTAPRUN	; v-stdlib — the periodic fidelity-run task (closes the console loop
 	; *** Layer: v. It consumes the fidelity comparator (VSLTAPFC, v) and the gate
 	; (VSLTAP, v) and binds TaskMan (^%ZTLOAD, the same #10063 seam VSLTASK uses)
 	; to re-queue itself. The persist seam ($$reconcilePersist) is pure M and
-	; bare-proven; the live sample (read recently-shipped objects back and compare
-	; to the independent source) is the egress/VistA leg — see $$liveReconcile.
+	; bare-proven; the live sampler ($$fidelityNow — LIST shipped objects, read
+	; them back, integrity-verify each) is the egress leg that lights the console.
 	;
 	; Public API:
 	;   do run()                     the scheduled task body (gate -> sample -> persist -> re-queue)
-	;   $$reconcilePersist(corpus,envs)  reconcile a sample then persist it -> ok (the persist seam)
+	;   $$fidelityNow()              LIST shipped objects -> read back -> integrity-verify -> persist -> matched
+	;   $$reconcilePersist(corpus,envs)  reconcile a known corpus then persist it -> ok (the e2e-harness seam)
 	;   $$cadence()                  the run period in seconds (XPAR VSL TAP FIDELITY CADENCE; default 3600)
 	;   $$schedule()                 queue run^VSLTAPRUN at now+cadence; record the task# -> task#
 	;
@@ -80,10 +81,10 @@ run()	; The scheduled task body: gate -> sample+persist -> re-queue. Fenced (nev
 	; doc: consumer it skips the live work entirely (no false fidelity result). The
 	; doc: whole body is fault-fenced so a sampling/egress fault self-clears and the
 	; doc: next tick is still re-queued.
-	new $etrap
+	new $etrap,x
 	set $etrap="set $ecode="""" quit"
 	if '$$enabled^VSLTAP() quit
-	do liveReconcile()
+	set x=$$fidelityNow()
 	do reschedule()
 	quit
 	;
@@ -92,15 +93,57 @@ reschedule()	; (private) re-queue the next periodic run (bare-safe no-op without
 	set ztsk=$$schedule()
 	quit
 	;
-liveReconcile()	; (private) the LIVE fidelity sample — read recently-shipped objects back and reconcile.
-	; doc: The egress/VistA leg. The byte-equality round-trip itself is already
-	; doc: proven (VSLTAPFC + VSLS3E2ETST against MinIO); what lands with the GA
-	; doc: real-S3 increment (plan §9 stage 5.2 + the "VSLTAPFC HL7 live-periodic
-	; doc: hook") is the SOURCE selection: the independent durable source to compare
-	; doc: the shipped object against — the passive mirror for RPC, or the #772
-	; doc: store for HL7 (the ring is trimmed after $$drain, so it cannot be the
-	; doc: source). Until that source seam is wired, this is a deliberate, fenced
-	; doc: no-op; the scheduler, gate, cadence and persist seam around it are live.
-	; doc: When wired it assembles corpus(seq)/envs(seq) and calls
-	; doc: $$reconcilePersist — the one seam that lights up the console.
+	; ---------- the live fidelity sampler (the source seam that lights the console) ----------
+	;
+fidelityNow()	; Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
+	; doc: @returns numeric  the count of shipped envelopes whose payload re-hashes to its
+	; doc:                   sha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled
+	; doc: The PRODUCTION fidelity signal that lights the VWEBT console — it needs no
+	; doc: generated corpus and no separate process. It LISTs the per-station shipped
+	; doc: objects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,
+	; doc: and runs `$$verify^VSLTAPFC` on every envelope (the shipped payload re-hashes
+	; doc: to the sha256 anchor captured at ship time) -> matched/mismatch. This proves
+	; doc: the ship->store->readback path is BYTE-FAITHFUL to what the tap captured —
+	; doc: it catches storage / transport / encoding corruption (exactly the egress
+	; doc: bugs the build hit). [The deeper capture==wire leg — shipped vs an independent
+	; doc: mirror/#772 source — remains a documented future enhancement; the ring is
+	; doc: trimmed post-drain so it cannot be that source.] Fenced; persists
+	; doc: ^VSLTAP("fc","last"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.
+	new $etrap,ctx,opt,bucket,station,proto,prefix,listing,sc,res,k,cap,seen
+	set $etrap="set $ecode="""" quit -1"
+	set bucket=$$ctx^VSLS3(.ctx,.opt)
+	set station=$$cfg^VSLTAP("s3station",""),proto=$$cfg^VSLTAP("s3proto","rpc")
+	set prefix="traffic/"_station_"/"_proto_"/"
+	set sc=$$list^VSLS3(.ctx,bucket,prefix,.opt,.listing)
+	if sc'=200 quit -1
+	set res("matched")=0,res("mismatch")=0,res("missing")=0,res("extra")=0
+	set cap=+$$cfg^VSLTAP("fcmax",50)
+	set seen=0,k=""
+	for  do nextKey(.k,.seen,.listing,.ctx,bucket,.opt,.res) quit:k=""!(seen'<cap)
+	if 'res("matched"),'res("mismatch") quit -1
+	do persist^VSLTAPFC(.res)
+	quit res("matched")
+	;
+nextKey(k,seen,listing,ctx,bucket,opt,res)	; (private) step to the previous listed subscript; verify its object if it's a real key.
+	; doc: The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.
+	set k=$order(listing(k),-1)
+	if k="" quit
+	if $get(listing(k,"key"))="" quit
+	do verifyObject(listing(k,"key"),.ctx,bucket,.opt,.res)
+	set seen=seen+1
+	quit
+	;
+verifyObject(key,ctx,bucket,opt,res)	; (private) read one shipped object back and integrity-verify each NDJSON envelope line.
+	new $etrap,resp,sc,body,i
+	set $etrap="set $ecode="""" quit"
+	set sc=$$readback^VSLS3(.ctx,bucket,key,.opt,.resp)
+	if sc'=200 quit
+	set body=$get(resp("body"))
+	for i=1:1:$length(body,$char(10)) do tallyLine($piece(body,$char(10),i),.res)
+	quit
+	;
+tallyLine(line,res)	; (private) integrity-verify one envelope line; bump matched / mismatch.
+	if line="" quit
+	if $$verify^VSLTAPFC(line) set res("matched")=res("matched")+1 quit
+	set res("mismatch")=res("mismatch")+1
 	quit
