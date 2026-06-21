@@ -90,6 +90,10 @@ tRoundTripByteExact(pass,fail)	;@TEST "round-trip: every generated RPC lands byt
 	do true^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.c,.envs,.res),"byte-for-byte round-trip is faithful")
 	do eq^STDASSERT(.pass,.fail,res("matched"),7,"all 7 records matched on read-back")
 	do eq^STDASSERT(.pass,.fail,res("mismatch")+res("missing")+res("extra"),0,"no drift, no drop, no extra")
+	; persist the run so the live console (VWEBT) can read the last fidelity result —
+	; the production caller is the periodic comparator; here the harness stands in.
+	do persist^VSLTAPFC(.res)
+	do true^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC()'="","the round-trip result is persisted for the console")
 	quit
 	;
 drive(seq,c)	; (private) append the next corpus record to the ring (the tee's role).
