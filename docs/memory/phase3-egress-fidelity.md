@@ -103,11 +103,14 @@ pass** before commit → fixed the `$get` UNDEF guard + made the drain ship empt
 records (no silent drop). `make check-kids` is **pre-existing red on main** (v-pkg KIDS
 drift; SKIPs in CI) — the tap routines are correctly NOT in the VSL KIDS base. Left untouched.
 
-**REMAINS for M2 (next session):** **Option B** (socket→sidecar) behind the D-10 flag +
-the Option A/B × {YDB,IRIS} matrix as a gate (stage 3.4/3.5); the HLO leg of `VSLHL7TAP`
-live-data-validated against an HLO-active VistA (vehu had none); `VSLTAPFC` HL7 live-periodic
-fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the `_offwindows`/`_fidelity`
-manifests. **DONE since:** egress blockers G-HTTP-YDB/IRIS-GET resolved (round-trip GREEN both
-engines, m-test-engine 0.2.0); **`VSLHL7TAP` + G-HL7HOOK** (this session). Companion shared note:
+**REMAINS for M2 (next session):** the **Option A × {YDB,IRIS} matrix wired as a gate** (stage
+3.4); the HLO leg of `VSLHL7TAP` live-data-validated against an HLO-active VistA (vehu had none);
+`VSLTAPFC` HL7 live-periodic fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the
+`_offwindows`/`_fidelity` manifests. **Option B (socket→sidecar, stage 3.5) DEFERRED** (decision
+2026-06-20) until a site mandates ZERO DB writes — A covers the technical need at near-zero footprint
+(`^XTMP`, no FileMan file; §4.1.1), and B's per-host collector reintroduces the AWS-Traffic-Mirroring
+operational dependency this effort exists to escape; re-enters scope on demand behind the D-10 flag
+(pipeline already B-ready). **DONE since:** egress blockers G-HTTP-YDB/IRIS-GET resolved (round-trip
+GREEN both engines, m-test-engine 0.2.0); **`VSLHL7TAP` + G-HL7HOOK** (this session). Companion shared note:
 `docs` repo `docs/memory/rpc-traffic-s3-streaming-proposal.md`. Next phase: Phase 4 (M3)
 the `v-web` SSE health/fidelity console — `docs/prompts/phase4-console-kickoff.md`.
