@@ -1,9 +1,18 @@
 ---
 name: phase3-egress-fidelity
-description: Traffic-tap Phase 3 (M2) — VSLS3 (LDJSON envelope + drain) + VSLTAPFC (byte-equality comparator) + VSLTAP $$drainTo, dual-engine green; the live MinIO round-trip now GREEN on IRIS (VSLS3E2ETST 6/6) after fixing the egress blockers; YDB leg still blocked on an engine-image call-out defect.
+description: Traffic-tap Phase 3 (M2) — VSLS3 (LDJSON envelope + drain) + VSLTAPFC (byte-equality comparator) + VSLTAP $$drainTo + VSLHL7TAP (HL7 store-tail) all dual-engine green; live MinIO round-trip GREEN on BOTH engines; G-HL7HOOK resolved by a live vehu probe.
 metadata:
   type: project
 ---
+
+**VSLHL7TAP — HL7 store-tail adapter DONE (2026-06-20, branch `phase3-egress-fidelity`/`ship-all-routines`, unmerged).** Plan §7 stage 3.3; the HL7 half of the tap. Unlike `VSLRPCTAP` (an in-line tee), HL7 traffic is ALREADY persisted by the HL7 package, so `VSLHL7TAP` is a passive **store-tailer** run from a separate flush process (like `VSLS3 $$drain`): `do tail()` is consumer-gated (`$$enabled^VSLTAP`) then forward-$ORDERs each store from a persisted cursor, reassembles the verbatim message, and tees it via `$$tee^VSLTAP` (so consumer-gating + fault-fence are inherited). Non-interference is **structural** (read-only of an existing store). Public API: `do tail()` / `tailLegacy()` / `tailHLO()`, `$$readLegacy(ien)` / `$$readHLO(ien)`, `$$cursor(store)` / `do setCursor`/`resetCursors`. Cursors ride in `^VSLTAP("hl7cur","772"|"778")`. **Dual-engine 17/17 (`VSLHL7TAPTST`); tap regression 144/144 both engines.** Shipped in the KIDS base (added to `kids/vsl.build.json`, now **14 routines**; namespace registry regenerated). Gates green (fmt/lint 0/arch/check-kids — the latter now GREEN, no longer pre-existing red).
+
+**G-HL7HOOK RESOLVED — by a LIVE probe of `vehu` (YDB-VistA) through the driver stack (`m vista exec --engine ydb --transport docker --container vehu`) + the #772/#778/#777 DD (2026-06-20).** VistA keeps TWO parallel HL7 stores, both can carry live traffic, so the tail covers both. **Authoritative layout (load-bearing — expensive to reacquire):**
+- **Legacy #772 `^HL(772,`:** entry header `^HL(772,IEN,0)` = `fmDateTime^…^^DIR^^MSGID^^IEN^STATUS^…` (p1 datetime, p4 I/O, p6 msgid). **Message text = `^HL(772,IEN,"IN",seq,0)`, one verbatim HL7 segment per node (seq 1..N)**, WP header `^HL(772,IEN,"IN",0)` = `^^lastseq^count^date^`. The `"IN"` multiple is **HL7-PACKAGE-managed, NOT a FileMan DD field** (the #772 DD has no "IN" node — fields sit at `0;1..0;14`,`1;1`,`2;1`,`P;1`). A purged entry keeps only node 0 (no `"IN"` body) → `$$readLegacy`="".
+- **HLO #778 `^HLB(` / #777 `^HLA(`:** `^HLB(IEN,0)` = `MSGID^bodyIEN^^DIR^LINK` (.02 → #777 body IEN); MSH is **rebuilt from `^HLB(IEN,1)`_`^HLB(IEN,2)`** (DD fields 1+2 = "HDR SEGMENT components 1-6 / 7-end"); body segments = `^HLA(bodyIEN,1,seq,0)` (#777 field 1 "SEGMENTS NOT BATCHED" @ node `1;0`, MSH excluded). vehu had **no HLO data** (counts 0) so HLO is DD+corpus-grounded, not live-data-validated — a follow-up needs an HLO-active VistA.
+- **CURSOR — the corpus warning confirmed live:** the file **0-node 3rd piece is STALE** (`^HL(772,0)`=`…^772DI^4589^` while the live entries keyed at ~2.23M). The reliable cursor is the **last present numeric IEN via `$ORDER`**; non-numeric top-level subs (the `B`/`C`/`AF`/`AI` cross-refs) collate after numerics and END the tail (`nextIen` stops at the first non-numeric). HLO assigns IENs from the `^HLC` counter, same `$ORDER` rule.
+
+**GOTCHA (cost real time again — the [[phase2-vsltap]] / extrinsic-via-DO trap, 4th sighting):** `tee^VSLTAP` is an EXTRINSIC (`quit $$append`); calling it `do tee^VSLTAP(msg)` raised QUIT-with-arg-in-DO-frame on YDB → silent **0/0 suite abort** (IRIS tolerated it). Fixed to `set sent=$$tee^VSLTAP(msg)`. Also M-MOD-009 (≤3 commands/line) forced the house `$ORDER`-loop idiom — `for  do oneStep(.x,…) quit:x=""` (advance+body in the helper) or counted `for i=1:1 quit:'$data(@ref)`, never `for  set x=$O() quit:…  set/do` (=4 commands).
 
 **EGRESS BLOCKERS — UPDATE (2026-06-20).** Resolved the IRIS egress blocker and ran
 the live byte-exact round-trip: **`VSLS3E2ETST` is GREEN on IRIS, 6/6** (generate RPC
@@ -94,10 +103,11 @@ pass** before commit → fixed the `$get` UNDEF guard + made the drain ship empt
 records (no silent drop). `make check-kids` is **pre-existing red on main** (v-pkg KIDS
 drift; SKIPs in CI) — the tap routines are correctly NOT in the VSL KIDS base. Left untouched.
 
-**REMAINS for M2 (next session):** resolve **G-HTTP-YDB/IRIS-GET** → run `make test-s3`
-to close the byte-exact round-trip on both engines; **`VSLHL7TAP`** (#772 store-tail) +
-**G-HL7HOOK** (confirm #772 vs HLO #777x vs subscriber-protocol against the gold corpus +
-a live engine); **Option B** (socket→sidecar) behind the D-10 flag; live-periodic fidelity
-hook + ship the `_offwindows`/`_fidelity` manifests. Companion shared note:
+**REMAINS for M2 (next session):** **Option B** (socket→sidecar) behind the D-10 flag +
+the Option A/B × {YDB,IRIS} matrix as a gate (stage 3.4/3.5); the HLO leg of `VSLHL7TAP`
+live-data-validated against an HLO-active VistA (vehu had none); `VSLTAPFC` HL7 live-periodic
+fidelity hook (shipped-vs-#772 via `$$readLegacy^VSLHL7TAP`); ship the `_offwindows`/`_fidelity`
+manifests. **DONE since:** egress blockers G-HTTP-YDB/IRIS-GET resolved (round-trip GREEN both
+engines, m-test-engine 0.2.0); **`VSLHL7TAP` + G-HL7HOOK** (this session). Companion shared note:
 `docs` repo `docs/memory/rpc-traffic-s3-streaming-proposal.md`. Next phase: Phase 4 (M3)
 the `v-web` SSE health/fidelity console — `docs/prompts/phase4-console-kickoff.md`.

@@ -25,7 +25,7 @@ MSL*0.1*1^2
 "BLD",1,"REQB","B","MSL*0.1*1",1)
 
 "RTN")
-13
+14
 "RTN","VSLBLD")
 0^76^0^0
 "RTN","VSLBLD",1,0)
@@ -618,6 +618,292 @@ resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else ech
 	set n=+$piece($extract(iens,2,$length(iens)),",")
 "RTN","VSLFS",124,0)
 	quit $get(IEN(n))_","
+"RTN","VSLHL7TAP")
+0^142^0^0
+"RTN","VSLHL7TAP",1,0)
+VSLHL7TAP	; v-stdlib — HL7 store-tail adapter (decoupled, zero in-line).
+"RTN","VSLHL7TAP",2,0)
+	;
+"RTN","VSLHL7TAP",3,0)
+	; Phase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §4, D-3). The HL7 half of
+"RTN","VSLHL7TAP",4,0)
+	; the tap. Unlike VSLRPCTAP (an in-line tee BESIDE the ephemeral RPC runner),
+"RTN","VSLHL7TAP",5,0)
+	; the HL7 traffic is ALREADY persisted by the HL7 package, so VSLHL7TAP is a
+"RTN","VSLHL7TAP",6,0)
+	; passive STORE-TAILER: a separate flush process (VSLTASK, like VSLS3 $$drain)
+"RTN","VSLHL7TAP",7,0)
+	; reads new entries forward from a saved cursor and tees each verbatim message
+"RTN","VSLHL7TAP",8,0)
+	; into the same VSLTAP ring. Non-interference is STRUCTURAL — it only READS the
+"RTN","VSLHL7TAP",9,0)
+	; stores the HL7 send/receive path already wrote, adding nothing to that path.
+"RTN","VSLHL7TAP",10,0)
+	;
+"RTN","VSLHL7TAP",11,0)
+	; *** G-HL7HOOK resolved by a LIVE probe of vehu (YDB-VistA) 2026-06-20 + the
+"RTN","VSLHL7TAP",12,0)
+	; #772/#778/#777 DD: VistA keeps TWO parallel HL7 message stores and both can
+"RTN","VSLHL7TAP",13,0)
+	; carry live traffic, so the tail covers both:
+"RTN","VSLHL7TAP",14,0)
+	;
+"RTN","VSLHL7TAP",15,0)
+	;   legacy HL7 (#772, ^HL(772,) — package-managed, NOT a FileMan WP field:
+"RTN","VSLHL7TAP",16,0)
+	;     ^HL(772,IEN,0)            = fmDateTime^^^DIR^^MSGID^^IEN^STATUS^...
+"RTN","VSLHL7TAP",17,0)
+	;     ^HL(772,IEN,"IN",0)       = WP header ^^lastseq^count^date^
+"RTN","VSLHL7TAP",18,0)
+	;     ^HL(772,IEN,"IN",seq,0)   = one verbatim HL7 segment per node (seq 1..N)
+"RTN","VSLHL7TAP",19,0)
+	;   HLO (#778 ^HLB / #777 ^HLA):
+"RTN","VSLHL7TAP",20,0)
+	;     ^HLB(IEN,0)               = MSGID^bodyIEN^^DIR^LINK   (.02 -> #777)
+"RTN","VSLHL7TAP",21,0)
+	;     ^HLB(IEN,1) / ^HLB(IEN,2) = MSH components 1-6 / 7-end (rebuilt header)
+"RTN","VSLHL7TAP",22,0)
+	;     ^HLA(bodyIEN,1,seq,0)     = one verbatim body segment (MSH excluded)
+"RTN","VSLHL7TAP",23,0)
+	;
+"RTN","VSLHL7TAP",24,0)
+	; The reliable tail cursor is the LAST PRESENT numeric IEN ($ORDER), NOT the
+"RTN","VSLHL7TAP",25,0)
+	; file 0-node's 3rd piece — the probe found ^HL(772,0) piece-3 stale (4589) while
+"RTN","VSLHL7TAP",26,0)
+	; the live entries keyed at ~2.23M; HLO assigns IENs from ^HLC, not a 0-node +1.
+"RTN","VSLHL7TAP",27,0)
+	; Non-numeric top-level subscripts (the B/C/AF/AI cross-references) are skipped.
+"RTN","VSLHL7TAP",28,0)
+	;
+"RTN","VSLHL7TAP",29,0)
+	; Layer: v. Consumes the VSLTAP core (v->v, consumer-gated + fault-fenced via
+"RTN","VSLHL7TAP",30,0)
+	; $$tee^VSLTAP); the engine seam stays in VSLTAP. Cursors ride in ^VSLTAP.
+"RTN","VSLHL7TAP",31,0)
+	;
+"RTN","VSLHL7TAP",32,0)
+	; Public API:
+"RTN","VSLHL7TAP",33,0)
+	;   do tail()              — tail BOTH stores once (gated; ship every new message)
+"RTN","VSLHL7TAP",34,0)
+	;   do tailLegacy()        — tail #772 forward from its cursor
+"RTN","VSLHL7TAP",35,0)
+	;   do tailHLO()           — tail #778/#777 forward from its cursor
+"RTN","VSLHL7TAP",36,0)
+	;   $$readLegacy(ien)      — verbatim reassembly of a #772 entry ("" if purged)
+"RTN","VSLHL7TAP",37,0)
+	;   $$readHLO(ien)         — verbatim reassembly of a #778/#777 entry
+"RTN","VSLHL7TAP",38,0)
+	;   $$cursor(store)        — the persisted high-water IEN ("772" | "778")
+"RTN","VSLHL7TAP",39,0)
+	;   do setCursor(store,ien) / resetCursors()   — cursor controls
+"RTN","VSLHL7TAP",40,0)
+	;
+"RTN","VSLHL7TAP",41,0)
+	quit
+"RTN","VSLHL7TAP",42,0)
+	;
+"RTN","VSLHL7TAP",43,0)
+	; ---------- the tail (gated, fenced, forward-only) ----------
+"RTN","VSLHL7TAP",44,0)
+	;
+"RTN","VSLHL7TAP",45,0)
+tail()	; Tail both HL7 stores once: ship every newly-persisted message into the ring.
+"RTN","VSLHL7TAP",46,0)
+	; doc: @returns void  consumer-gated at the top (no consumer -> no tail, cursors
+"RTN","VSLHL7TAP",47,0)
+	; doc: frozen so a re-arm catches up); each store tail is independently fenced.
+"RTN","VSLHL7TAP",48,0)
+	if '$$enabled^VSLTAP() quit
+"RTN","VSLHL7TAP",49,0)
+	do tailLegacy()
+"RTN","VSLHL7TAP",50,0)
+	do tailHLO()
+"RTN","VSLHL7TAP",51,0)
+	quit
+"RTN","VSLHL7TAP",52,0)
+	;
+"RTN","VSLHL7TAP",53,0)
+tailLegacy()	; Tail #772 forward from its cursor, teeing each new verbatim message.
+"RTN","VSLHL7TAP",54,0)
+	do tailStore("772")
+"RTN","VSLHL7TAP",55,0)
+	quit
+"RTN","VSLHL7TAP",56,0)
+	;
+"RTN","VSLHL7TAP",57,0)
+tailHLO()	; Tail #778/#777 forward from its cursor, teeing each new verbatim message.
+"RTN","VSLHL7TAP",58,0)
+	do tailStore("778")
+"RTN","VSLHL7TAP",59,0)
+	quit
+"RTN","VSLHL7TAP",60,0)
+	;
+"RTN","VSLHL7TAP",61,0)
+tailStore(store)	; (private) forward-only $ORDER over numeric IENs of one store.
+"RTN","VSLHL7TAP",62,0)
+	; doc: @param store  string  "772" (legacy) | "778" (HLO)
+"RTN","VSLHL7TAP",63,0)
+	; doc: A per-entry read fault is fenced (off-window recorded) and the cursor
+"RTN","VSLHL7TAP",64,0)
+	; doc: still advances past the poison entry — progress over a poison record, and
+"RTN","VSLHL7TAP",65,0)
+	; doc: the gap is explicit, never silent. Non-numeric (cross-ref) subs end it.
+"RTN","VSLHL7TAP",66,0)
+	new ien,cur
+"RTN","VSLHL7TAP",67,0)
+	set cur=$$cursor(store)
+"RTN","VSLHL7TAP",68,0)
+	set ien=cur
+"RTN","VSLHL7TAP",69,0)
+	for  do tailOne(store,.ien,.cur) quit:ien=""
+"RTN","VSLHL7TAP",70,0)
+	quit
+"RTN","VSLHL7TAP",71,0)
+	;
+"RTN","VSLHL7TAP",72,0)
+tailOne(store,ien,cur)	; (private) one tail step: advance, read-fenced, tee, persist the cursor.
+"RTN","VSLHL7TAP",73,0)
+	; doc: @param ien  numeric  by-ref: advanced to the next IEN ("" ends the loop)
+"RTN","VSLHL7TAP",74,0)
+	; doc: @param cur  numeric  by-ref: the persisted high-water cursor
+"RTN","VSLHL7TAP",75,0)
+	new msg,ok,sent
+"RTN","VSLHL7TAP",76,0)
+	set ien=$$nextIen(store,ien)
+"RTN","VSLHL7TAP",77,0)
+	quit:ien=""
+"RTN","VSLHL7TAP",78,0)
+	do read1(store,ien,.msg,.ok)
+"RTN","VSLHL7TAP",79,0)
+	if 'ok do disable^VSLTAP("hl7read")
+"RTN","VSLHL7TAP",80,0)
+	if ok,msg]"" set sent=$$tee^VSLTAP(msg)
+"RTN","VSLHL7TAP",81,0)
+	set cur=ien
+"RTN","VSLHL7TAP",82,0)
+	do setCursor(store,cur)
+"RTN","VSLHL7TAP",83,0)
+	quit
+"RTN","VSLHL7TAP",84,0)
+	;
+"RTN","VSLHL7TAP",85,0)
+nextIen(store,ien)	; (private) the next numeric IEN after `ien`, or "" at the first cross-ref.
+"RTN","VSLHL7TAP",86,0)
+	; doc: numeric subscripts collate before the B/C/AF/AI cross-refs; stop there.
+"RTN","VSLHL7TAP",87,0)
+	new n
+"RTN","VSLHL7TAP",88,0)
+	if store="772" set n=$order(^HL(772,ien))
+"RTN","VSLHL7TAP",89,0)
+	else  set n=$order(^HLB(ien))
+"RTN","VSLHL7TAP",90,0)
+	if +n'=n set n=""
+"RTN","VSLHL7TAP",91,0)
+	quit n
+"RTN","VSLHL7TAP",92,0)
+	;
+"RTN","VSLHL7TAP",93,0)
+read1(store,ien,msg,ok)	; (private) fenced reassembly of one entry (DO-framed so the trap QUIT is legal).
+"RTN","VSLHL7TAP",94,0)
+	; doc: @param msg  string  by-ref OUT: the verbatim message ("" on fault/purged)
+"RTN","VSLHL7TAP",95,0)
+	; doc: @param ok   bool    by-ref OUT: 0 iff a fault was fenced
+"RTN","VSLHL7TAP",96,0)
+	; doc: Flag-based $ETRAP (ISO, dual-engine; never zgoto, the M4 resident-harness
+"RTN","VSLHL7TAP",97,0)
+	; doc: gotcha) — a malformed store entry self-fences instead of aborting the tail.
+"RTN","VSLHL7TAP",98,0)
+	new $etrap
+"RTN","VSLHL7TAP",99,0)
+	set ok=1,msg=""
+"RTN","VSLHL7TAP",100,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLHL7TAP",101,0)
+	if store="772" set msg=$$readLegacy(ien)
+"RTN","VSLHL7TAP",102,0)
+	else  set msg=$$readHLO(ien)
+"RTN","VSLHL7TAP",103,0)
+	quit
+"RTN","VSLHL7TAP",104,0)
+	;
+"RTN","VSLHL7TAP",105,0)
+	; ---------- verbatim reassembly (grounded on the live probe) ----------
+"RTN","VSLHL7TAP",106,0)
+	;
+"RTN","VSLHL7TAP",107,0)
+readLegacy(ien)	; Reassemble the verbatim CR-delimited message for #772 entry `ien`.
+"RTN","VSLHL7TAP",108,0)
+	; doc: @param ien  numeric  the #772 entry IEN
+"RTN","VSLHL7TAP",109,0)
+	; doc: @returns    string   segments ^HL(772,ien,"IN",seq,0) joined by $C(13),
+"RTN","VSLHL7TAP",110,0)
+	; doc: in seq order; "" when the body was purged (header-only entry).
+"RTN","VSLHL7TAP",111,0)
+	new msg,seq,first
+"RTN","VSLHL7TAP",112,0)
+	set msg="",first=1
+"RTN","VSLHL7TAP",113,0)
+	for seq=1:1 quit:'$data(^HL(772,ien,"IN",seq))  do
+"RTN","VSLHL7TAP",114,0)
+	. set:'first msg=msg_$char(13)
+"RTN","VSLHL7TAP",115,0)
+	. set msg=msg_$get(^HL(772,ien,"IN",seq,0))
+"RTN","VSLHL7TAP",116,0)
+	. set first=0
+"RTN","VSLHL7TAP",117,0)
+	quit msg
+"RTN","VSLHL7TAP",118,0)
+	;
+"RTN","VSLHL7TAP",119,0)
+readHLO(ien)	; Reassemble the verbatim message for HLO #778 entry `ien` (MSH + body).
+"RTN","VSLHL7TAP",120,0)
+	; doc: @param ien  numeric  the #778 (^HLB) entry IEN
+"RTN","VSLHL7TAP",121,0)
+	; doc: @returns    string   the MSH (^HLB(ien,1)_^HLB(ien,2)) then the #777 body
+"RTN","VSLHL7TAP",122,0)
+	; doc: segments ^HLA(body,1,seq,0), all CR-delimited, in order.
+"RTN","VSLHL7TAP",123,0)
+	new msg,body,seq
+"RTN","VSLHL7TAP",124,0)
+	set msg=$get(^HLB(ien,1))_$get(^HLB(ien,2))
+"RTN","VSLHL7TAP",125,0)
+	set body=+$piece($get(^HLB(ien,0)),"^",2)
+"RTN","VSLHL7TAP",126,0)
+	for seq=1:1 quit:'$data(^HLA(body,1,seq))  set msg=msg_$char(13)_$get(^HLA(body,1,seq,0))
+"RTN","VSLHL7TAP",127,0)
+	quit msg
+"RTN","VSLHL7TAP",128,0)
+	;
+"RTN","VSLHL7TAP",129,0)
+	; ---------- forward-only cursor (per store, persisted in ^VSLTAP) ----------
+"RTN","VSLHL7TAP",130,0)
+	;
+"RTN","VSLHL7TAP",131,0)
+cursor(store)	; The persisted high-water IEN for a store ("772" | "778"); 0 if unset.
+"RTN","VSLHL7TAP",132,0)
+	; doc: @param store  string  the store key
+"RTN","VSLHL7TAP",133,0)
+	; doc: @returns      numeric the last IEN tailed
+"RTN","VSLHL7TAP",134,0)
+	quit +$get(^VSLTAP("hl7cur",store))
+"RTN","VSLHL7TAP",135,0)
+	;
+"RTN","VSLHL7TAP",136,0)
+setCursor(store,ien)	; Persist the high-water IEN for a store.
+"RTN","VSLHL7TAP",137,0)
+	set ^VSLTAP("hl7cur",store)=+$get(ien)
+"RTN","VSLHL7TAP",138,0)
+	quit
+"RTN","VSLHL7TAP",139,0)
+	;
+"RTN","VSLHL7TAP",140,0)
+resetCursors()	; Clear both cursors (re-tail from the beginning of each store).
+"RTN","VSLHL7TAP",141,0)
+	kill ^VSLTAP("hl7cur")
+"RTN","VSLHL7TAP",142,0)
+	quit
 "RTN","VSLIO")
 0^134^0^0
 "RTN","VSLIO",1,0)
