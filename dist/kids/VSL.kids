@@ -25,7 +25,7 @@ MSL*0.1*1^2
 "BLD",1,"REQB","B","MSL*0.1*1",1)
 
 "RTN")
-15
+16
 "RTN","VSLBLD")
 0^76^0^0
 "RTN","VSLBLD",1,0)
@@ -3368,6 +3368,220 @@ canary()	; Synthetic byte-exact round-trip of a tagged record through ^XTMP — 
 	if 'ok quit 0
 "RTN","VSLTAPHL",141,0)
 	quit (rb=tag)
+"RTN","VSLTAPRUN")
+0^106^0^0
+"RTN","VSLTAPRUN",1,0)
+VSLTAPRUN	; v-stdlib — the periodic fidelity-run task (closes the console loop).
+"RTN","VSLTAPRUN",2,0)
+	;
+"RTN","VSLTAPRUN",3,0)
+	; Phase 5 / M4 (GA), plan stage 5.1. persist^VSLTAPFC + $$lastFidelity exist
+"RTN","VSLTAPRUN",4,0)
+	; and the VWEBT console reads ^VSLTAP("fc","last"), but in a live install
+"RTN","VSLTAPRUN",5,0)
+	; NOTHING calls persist — only the test suite writes it — so the console's
+"RTN","VSLTAPRUN",6,0)
+	; fidelity panel shows `pending` forever. VSLTAPRUN is the schedulable task
+"RTN","VSLTAPRUN",7,0)
+	; that closes that loop: on a cadence it reconciles a shipped-vs-source sample
+"RTN","VSLTAPRUN",8,0)
+	; and calls persist, giving the operator a real, current match %.
+"RTN","VSLTAPRUN",9,0)
+	;
+"RTN","VSLTAPRUN",10,0)
+	; *** Layer: v. It consumes the fidelity comparator (VSLTAPFC, v) and the gate
+"RTN","VSLTAPRUN",11,0)
+	; (VSLTAP, v) and binds TaskMan (^%ZTLOAD, the same #10063 seam VSLTASK uses)
+"RTN","VSLTAPRUN",12,0)
+	; to re-queue itself. The persist seam ($$reconcilePersist) is pure M and
+"RTN","VSLTAPRUN",13,0)
+	; bare-proven; the live sample (read recently-shipped objects back and compare
+"RTN","VSLTAPRUN",14,0)
+	; to the independent source) is the egress/VistA leg — see $$liveReconcile.
+"RTN","VSLTAPRUN",15,0)
+	;
+"RTN","VSLTAPRUN",16,0)
+	; Public API:
+"RTN","VSLTAPRUN",17,0)
+	;   do run()                     the scheduled task body (gate -> sample -> persist -> re-queue)
+"RTN","VSLTAPRUN",18,0)
+	;   $$reconcilePersist(corpus,envs)  reconcile a sample then persist it -> ok (the persist seam)
+"RTN","VSLTAPRUN",19,0)
+	;   $$cadence()                  the run period in seconds (XPAR VSL TAP FIDELITY CADENCE; default 3600)
+"RTN","VSLTAPRUN",20,0)
+	;   $$schedule()                 queue run^VSLTAPRUN at now+cadence; record the task# -> task#
+"RTN","VSLTAPRUN",21,0)
+	;
+"RTN","VSLTAPRUN",22,0)
+	quit
+"RTN","VSLTAPRUN",23,0)
+	;
+"RTN","VSLTAPRUN",24,0)
+	; ---------- the persist seam (pure M; the bare-proven loop-closer) ----------
+"RTN","VSLTAPRUN",25,0)
+	;
+"RTN","VSLTAPRUN",26,0)
+reconcilePersist(corpus,envs)	; Reconcile the corpus vs the read-back envelopes, persist the result, return ok.
+"RTN","VSLTAPRUN",27,0)
+	; doc: @param corpus  array  by-ref: corpus(seq) = the source record
+"RTN","VSLTAPRUN",28,0)
+	; doc: @param envs    array  by-ref: envs(seq)   = the read-back envelope line
+"RTN","VSLTAPRUN",29,0)
+	; doc: @returns       bool   1 iff the sample reconciles byte-perfect (ok=true persisted)
+"RTN","VSLTAPRUN",30,0)
+	; doc: The one call that writes ^VSLTAP("fc","last") in production — the live
+"RTN","VSLTAPRUN",31,0)
+	; doc: sampler and the make-test-s3 round-trip both funnel through here so the
+"RTN","VSLTAPRUN",32,0)
+	; doc: console (VWEBT $$lastFidelity^VSLTAPFC) stops showing `pending`.
+"RTN","VSLTAPRUN",33,0)
+	new res,ok
+"RTN","VSLTAPRUN",34,0)
+	set ok=$$reconcile^VSLTAPFC(.corpus,.envs,.res)
+"RTN","VSLTAPRUN",35,0)
+	do persist^VSLTAPFC(.res)
+"RTN","VSLTAPRUN",36,0)
+	quit ok
+"RTN","VSLTAPRUN",37,0)
+	;
+"RTN","VSLTAPRUN",38,0)
+	; ---------- the cadence (XPAR config; the period between runs) ----------
+"RTN","VSLTAPRUN",39,0)
+	;
+"RTN","VSLTAPRUN",40,0)
+cadence()	; The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
+"RTN","VSLTAPRUN",41,0)
+	; doc: @returns numeric  a positive number of seconds between fidelity runs
+"RTN","VSLTAPRUN",42,0)
+	; doc: $text-guarded — a bare engine has no XPAR, so the default (1h) applies.
+"RTN","VSLTAPRUN",43,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLTAPRUN",44,0)
+	new $etrap,v
+"RTN","VSLTAPRUN",45,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",46,0)
+	set v=3600
+"RTN","VSLTAPRUN",47,0)
+	if $text(GET^XPAR)'="" set v=+$$get^VSLCFG("VSL TAP FIDELITY CADENCE",3600)
+"RTN","VSLTAPRUN",48,0)
+	if v'>0 set v=3600
+"RTN","VSLTAPRUN",49,0)
+	quit v
+"RTN","VSLTAPRUN",50,0)
+	;
+"RTN","VSLTAPRUN",51,0)
+	; ---------- the scheduler (non-persistent TaskMan re-queue) ----------
+"RTN","VSLTAPRUN",52,0)
+	;
+"RTN","VSLTAPRUN",53,0)
+schedule()	; Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out can dequeue it); return it.
+"RTN","VSLTAPRUN",54,0)
+	; doc: @returns numeric  the queued task number, or 0 when there is no TaskMan (bare/no-queue)
+"RTN","VSLTAPRUN",55,0)
+	; doc: A NON-persistent periodic task (each run re-queues the next) — NOT a
+"RTN","VSLTAPRUN",56,0)
+	; doc: PSET self-restarting listener (so it is cleanly dequeueable by VSLTAPBO,
+"RTN","VSLTAPRUN",57,0)
+	; doc: unlike a persistent listener). Records ^VSLTAP("task","fidelity")=task#.
+"RTN","VSLTAPRUN",58,0)
+	; doc: $text-guarded so a bare engine is a clean no-op.
+"RTN","VSLTAPRUN",59,0)
+	; doc: @icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points
+"RTN","VSLTAPRUN",60,0)
+	new $etrap,ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSK,ztsk
+"RTN","VSLTAPRUN",61,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",62,0)
+	if $text(^%ZTLOAD)="" quit 0
+"RTN","VSLTAPRUN",63,0)
+	set ZTRTN="run^VSLTAPRUN",ZTIO="",ZTDESC="VSL traffic-tap fidelity run"
+"RTN","VSLTAPRUN",64,0)
+	set ZTDTH=$$nextRun($$cadence())
+"RTN","VSLTAPRUN",65,0)
+	do ^%ZTLOAD
+"RTN","VSLTAPRUN",66,0)
+	set ztsk=+$get(ZTSK)
+"RTN","VSLTAPRUN",67,0)
+	if ztsk>0 set ^VSLTAP("task","fidelity")=ztsk
+"RTN","VSLTAPRUN",68,0)
+	quit ztsk
+"RTN","VSLTAPRUN",69,0)
+	;
+"RTN","VSLTAPRUN",70,0)
+nextRun(secs)	; (private) the $H timestamp `secs` seconds from now (with day rollover).
+"RTN","VSLTAPRUN",71,0)
+	new d,s
+"RTN","VSLTAPRUN",72,0)
+	set d=$piece($horolog,",",1),s=$piece($horolog,",",2)+(+secs)
+"RTN","VSLTAPRUN",73,0)
+	for  quit:s<86400  set s=s-86400,d=d+1
+"RTN","VSLTAPRUN",74,0)
+	quit d_","_s
+"RTN","VSLTAPRUN",75,0)
+	;
+"RTN","VSLTAPRUN",76,0)
+	; ---------- the task body ----------
+"RTN","VSLTAPRUN",77,0)
+	;
+"RTN","VSLTAPRUN",78,0)
+run()	; The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).
+"RTN","VSLTAPRUN",79,0)
+	; doc: Respects the Phase-2 gate — when the tap is OFF / auto-disabled / has no
+"RTN","VSLTAPRUN",80,0)
+	; doc: consumer it skips the live work entirely (no false fidelity result). The
+"RTN","VSLTAPRUN",81,0)
+	; doc: whole body is fault-fenced so a sampling/egress fault self-clears and the
+"RTN","VSLTAPRUN",82,0)
+	; doc: next tick is still re-queued.
+"RTN","VSLTAPRUN",83,0)
+	new $etrap
+"RTN","VSLTAPRUN",84,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",85,0)
+	if '$$enabled^VSLTAP() quit
+"RTN","VSLTAPRUN",86,0)
+	do liveReconcile()
+"RTN","VSLTAPRUN",87,0)
+	do reschedule()
+"RTN","VSLTAPRUN",88,0)
+	quit
+"RTN","VSLTAPRUN",89,0)
+	;
+"RTN","VSLTAPRUN",90,0)
+reschedule()	; (private) re-queue the next periodic run (bare-safe no-op without TaskMan).
+"RTN","VSLTAPRUN",91,0)
+	new ztsk
+"RTN","VSLTAPRUN",92,0)
+	set ztsk=$$schedule()
+"RTN","VSLTAPRUN",93,0)
+	quit
+"RTN","VSLTAPRUN",94,0)
+	;
+"RTN","VSLTAPRUN",95,0)
+liveReconcile()	; (private) the LIVE fidelity sample — read recently-shipped objects back and reconcile.
+"RTN","VSLTAPRUN",96,0)
+	; doc: The egress/VistA leg. The byte-equality round-trip itself is already
+"RTN","VSLTAPRUN",97,0)
+	; doc: proven (VSLTAPFC + VSLS3E2ETST against MinIO); what lands with the GA
+"RTN","VSLTAPRUN",98,0)
+	; doc: real-S3 increment (plan §9 stage 5.2 + the "VSLTAPFC HL7 live-periodic
+"RTN","VSLTAPRUN",99,0)
+	; doc: hook") is the SOURCE selection: the independent durable source to compare
+"RTN","VSLTAPRUN",100,0)
+	; doc: the shipped object against — the passive mirror for RPC, or the #772
+"RTN","VSLTAPRUN",101,0)
+	; doc: store for HL7 (the ring is trimmed after $$drain, so it cannot be the
+"RTN","VSLTAPRUN",102,0)
+	; doc: source). Until that source seam is wired, this is a deliberate, fenced
+"RTN","VSLTAPRUN",103,0)
+	; doc: no-op; the scheduler, gate, cadence and persist seam around it are live.
+"RTN","VSLTAPRUN",104,0)
+	; doc: When wired it assembles corpus(seq)/envs(seq) and calls
+"RTN","VSLTAPRUN",105,0)
+	; doc: $$reconcilePersist — the one seam that lights up the console.
+"RTN","VSLTAPRUN",106,0)
+	quit
 "RTN","VSLTASK")
 0^90^0^0
 "RTN","VSLTASK",1,0)

@@ -65,15 +65,54 @@ sighting in [[phase3-egress-fidelity]] and the M4 zgoto one.)
   vs the gold corpus `DI/fm22_2dg`), check-citations 23, check-namespaces 15,
   check-kids golden ✓.
 
+# Phase 5 / M4 (GA): VSLTAPRUN periodic fidelity-run task (closes the console loop)
+
+Second GA increment (same branch). `persist^VSLTAPFC`/`$$lastFidelity` exist
+and VWEBT reads `^VSLTAP("fc","last")`, but **nothing in a live install calls
+persist** — only the test suite — so the console fidelity panel shows `pending`
+forever. `VSLTAPRUN` is the schedulable task that closes the loop.
+
+## What was built (`src/VSLTAPRUN.m`)
+- `$$reconcilePersist(corpus,envs)` — the **persist seam**: `$$reconcile^VSLTAPFC`
+  then `do persist^VSLTAPFC(.res)` → writes `^VSLTAP("fc","last")`. Pure M,
+  **bare-proven** — this is the one call that lights up the console.
+- `$$cadence()` — the run period in seconds from XPAR `VSL TAP FIDELITY CADENCE`
+  (default 3600); `$text(GET^XPAR)`-guarded → default on bare.
+- `$$schedule()` — queues `run^VSLTAPRUN` at now+cadence via a **NON-persistent**
+  `^%ZTLOAD` (each run re-queues the next — deliberately NOT a PSET self-
+  restarting listener, so VSLTAPBO can cleanly dequeue it); records
+  `^VSLTAP("task","fidelity")=task#` (the record VSLTAPBO.cleanTasks removes).
+  `$text(^%ZTLOAD)`-guarded → returns 0 on bare.
+- `do run()` — task body: **gate** (`$$enabled^VSLTAP` — OFF/disabled/no-consumer
+  → skip, no false result), fault-fenced, `do liveReconcile()`, `reschedule()`.
+
+## KEY design boundary — why `liveReconcile` is a deliberate fenced no-op (for now)
+`drain^VSLS3` ships a **batch keyed by the last seq** and **trims the ring after**
+shipping. So a source-vs-shipped byte-equality check **cannot use the ring as the
+source** (it's gone post-drain) — it needs an INDEPENDENT durable source: the
+**passive mirror** for RPC, or the **#772 store** for HL7 (the plan already lists
+"VSLTAPFC HL7 live-periodic hook" as a remaining M2 item). That source-selection
+seam lands with the **real-S3 increment** (plan §9 stage 5.2). The round-trip
+itself is already proven (VSLTAPFC + `VSLS3E2ETST` vs MinIO). So this increment
+delivers the **scheduler + gate + cadence + persist seam** (all bare-proven) and
+leaves `liveReconcile` as the explicit integration point — NOT a fabricated live
+comparison.
+
+## Verification
+- `tests/VSLTAPRUNTST.m` **8/8 dual-engine**; added to `BARE_TESTS` → full bare
+  **194/194 both engines** (12 suites). `VSLTAPRUN` in the KIDS build (16
+  routines); dist + registries regenerated; engine-free gates green (icr 25,
+  citations 25, kids golden).
+
 ## OWED (next GA increments — still ⚪)
 - **The 10 XPAR `#8989.51` PARAMETER DEFINITIONs + patch bump** in
   `kids/vsl.build.json`, then the **live install → verify → back-out →
   verify-clean on BOTH VistA engines** (vehu YDB + foia IRIS, stopped now —
   startable) over the driver. That live proof is the real G-UNINST exit gate;
-  the bare suite proves the logic only.
-- **The production fidelity-run task** (wire `persist^VSLTAPFC`, cadence =
-  `VSL TAP FIDELITY CADENCE`) so the VWEBT console shows a real match %, not
-  `pending`.
+  the bare suite proves the logic only. The install should also **`$$schedule^VSLTAPRUN`**
+  the fidelity task as part of self-configuration.
+- **`liveReconcile` source seam** (mirror / #772) — lands with the real-S3
+  increment; that's what actually makes the console show a current match %.
 - **DIBRG** (deploy/install/back-out/rollback guide), real-S3 endpoint flip
   config, fleet rollout runbook.
 
