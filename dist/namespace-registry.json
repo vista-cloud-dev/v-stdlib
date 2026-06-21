@@ -16,11 +16,14 @@
       "VSLCFG",
       "VSLENV",
       "VSLFS",
+      "VSLHL7TAP",
       "VSLIO",
       "VSLLOG",
       "VSLRPCTAP",
+      "VSLS3",
       "VSLSEC",
       "VSLTAP",
+      "VSLTAPFC",
       "VSLTAPHL",
       "VSLTASK"
     ]

@@ -149,6 +149,19 @@ tail()	; (lowest-retained seq) - 1 (0 if empty).
 read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
 	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
 	;
+drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
+	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
+	; doc: @returns    void     the drain self-KILLs shipped entries (spec §4.1.3)
+	; doc: Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships
+	; doc: 200 — never from the RPC path. Idempotent; never advances past head.
+	new t,h
+	set h=+$get(^XTMP("VSLTAP","head"))
+	if +$get(seq)>h set seq=h
+	set t=+$get(^XTMP("VSLTAP","tail"))
+	for  quit:t'<+$get(seq)  do dropOldest(.t)
+	set ^XTMP("VSLTAP","tail")=t
+	quit
+	;
 	; ---------- auto-failover + state machine ----------
 	;
 disable(reason)	; Auto-failover: disable the tap, record an off-window (explicit, never silent).

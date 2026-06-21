@@ -7,20 +7,134 @@ on:
 
 jobs:
   # m/v waterline G1 gate — v-stdlib is layer v (passes trivially: v -> m is
-  # allowed). The engine-bound M suite (fmt/lint/test under YDB+IRIS) lands
-  # as v-stdlib grows real VSL* modules.
+  # allowed).
   arch:
     uses: vista-cloud-dev/.github/.github/workflows/arch-waterline.yml@main
 
   # VSL T0b.3/T0b.4 — the registry-driven drift gates + the cross-repo MSL
   # seam-contract pin. Pure-Python (system python3), engine-free: engine-targets
-  # is empty so m-ci.yml skips the engine container. check-msl-pin SKIPs green
-  # in CI (the sibling m-stdlib is not checked out → MSL unreachable, the same
-  # cadence-degradation as check-citations); the network fetch-at-tag path is
-  # the T1.1 extension. fmt-check/lint + the engine-bound suite join here once
-  # v-stdlib grows real VSL* modules.
+  # is empty so m-ci.yml skips the engine container. check-msl-pin SKIPs green in
+  # CI (the sibling m-stdlib is not checked out here → MSL unreachable). The
+  # engine-bound suites run in the dedicated jobs below (the reusable m-ci.yml
+  # starts only one engine and has no MinIO, so it can't host the round-trip).
   ci:
     uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
     with:
       engine-free-targets: "check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access"
       engine-targets: ""
+
+  # ── Engine-bound HARD gate (YDB) ────────────────────────────────────────────
+  # The bare-engine-green suite set (the traffic-tap + S3 + auth tier, incl. the
+  # VSLTAPBENCH non-interference gate) + the Option-A round-trip (VSLS3E2ETST)
+  # against a live MinIO. Self-contained: the reusable m-ci.yml can't host a
+  # sibling-MSL checkout + a second engine + MinIO, so this job provisions them
+  # (mirroring m-ci.yml's build-`m` / start-engine steps). `make test-s3-matrix`
+  # runs BOTH engines locally; CI hard-gates YDB and fail-soft-surfaces IRIS below.
+  engine-ydb:
+    runs-on: ubuntu-latest
+    env:
+      M: m
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          check-latest: true
+
+      - name: Build the Go `m` toolchain from m-cli
+        run: |
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
+          ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/m" version || true
+
+      - name: Check out m-stdlib (STD* routines staged via --routines)
+        run: |
+          git clone --depth 1 --branch master \
+            https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib"
+          echo "MSTDLIB=$RUNNER_TEMP/m-stdlib" >> "$GITHUB_ENV"
+
+      - name: Start the YDB engine (m-test-engine 0.2.0 — stdhttp callout for S3 egress)
+        run: |
+          docker run -d --name m-test-engine ghcr.io/m-dev-tools/m-test-engine:0.2.0
+          echo "waiting for m-test-engine to report healthy…"
+          for _ in $(seq 1 60); do
+            s="$(docker inspect -f '{{.State.Health.Status}}' m-test-engine 2>/dev/null || echo starting)"
+            echo "  health: $s"; [ "$s" = healthy ] && break; sleep 2
+          done
+          test "$(docker inspect -f '{{.State.Health.Status}}' m-test-engine)" = healthy
+
+      - name: Stand up the MinIO testbed (connects m-test-engine to the s3 net)
+        run: scripts/s3-testbed.sh up
+
+      - name: Bare-engine suites (YDB)
+        run: make test-bare ENGINE=ydb DOCKER=m-test-engine
+
+      - name: Option-A round-trip → MinIO (YDB)
+        run: make test-s3 ENGINE=ydb DOCKER=m-test-engine
+
+      - name: Tear down
+        if: always()
+        run: |
+          scripts/s3-testbed.sh down || true
+          docker rm -f m-test-engine || true
+
+  # ── Engine-bound FAIL-SOFT gate (IRIS, PRs only) ─────────────────────────────
+  # Surfaces IRIS portability of the tap suites + round-trip without blocking a
+  # merge (org posture: IRIS is best-effort in CI — the iris-portability job in
+  # m-ci.yml is also continue-on-error). A fresh iris-community is NOT the curated
+  # local m-test-iris, so a red run here is informative, not a gate. The full
+  # both-engine matrix is the local `make ci` gate.
+  engine-iris:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      M: m
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          check-latest: true
+
+      - name: Build the Go `m` toolchain from m-cli
+        run: |
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
+          ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Check out m-stdlib (STD* routines staged via --routines)
+        run: |
+          git clone --depth 1 --branch master \
+            https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib"
+          echo "MSTDLIB=$RUNNER_TEMP/m-stdlib" >> "$GITHUB_ENV"
+
+      - name: Start the IRIS engine (community)
+        run: |
+          docker run -d --name m-test-iris intersystemsdc/iris-community:latest
+          echo "waiting for m-test-iris to report healthy…"
+          for _ in $(seq 1 90); do
+            s="$(docker inspect -f '{{.State.Health.Status}}' m-test-iris 2>/dev/null || echo starting)"
+            echo "  health: $s"; [ "$s" = healthy ] && break; sleep 2
+          done
+          docker inspect -f '{{.State.Health.Status}}' m-test-iris
+
+      - name: Stand up the MinIO testbed (connects m-test-iris to the s3 net)
+        run: scripts/s3-testbed.sh up
+
+      - name: Bare-engine suites (IRIS)
+        run: make test-bare ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m --namespace USER'
+
+      - name: Option-A round-trip → MinIO (IRIS)
+        run: make test-s3 ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m --namespace USER'
+
+      - name: Tear down
+        if: always()
+        run: |
+          scripts/s3-testbed.sh down || true
+          docker rm -f m-test-iris || true
