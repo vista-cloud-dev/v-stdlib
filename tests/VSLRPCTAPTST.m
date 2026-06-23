@@ -1,8 +1,8 @@
 VSLRPCTAPTST	; v-stdlib — VSLRPCTAP (RPC tap adapter) test suite.
 	; The fenced fire-and-forget tee at the (injected) VSLRPC chokepoint
-	; (spec §4.1.3, §6.1). Proves: it appends when active; it is consumer-gated
-	; (zero capture AND zero counters with no consumer, exit c); and — the heart
-	; of the gate — a fault inside the tap is swallowed and leaves the caller's
+	; (spec §4.1.3, §6.1). Proves: it appends when active; it is ALWAYS-ON for
+	; capture (FU-9: the ring captures even with no consumer — only egress is gated);
+	; and — the heart of the gate — a fault inside the tap is swallowed and leaves the caller's
 	; result / $ECODE / $T untouched, self-disabling the tap (exit d). VSLRPC does
 	; not exist yet; the chokepoint is injected by calling capture^VSLRPCTAP the
 	; way VSLRPC will. Bare engine, no egress:
@@ -14,7 +14,7 @@ VSLRPCTAPTST	; v-stdlib — VSLRPCTAP (RPC tap adapter) test suite.
 	do start^STDASSERT(.pass,.fail)
 	;
 	do tCaptureAppendsWhenActive(.pass,.fail)
-	do tCaptureGatedNoConsumer(.pass,.fail)
+	do tCaptureAlwaysOnNoConsumer(.pass,.fail)
 	do tFaultFenceLeavesCallerIntact(.pass,.fail)
 	do tCaptureArgIsScratch(.pass,.fail)
 	;
@@ -35,13 +35,14 @@ tCaptureAppendsWhenActive(pass,fail)	;@TEST "capture^VSLRPCTAP tees a verbatim r
 	do eq^STDASSERT(.pass,.fail,$$read^VSLTAP($$head^VSLTAP()),msg,"the teed record is byte-verbatim")
 	quit
 	;
-tCaptureGatedNoConsumer(pass,fail)	;@TEST "no consumer -> the tee captures nothing and bumps no counters (exit c)"
+tCaptureAlwaysOnNoConsumer(pass,fail)	;@TEST "FU-9: no consumer -> the tee STILL captures into the always-on ring (only egress is gated)"
 	do reset()
 	do arm^VSLTAP()
 	do capture^VSLRPCTAP("ORWU DT^DUZ=10^NOW")
-	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"no consumer -> zero capture")
-	do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),0,"no consumer -> zero capture-write counters")
-	do eq^STDASSERT(.pass,.fail,$$bytes^VSLTAPHL(),0,"no consumer -> zero bytes-to-buffer counters")
+	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"always-on ring: capture happens with no consumer")
+	do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),1,"capture-write counter bumped (always-on)")
+	do true^STDASSERT(.pass,.fail,$$bytes^VSLTAPHL()>0,"bytes-to-buffer counter bumped")
+	do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),0,"egress gate stays OFF with no consumer (the FU-9 split)")
 	quit
 	;
 tFaultFenceLeavesCallerIntact(pass,fail)	;@TEST "a fault inside the tap is swallowed: caller result/$ECODE/$T untouched, tap self-disables (exit d)"

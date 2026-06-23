@@ -3,10 +3,11 @@ VSLTAPBENCHTST	; v-stdlib — VSLTAP 3-arm non-interference benchmark (THE gate,
 	; within the pre-registered D-7 latency bound (spec §6.4/§7). Three arms over
 	; one fixed synthetic-dispatch workload, timed with the portable STDPROF
 	; microsecond clock (v->m): (1) tap OFF baseline; (2) tap ON + consumer
-	; present; (3) tap ON always-on, NO consumer. The added per-op cost of the tee
-	; (arm-baseline) must stay under the bound, on small AND large payloads — a
-	; blocking/IO regression (ms-scale) or an O(n^2) copy would blow it. Plus a
-	; consumer-gated-idle arm (zero capture/cost) and a unit us/SET microbench.
+	; present; (3) tap ON, NO consumer (FU-9: the ring captures anyway). The added
+	; per-op cost of the tee (arm-baseline) must stay under the bound, on small AND
+	; large payloads — a blocking/IO regression (ms-scale) or an O(n^2) copy would
+	; blow it. Plus a kill-switch-idle arm (gate OFF -> zero capture/cost) and a unit
+	; us/SET microbench.
 	; Runs as a `make ci` gate on BARE engines, both YDB and IRIS:
 	;   m test --engine ydb  --docker m-test-engine --chset m \
 	;     --routines src --routines <m-stdlib>/src tests/VSLTAPBENCHTST.m
@@ -22,7 +23,7 @@ VSLTAPBENCHTST	; v-stdlib — VSLTAP 3-arm non-interference benchmark (THE gate,
 	;
 	do tSmallPayloadWithinBound(.pass,.fail)
 	do tLargePayloadCopyCostBounded(.pass,.fail)
-	do tConsumerGatedIdleIsNearZero(.pass,.fail)
+	do tKillSwitchIdleIsNearZero(.pass,.fail)
 	do tMicrobenchPerSet(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
@@ -39,12 +40,14 @@ dispatch(i)	; (private) a fixed synthetic RPC-dispatch workload (the thing we mu
 	quit s
 	;
 runArm(mode,n,payload)	; (private) time n dispatches under `mode`; return total elapsed us
-	; mode: "off" baseline (no tee) | "tee" dispatch + capture^VSLRPCTAP
+	; mode: "off" baseline (no tee) | "tee" dispatch + capture (consumer present) |
+	;       "alwayson" tee with NO consumer (FU-9: the ring captures anyway) |
+	;       "killed" tee called but the kill-switch is OFF (near-zero gated path)
 	new i,t0,t1
 	do reset()
 	if mode="tee" do arm^VSLTAP(),setConsumer^VSLTAP(1)
-	if mode="alwayson" do arm^VSLTAP(),setAlwaysOn^VSLTAP(1)
-	if mode="gated" do arm^VSLTAP()
+	if mode="alwayson" do arm^VSLTAP()
+	if mode="killed" do arm^VSLTAP(),off^VSLTAP()
 	; warm-up (compilation / global allocation) outside the timed window
 	for i=1:1:50 do oneIter(mode,i,payload)
 	set t0=$$nowMicros^STDPROF()
@@ -84,16 +87,16 @@ tLargePayloadCopyCostBounded(pass,fail)	;@TEST "large ~50KB payload: the verbati
 	do true^STDASSERT(.pass,.fail,ov'>2500,"large-payload per-op overhead "_ov_"us <= 2500us bound")
 	quit
 	;
-tConsumerGatedIdleIsNearZero(pass,fail)	;@TEST "consumer-gated idle: capture is a ~0 $G with no append and no counters (the affirmed default cost)"
+tKillSwitchIdleIsNearZero(pass,fail)	;@TEST "kill-switch idle: a tee call with the gate OFF is ~0 cost, no append, no counters (FU-9: the near-zero idle path is the OFF gate, not 'no consumer')"
 	new n,pay,base,gated,ov
 	set n=2000
 	set pay="ORWU DT^DUZ=10^FMNOW"
 	set base=$$runArm("off",n,pay)
-	set gated=$$runArm("gated",n,pay)
+	set gated=$$runArm("killed",n,pay)
 	set ov=(gated-base)/n
-	do true^STDASSERT(.pass,.fail,ov'>250,"gated idle per-op overhead "_ov_"us <= 250us bound (one $G)")
-	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"gated idle captured nothing")
-	do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),0,"gated idle bumped no capture counters")
+	do true^STDASSERT(.pass,.fail,ov'>250,"kill-switch idle per-op overhead "_ov_"us <= 250us bound (one $G short-circuit)")
+	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"kill-switch idle captured nothing (gate OFF)")
+	do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),0,"kill-switch idle bumped no capture counters")
 	quit
 	;
 tMicrobenchPerSet(pass,fail)	;@TEST "unit microbench: one verbatim ^XTMP append is cheap (< 250 us), the unit the aggregate is built from"
