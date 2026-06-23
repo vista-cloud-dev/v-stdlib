@@ -113,6 +113,10 @@ write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's Q
 	set cap=+$$cfg("cap",1000)
 	set seq=+$get(^XTMP("VSLTAP","head"))+1
 	set ^XTMP("VSLTAP","data",seq)=rec
+	; FU-4 post-write fault-injection seam: fire AFTER the ring SET so the fence
+	; property suite (VSLTAPFENCETST) proves the naked-reference restore even once
+	; the tap has dirtied the caller's indicator (AC-1). Inert unless configured.
+	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
 	set ^XTMP("VSLTAP","head")=seq
 	do trim(seq,cap)
 	do record^VSLTAPHL(0,$length(rec),0)

@@ -32,9 +32,9 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 # engine) are NOT here; run them via `make test` on a VistA-equipped engine.
 # VSLS3E2ETST is the live round-trip — it runs in `make test-s3-matrix`, not here.
 BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
-              tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPHLTST.m \
-              tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m tests/VSLHL7TAPTST.m \
-              tests/VSLS3TST.m tests/VSLS3DRAINTST.m
+              tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPFENCETST.m \
+              tests/VSLTAPHLTST.m tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m \
+              tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
 
 # The MinIO testbed for the live round-trip (vendored — see scripts/s3-testbed.sh).
 S3_TESTBED := scripts/s3-testbed.sh
