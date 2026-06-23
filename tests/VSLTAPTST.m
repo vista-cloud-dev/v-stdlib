@@ -1,8 +1,9 @@
 VSLTAPTST	; v-stdlib — VSLTAP non-interference core test suite.
 	; The safety gate (spec §6/§4.1): rolling ^XTMP ring (bounded, overwrite-
-	; oldest, ,0) purge node), the capture gate (kill-switch / consumer / always-
-	; on), the auto-failover watchdog (copy-cost / pressure / disable+rearm with
-	; recorded _offwindows), the state machine and the liveness heartbeat.
+	; oldest, ,0) purge node), the SPLIT gate (FU-9: always-on capture `$$captureOn`
+	; vs consumer-gated egress `$$enabled`), the atomic-`$INCREMENT` sequence (FU-8),
+	; the auto-failover watchdog (copy-cost / pressure / disable+rearm with recorded
+	; _offwindows), the state machine and the liveness heartbeat.
 	; Runs on a BARE engine — no VistA, no egress (kickoff: the gate runs on the
 	; test engines):
 	;   m test --engine ydb  --docker m-test-engine --chset m \
@@ -12,9 +13,10 @@ VSLTAPTST	; v-stdlib — VSLTAP non-interference core test suite.
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
 	;
-	do tConsumerGateBlocksAppend(.pass,.fail)
+	do tRingAlwaysOnNoConsumer(.pass,.fail)
 	do tConsumerPresentAppends(.pass,.fail)
-	do tAlwaysOnAppendsWithoutConsumer(.pass,.fail)
+	do tSinkDownRingLapsToDropOldest(.pass,.fail)
+	do tAtomicSeqNoCollision(.pass,.fail)
 	do tKillSwitchOffBlocks(.pass,.fail)
 	do tRingOverwritesOldest(.pass,.fail)
 	do tPurgeNodeShape(.pass,.fail)
@@ -30,31 +32,57 @@ reset()	; (private) wipe all tap state for a deterministic test
 	kill ^VSLTAP,^XTMP("VSLTAP")
 	quit
 	;
-tConsumerGateBlocksAppend(pass,fail)	;@TEST "consumer-gated default: no consumer -> no append, no growth (D-8, exit c)"
+tRingAlwaysOnNoConsumer(pass,fail)	;@TEST "FU-9: armed + no consumer -> the ring STILL captures (always-on); the egress gate is separate"
 	do reset()
 	do arm^VSLTAP()
-	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=0,"armed + no consumer + no always-on -> not enabled (fail-safe-OFF)")
-	do eq^STDASSERT(.pass,.fail,$$append^VSLTAP("rpc-record"),0,"$$append returns 0 when gated")
-	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"ring stays empty when gated")
+	do true^STDASSERT(.pass,.fail,$$captureOn^VSLTAP()=1,"armed -> capture gate ON regardless of consumer")
+	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=0,"armed + no consumer -> egress gate OFF (the split)")
+	do eq^STDASSERT(.pass,.fail,$$append^VSLTAP("rpc-record"),1,"$$append captures with no consumer (always-on ring)")
+	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"the record is in the ring even though egress is gated")
 	quit
 	;
-tConsumerPresentAppends(pass,fail)	;@TEST "consumer present -> the verbatim record is appended and reads back byte-exact"
+tConsumerPresentAppends(pass,fail)	;@TEST "consumer present -> egress gate ON; the verbatim record is appended and reads back byte-exact"
 	new rec
 	do reset()
 	do arm^VSLTAP(),setConsumer^VSLTAP(1)
 	set rec="TST^DUZ=1^arg1^arg2"
-	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=1,"armed + consumer present -> enabled")
+	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=1,"armed + consumer present -> egress enabled")
 	do eq^STDASSERT(.pass,.fail,$$append^VSLTAP(rec),1,"$$append returns 1 when active")
 	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"one entry in the ring")
 	do eq^STDASSERT(.pass,.fail,$$read^VSLTAP($$head^VSLTAP()),rec,"the stored record is verbatim (no transform)")
 	quit
 	;
-tAlwaysOnAppendsWithoutConsumer(pass,fail)	;@TEST "always-on opt-in: flight-recorder appends even with no consumer"
+tSinkDownRingLapsToDropOldest(pass,fail)	;@TEST "FU-9: sink down (no consumer) -> the always-on ring keeps filling and laps to drop_oldest under pressure"
+	new i,rc
 	do reset()
-	do arm^VSLTAP(),setAlwaysOn^VSLTAP(1)
-	do true^STDASSERT(.pass,.fail,$$enabled^VSLTAP()=1,"armed + always-on -> enabled without a consumer")
-	do eq^STDASSERT(.pass,.fail,$$append^VSLTAP("x"),1,"always-on append succeeds")
-	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"always-on entry recorded")
+	do arm^VSLTAP()
+	set ^VSLTAP("cfg","cap")=3
+	for i=1:1:5 set rc=$$append^VSLTAP("r"_i)
+	do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),0,"no consumer the whole time -> egress stayed gated off")
+	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),3,"ring captured under pressure and lapped to cap=3 (drop_oldest)")
+	do eq^STDASSERT(.pass,.fail,$$read^VSLTAP($$head^VSLTAP()),"r5","newest retained at head")
+	do eq^STDASSERT(.pass,.fail,$$read^VSLTAP(1),"","oldest (r1) overwritten — the down sink does not stop capture")
+	quit
+	;
+tAtomicSeqNoCollision(pass,fail)	;@TEST "FU-8: appends allocate via atomic $INCREMENT -> unique, contiguous, gap-free seqs; no lost/dup record"
+	; doc: true OS-level parallelism is not exercisable in the bare test harness (JOB is
+	; doc: unavailable), so correctness rests on $INCREMENT being ATOMIC on both YDB and
+	; doc: IRIS (the engine guarantee), which replaced the racy read-then-write. This
+	; doc: asserts the post-append invariants + the atomic-allocator primitive directly.
+	new i,n,uniq,x
+	do reset()
+	do arm^VSLTAP()
+	set ^VSLTAP("cfg","cap")=1000
+	set n=50
+	for i=1:1:n set x=$$append^VSLTAP("rec"_i)
+	do eq^STDASSERT(.pass,.fail,$$head^VSLTAP(),n,"head advanced by exactly N (one atomic +1 per append)")
+	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),n,"all N records retained — none lost or clobbered")
+	set uniq=1
+	for i=1:1:n if '$$present^VSLTAP(i) set uniq=0
+	do true^STDASSERT(.pass,.fail,uniq,"every seq 1..N is present (contiguous, no gap = no duplicate-seq clobber)")
+	new a,b
+	set a=$increment(^XTMP("VSLTAP","_probe")),b=$increment(^XTMP("VSLTAP","_probe"))
+	do eq^STDASSERT(.pass,.fail,a_"/"_b,"1/2","$INCREMENT yields strictly-increasing unique values (serial probe; atomicity-under-contention is the engine guarantee)")
 	quit
 	;
 tKillSwitchOffBlocks(pass,fail)	;@TEST "operator kill-switch OFF blocks capture even with a consumer present (exit d)"
