@@ -20,6 +20,7 @@
       "VSLIO",
       "VSLLOG",
       "VSLRPCTAP",
+      "VSLRPCWRAP",
       "VSLS3",
       "VSLSEC",
       "VSLTAP",
