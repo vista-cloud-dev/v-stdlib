@@ -22,6 +22,7 @@ VSLTAPFCTST	; v-stdlib — VSLTAPFC fidelity comparator test suite.
 	do tReconcilePerfect(.pass,.fail)
 	do tReconcileDetectsMismatch(.pass,.fail)
 	do tReconcileDetectsMissingAndExtra(.pass,.fail)
+	do tDropsTaxonomy(.pass,.fail)
 	do tManifestShape(.pass,.fail)
 	do tLastFidelityEmpty(.pass,.fail)
 	do tPersistThenLastFidelity(.pass,.fail)
@@ -33,11 +34,14 @@ VSLTAPFCTST	; v-stdlib — VSLTAPFC fidelity comparator test suite.
 specials()	; (private) a verbatim record spanning the §15.2 edge cases.
 	quit "ORWPT ID INFO"_$char(1)_"500;DPT(0)"_$char(13,10)_"a"_$char(9)_"b\c"_""""_"q"_$char(2)
 	;
-env(rec,seq,opt)	; (private) build one envelope line for `rec` at `seq`.
-	new o
-	merge o=opt
-	set o("ts")="65800,43200"
-	quit $$envelope^VSLS3(rec,"rpc","resp","500",seq,.o)
+env(rec,seq,opt)	; (private) build one schema-v1 resp envelope line for `rec` at `seq`.
+	new o,o2
+	set o("direction")="resp",o("call_id")="500-1-"_seq,o("ts")="65800,43200"
+	set o("protocol")="rpc",o("station")="500",o("seq")=seq,o("rpc")="X"
+	set o("duz")="10",o("job")=1,o("client")="c",o("result_kind")="scalar"
+	set o("payload")=rec
+	merge o2=opt
+	quit $$envelope^VSLS3(.o,.o2)
 	;
 tVerifyIntrinsicHash(pass,fail)	;@TEST "verify: a faithfully shipped envelope re-hashes to its own sha256 anchor"
 	new line
@@ -53,19 +57,27 @@ tVerifyDetectsTamper(pass,fail)	;@TEST "verify: a tampered payload no longer mat
 	do eq^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(tampered),0,"a payload byte-change is caught by the hash re-check")
 	quit
 	;
-retamper(line)	; (private) replace the inline payload with different bytes, keep the old hash.
+retamper(line)	; (private) replace the payload with different bytes, keep the old payload_sha256.
 	new t,env
 	if '$$parse^STDJSON(line,.t) quit ""
 	set env="o"
+	set env("schema_version")="n:"_$$valueOf^STDJSON(t("schema_version"))
+	set env("event_id")="s:"_$$valueOf^STDJSON(t("event_id"))
+	set env("call_id")="s:"_$$valueOf^STDJSON(t("call_id"))
 	set env("ts")="s:"_$$valueOf^STDJSON(t("ts"))
-	set env("proto")="s:"_$$valueOf^STDJSON(t("proto"))
-	set env("dir")="s:"_$$valueOf^STDJSON(t("dir"))
+	set env("protocol")="s:"_$$valueOf^STDJSON(t("protocol"))
+	set env("direction")="s:"_$$valueOf^STDJSON(t("direction"))
 	set env("station")="s:"_$$valueOf^STDJSON(t("station"))
-	set env("conn")="s:"_$$valueOf^STDJSON(t("conn"))
 	set env("seq")="n:"_$$valueOf^STDJSON(t("seq"))
-	set env("len")="n:"_$$valueOf^STDJSON(t("len"))
-	set env("hash")="s:"_$$valueOf^STDJSON(t("hash"))
-	set env("enc")="s:"_$$valueOf^STDJSON(t("enc"))
+	set env("rpc")="s:"_$$valueOf^STDJSON(t("rpc"))
+	set env("duz")="s:"_$$valueOf^STDJSON(t("duz"))
+	set env("job")="n:"_$$valueOf^STDJSON(t("job"))
+	set env("client")="s:"_$$valueOf^STDJSON(t("client"))
+	set env("result_kind")="s:"_$$valueOf^STDJSON(t("result_kind"))
+	set env("wire_len")="n:"_$$valueOf^STDJSON(t("wire_len"))
+	set env("chunk_count")="n:"_$$valueOf^STDJSON(t("chunk_count"))
+	set env("payload_encoding")="s:"_$$valueOf^STDJSON(t("payload_encoding"))
+	set env("payload_sha256")="s:"_$$valueOf^STDJSON(t("payload_sha256"))
 	set env("payload")="s:TAMPERED bytes that differ"
 	quit $$encode^STDJSON(.env)
 	;
@@ -174,4 +186,32 @@ tPersistOverwritesPrevious(pass,fail)	;@TEST "persist: a newer run replaces the 
 	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the last result parses")
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("ts")),"65800,2","lastFidelity reflects the most recent run")
 	do eq^STDASSERT(.pass,.fail,$$type^STDJSON(t("ok")),"false","a run with mismatches persists ok=false")
+	quit
+	;
+	; ---------- the FU-15 loss taxonomy (rpc_error / rpc_denied) ----------
+	;
+reqLine(call,denied,seq)	; (private) a schema-v1 req envelope line.
+	new o,opt
+	set o("direction")="req",o("call_id")=call,o("station")="500",o("seq")=seq
+	set o("rpc")="R",o("denied")=denied,o("payload")="params"
+	quit $$envelope^VSLS3(.o,.opt)
+	;
+respLine(call,seq)	; (private) a schema-v1 resp envelope line correlated by call_id.
+	new o,opt
+	set o("direction")="resp",o("call_id")=call,o("station")="500",o("seq")=seq
+	set o("rpc")="R",o("result_kind")="scalar",o("payload")="result"
+	quit $$envelope^VSLS3(.o,.opt)
+	;
+tDropsTaxonomy(pass,fail)	;@TEST "FU-15: drops groups by call_id — a req-without-resp is rpc_denied (denied=1) or rpc_error, never a silent gap"
+	new envs,res,n
+	; call A: a clean req+resp pair -> NOT a drop
+	set envs(1)=$$reqLine("500-1-1",0,1),envs(2)=$$respLine("500-1-1",2)
+	; call B: a denied req, never dispatched (CHKPRMIT short-circuit) -> rpc_denied
+	set envs(3)=$$reqLine("500-1-3",1,3)
+	; call C: an errored req, no resp (dispatch fault -> broker trap re-dispatch) -> rpc_error
+	set envs(4)=$$reqLine("500-1-4",0,4)
+	set n=$$drops^VSLTAPFC(.envs,.res)
+	do eq^STDASSERT(.pass,.fail,res("rpc_denied"),1,"the denied req (no resp) is one rpc_denied drop")
+	do eq^STDASSERT(.pass,.fail,res("rpc_error"),1,"the errored req (no resp) is one rpc_error drop")
+	do eq^STDASSERT(.pass,.fail,n,2,"two accounted drops total — the clean req+resp pair is not a drop")
 	quit

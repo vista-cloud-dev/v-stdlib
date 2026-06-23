@@ -28,6 +28,7 @@ VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
 	;   $$verify(line)               1 iff the payload re-hashes to its own anchor
 	;   $$matches(line,source)       1 iff payload byte-equals source AND verifies
 	;   $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)
+	;   $$drops(envs,res)            FU-15 loss taxonomy: rpc_error/rpc_denied by call_id reconcile
 	;   $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line
 	;   do persist(res,ts)           store the last run at ^VSLTAP("fc","last")
 	;   $$lastFidelity()             the last persisted manifest line, or "" (none yet)
@@ -37,20 +38,20 @@ VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
 	; ---------- single-record fidelity ----------
 	;
 payloadOf(line)	; Decode one LDJSON envelope line back to the verbatim captured bytes.
-	; doc: @param line  string  one VSLS3 envelope line (inline or base64 payload)
+	; doc: @param line  string  one VSLS3 schema-v1 envelope line (raw or base64 payload)
 	; doc: @returns     byte-string  the raw payload, byte-exact (escaping/base64 reversed)
 	new t,pl
 	if '$$parse^STDJSON(line,.t) quit ""
 	set pl=$$valueOf^STDJSON($get(t("payload")))
-	if $$valueOf^STDJSON($get(t("enc")))="base64" quit $$decode^STDB64(pl)
+	if $$valueOf^STDJSON($get(t("payload_encoding")))="base64" quit $$decode^STDB64(pl)
 	quit pl
 	;
 verify(line)	; 1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7).
-	; doc: @param line  string  one VSLS3 envelope line
+	; doc: @param line  string  one VSLS3 schema-v1 envelope line
 	; doc: @returns     bool    intrinsic integrity — the shipped object equals what was captured
 	new t,hash
 	if '$$parse^STDJSON(line,.t) quit 0
-	set hash=$$valueOf^STDJSON($get(t("hash")))
+	set hash=$$valueOf^STDJSON($get(t("payload_sha256")))
 	quit (hash=$$sha256^STDCRYPTO($$payloadOf(line)))
 	;
 matches(line,source)	; 1 iff the decoded payload byte-equals `source` AND the hash anchor is intact.
@@ -93,6 +94,48 @@ extraOne(seq,corpus,envs,res)	; (private) advance to the next shipped seq; count
 	if '$data(corpus(seq)) set res("extra")=res("extra")+1
 	quit
 	;
+	; ---------- the FU-15 loss taxonomy (rpc_error / rpc_denied; spec §7.3) ----------
+	;
+drops(envs,res)	; Classify the loss taxonomy by grouping the shipped envelopes on call_id (FU-15).
+	; doc: @param envs  array  by-ref: envs(k) = one shipped schema-v1 envelope line (any key)
+	; doc: @param res   array  OUT by-ref: res("rpc_error")/res("rpc_denied") counts
+	; doc: @returns     int    the total number of accounted drops (rpc_error + rpc_denied)
+	; doc: A `call_id` with a req and NO resp is a loss: `rpc_denied` if the req carries
+	; doc: denied=1 (CHKPRMIT short-circuit, never dispatched), else `rpc_error` (a runtime
+	; doc: fault in the dispatch → the broker trap re-dispatches and the resp side-call is
+	; doc: never reached — FU-16). Both are EXPECTED, accounted outcomes (high-value for an
+	; doc: analysis tap), recorded in the _drops manifest, never a silent gap (schema-lock §5).
+	new k,seen
+	kill res
+	set res("rpc_error")=0,res("rpc_denied")=0
+	; pass 1: note which call_ids saw a resp.
+	set k=""
+	for  do seenStep(.k,.envs,.seen) quit:k=""
+	; pass 2: a req whose call_id never saw a resp is a drop — denied=1 -> rpc_denied, else rpc_error.
+	set k=""
+	for  do dropStep(.k,.envs,.seen,.res) quit:k=""
+	quit res("rpc_error")+res("rpc_denied")
+	;
+seenStep(k,envs,seen)	; (private) pass 1: advance to the next envelope; mark a call_id that carries a resp.
+	new t
+	set k=$order(envs(k))
+	if k="" quit
+	if '$$parse^STDJSON($get(envs(k)),.t) quit
+	if $$valueOf^STDJSON($get(t("direction")))="resp" set seen($$valueOf^STDJSON($get(t("call_id"))))=1
+	quit
+	;
+dropStep(k,envs,seen,res)	; (private) pass 2: advance; a req whose call_id has no resp is rpc_denied (denied=1) or rpc_error.
+	new t,cid
+	set k=$order(envs(k))
+	if k="" quit
+	if '$$parse^STDJSON($get(envs(k)),.t) quit
+	if $$valueOf^STDJSON($get(t("direction")))'="req" quit
+	set cid=$$valueOf^STDJSON($get(t("call_id")))
+	if $data(seen(cid)) quit
+	if +$$valueOf^STDJSON($get(t("denied"))) set res("rpc_denied")=res("rpc_denied")+1 quit
+	set res("rpc_error")=res("rpc_error")+1
+	quit
+	;
 	; ---------- the _fidelity manifest (spec §11) ----------
 	;
 manifest(res,ts)	; Serialise a fidelity run to a single JSON manifest line (the _fidelity object).
@@ -109,6 +152,9 @@ manifest(res,ts)	; Serialise a fidelity run to a single JSON manifest line (the 
 	set m("mismatch")="n:"_(+$get(res("mismatch")))
 	set m("missing")="n:"_(+$get(res("missing")))
 	set m("extra")="n:"_(+$get(res("extra")))
+	; FU-15: the accounted loss taxonomy (expected outcomes, not failures -> they do NOT clear ok).
+	set m("rpc_error")="n:"_(+$get(res("rpc_error")))
+	set m("rpc_denied")="n:"_(+$get(res("rpc_denied")))
 	set m("ok")=$select(ok:"t",1:"f")
 	quit $$encode^STDJSON(.m)
 	;

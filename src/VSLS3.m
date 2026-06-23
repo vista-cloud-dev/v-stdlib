@@ -1,4 +1,12 @@
 VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
+	; m-lint: disable-file=M-MOD-024
+	; M-MOD-024 false positive: `hdr` is populated by reference by $$hdr^VSLTAP in
+	; resolveRec; the analyser cannot see through the by-ref call, so it reads it as
+	; "read before defined".
+	; m-lint: disable-file=M-MOD-036
+	; M-MOD-036: gSerialize walks a v2 "g" MERGE snapshot via @root/@nref indirection.
+	; The refs are internal closed ^XTMP("VSLTAP",…) names built by $name here (drain-side,
+	; off the in-path), never external input — the indirection is the deferred FU-17 serialize.
 	;
 	; Phase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §9/§11/§12). VSLS3 is
 	; the `v` wrapper over the `m` S3 client (STDS3/STDSIGV4): it frames one
@@ -27,7 +35,8 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 	; harness against a MinIO sink (spec §15.2).
 	;
 	; Public API:
-	;   $$envelope(rec,proto,dir,station,seq,opt)  one LDJSON line (raw verbatim)
+	;   $$envelope(.rec,.opt)                      one schema-v1 LDJSON line from a field array
+	;   $$gSerialize(seq)                          serialize a v2 "g" MERGE subtree (FU-17, drain-side)
 	;   $$key(station,proto,seq,ymd)               traffic/<st>/<proto>/Y/M/D/<seq>.ndjson
 	;   $$offWindowsKey(station,ymd)               traffic/<st>/_offwindows/Y/M/D.json
 	;   $$fidelityKey(station,ymd)                 traffic/<st>/_fidelity/Y/M/D.json
@@ -40,38 +49,95 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 	;
 	; ---------- the LDJSON envelope (spec §9) ----------
 	;
-envelope(rec,proto,dir,station,seq,opt)	; Frame one verbatim record as a single LDJSON line.
-	; doc: @param rec      byte-string  the verbatim captured payload (no transform — D-1)
-	; doc: @param proto    string  protocol tag ("rpc"/"hl7")
-	; doc: @param dir      string  direction ("req"/"resp"/"")
-	; doc: @param station  string  the originating station number (the §11 partition)
-	; doc: @param seq      numeric the capture sequence number
-	; doc: @param opt      array   by-ref: opt("ts")/opt("conn")/opt("base64")
-	; doc: @returns        string  one JSON object line, no trailing newline
+envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
+	; doc: @param rec  array  by-ref schema-v1 field array; rec("payload") = the RAW bytes,
+	; doc:                    plus event_id/call_id/ts/protocol/direction/station/seq/rpc/
+	; doc:                    duz/job/client[/denied|result_kind]/chunk_count/payload_encoding
+	; doc: @param opt  array  by-ref: opt("ts") (default ts) / opt("base64") (default encoding)
+	; doc: @returns    string one schema-v1 JSON object line, no trailing newline
 	; doc: The object is assembled as a STDJSON node and serialised by the PUBLIC
-	; doc: $$encode^STDJSON — so the payload's JSON string-escaping is lossless
-	; doc: and never hand-rolled. Keys emit in M collation order (deterministic,
-	; doc: so fixtures byte-compare). The hash anchors the RAW bytes (§7).
-	; doc: INLINE is byte-faithful and greppable, and round-trips exactly under
-	; doc: byte mode (one M char == one byte); for a payload carrying high bytes
-	; doc: (0x80-0xFF, non-UTF-8) the inline line is byte-lossless but not strictly
-	; doc: conformant UTF-8 JSON — set opt("base64") for guaranteed-conformant
-	; doc: output on binary streams (the §9 per-stream switch).
-	new env,enc,pl
-	set enc=$select(+$get(opt("base64")):"base64",1:"inline")
-	set pl=$select(enc="base64":$$encode^STDB64($get(rec)),1:$get(rec))
+	; doc: $$encode^STDJSON — so the payload's JSON string-escaping is lossless and never
+	; doc: hand-rolled. Keys emit in M collation order (deterministic, so fixtures
+	; doc: byte-compare). ONE shape serves req and resp (`direction` discriminates): a req
+	; doc: carries `denied`, a resp carries `result_kind`. wire_len/payload_sha256 are
+	; doc: computed HERE over the RAW bytes (the hash anchors §7; the expensive op is kept
+	; doc: in the drain, off the in-path). RAW is byte-faithful + greppable and round-trips
+	; doc: under byte mode (1 M char == 1 byte); set opt("base64") (the §9 per-stream switch,
+	; doc: FU-1 default) for guaranteed-conformant UTF-8 output on binary streams.
+	; doc: Full contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).
+	new env,enc,pl,raw,dir,wl,cc
+	set raw=$get(rec("payload"))
+	set dir=$get(rec("direction"))
+	set enc=$get(rec("payload_encoding"))
+	if enc="" set enc=$select(+$get(opt("base64")):"base64",1:"raw")
+	set pl=$select(enc="base64":$$encode^STDB64(raw),1:raw)
+	set wl=$length(raw)
+	set cc=+$get(rec("chunk_count")) if cc<1 set cc=1
 	set env="o"
-	set env("ts")="s:"_$get(opt("ts"),$horolog)
-	set env("proto")="s:"_$get(proto)
-	set env("dir")="s:"_$get(dir)
-	set env("station")="s:"_$get(station)
-	set env("conn")="s:"_$get(opt("conn"))
-	set env("seq")="n:"_(+$get(seq))
-	set env("len")="n:"_$length($get(rec))
-	set env("hash")="s:"_$$sha256^STDCRYPTO($get(rec))
-	set env("enc")="s:"_enc
+	set env("schema_version")="n:"_(+$get(rec("schema_version"),1))
+	set env("event_id")="s:"_$$eventId(.rec)
+	set env("call_id")="s:"_$get(rec("call_id"))
+	set env("ts")="s:"_$get(rec("ts"),$get(opt("ts"),$horolog))
+	set env("protocol")="s:"_$get(rec("protocol"),"rpc")
+	set env("direction")="s:"_dir
+	set env("station")="s:"_$get(rec("station"))
+	set env("seq")="n:"_(+$get(rec("seq")))
+	set env("rpc")="s:"_$get(rec("rpc"))
+	set env("duz")="s:"_$get(rec("duz"))
+	set env("job")="n:"_(+$get(rec("job")))
+	set env("client")="s:"_$get(rec("client"))
+	if dir="req" set env("denied")="n:"_(+$get(rec("denied")))
+	if dir="resp" set env("result_kind")="s:"_$get(rec("result_kind"),"scalar")
+	set env("wire_len")="n:"_wl
+	set env("chunk_count")="n:"_cc
+	set env("payload_encoding")="s:"_enc
+	set env("payload_sha256")="s:"_$$sha256^STDCRYPTO(raw)
 	set env("payload")="s:"_pl
 	quit $$encode^STDJSON(.env)
+	;
+eventId(rec)	; (private) event_id = the explicit override, else call_id ":" direction (schema-lock §2).
+	if $get(rec("event_id"))'="" quit rec("event_id")
+	quit $get(rec("call_id"))_":"_$get(rec("direction"))
+	;
+gSerialize(seq)	; Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a deterministic, lossless blob.
+	; doc: @param seq  numeric  the ring sequence of a v2 record whose result_kind="global"
+	; doc: @returns    byte-string  one node per line: $$encode^STDJSON of {s:<subscripts>,v:<value>}
+	; doc: FU-17 defers ALL of a global result's serialize/chunk/hash to the drain (off the
+	; doc: in-path; capture did one MERGE). The $QUERY walk is in M-collation order so the
+	; doc: blob is deterministic across engines, and STDJSON escaping makes each node lossless
+	; doc: for arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form
+	; doc: (vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a
+	; doc: deterministic, byte-faithful representation the §15.2 round-trip can prove.
+	new root,pfx,nref,out,sub
+	set root=$name(^XTMP("VSLTAP","data",+$get(seq),"g"))
+	; the descendant prefix is the root WITHOUT its trailing ")": "^...,""g""" — so a
+	; sibling subtree ("hc"/"p") or the next seq stops the walk, but every "g" descendant
+	; (which begins pfx_",") is included. (Comparing against the full root would mismatch
+	; legitimate descendants, since root ends in ")" and descendants continue with ",".)
+	set pfx=$extract(root,1,$length(root)-1)
+	set out=""
+	; the snapshot root may itself carry a value (MERGE copies the source root value).
+	if $data(@root)#10 set out=$$gNode("",$get(@root))
+	set nref=root
+	for  do gStep(.nref,pfx,.out) quit:nref=""
+	quit out
+	;
+gStep(nref,pfx,out)	; (private) advance to the next "g" descendant; append its serialized node ("" nref stops the walk).
+	set nref=$query(@nref)
+	if nref="" quit
+	; left the "g" subtree (next sibling subtree / next seq) -> stop the walk.
+	if $extract(nref,1,$length(pfx)+1)'=(pfx_",") set nref="" quit
+	new sub
+	set sub=$extract(nref,$length(pfx)+2,$length(nref)-1)
+	set out=$select(out="":$$gNode(sub,$get(@nref)),1:out_$char(10)_$$gNode(sub,$get(@nref)))
+	quit
+	;
+gNode(sub,val)	; (private) one serialized global-subtree node as a JSON object {s:subscripts,v:value}.
+	new n
+	set n="o"
+	set n("s")="s:"_sub
+	set n("v")="s:"_val
+	quit $$encode^STDJSON(.n)
 	;
 	; ---------- the §11 bucket / object key layout ----------
 	;
@@ -170,7 +236,7 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	; doc: dead/slow sink or any interference signal turns it off cleanly (the gate
 	; doc: records the off-window). On a 200 it self-drains the shipped seqs
 	; doc: (drainTo^VSLTAP); on any other status it leaves the ring for retry.
-	new ctx,opt,bucket,station,proto,h,t,seq,rec,body,line,n,last,key,sc
+	new ctx,opt,bucket,station,proto,h,t,seq,erec,body,line,n,last,key,sc
 	kill res
 	set res("shipped")=0
 	; consumer-gate + auto-failover (the Phase-2 safety reflexes) — fail-safe-OFF.
@@ -189,8 +255,9 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	; genuinely-empty captured record still ships ($$present is true for an empty value).
 	set body="",n=0,last=t
 	for seq=t+1:1:h quit:'$$present^VSLTAP(seq)  do
-	. set rec=$$read^VSLTAP(seq)
-	. set line=$$envelope(rec,proto,$$cfg^VSLTAP("s3dir",""),station,seq,.opt)
+	. kill erec
+	. do resolveRec(seq,station,proto,.erec)
+	. set line=$$envelope(.erec,.opt)
 	. set body=body_line_$char(10),n=n+1,last=seq
 	if 'n quit 0
 	set key=$$key(station,proto,last)
@@ -201,6 +268,34 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	do drainTo^VSLTAP(last)
 	set res("shipped")=n
 	quit n
+	;
+resolveRec(seq,station,proto,erec)	; Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / v1 legacy).
+	; doc: @param seq      numeric  the ring sequence
+	; doc: @param station  string   the station partition (authoritative for the §11 key)
+	; doc: @param proto     string   default protocol when the record carries none
+	; doc: @param erec     array    OUT by-ref: the schema-v1 fields incl. erec("payload") = RAW bytes
+	; doc: A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY
+	; doc: result is serialized from the "g" MERGE snapshot (FU-17) and base64'd; a scalar
+	; doc: from its "p",1 chunk. A legacy v1 string record ($$append — the synthetic
+	; doc: demonstrator path) ships as a plain payload under the configured direction. The
+	; doc: header's schema_version keeps both readable from one ring (schema-lock §4).
+	new hdr
+	kill erec
+	if $$hdr^VSLTAP(seq,.hdr) do  quit
+	. merge erec=hdr
+	. set erec("seq")=seq,erec("station")=station
+	. if hdr("protocol")="" set erec("protocol")=proto
+	. if hdr("result_kind")="global" do  quit
+	. . set erec("payload")=$$gSerialize(seq)
+	. . set erec("payload_encoding")="base64"
+	. . set erec("chunk_count")=1
+	. set erec("payload")=$$chunk^VSLTAP(seq,1)
+	. set erec("chunk_count")=+hdr("chunk_count")
+	; legacy v1 string record (the synthetic demonstrator / VSLS3DRAINTST path)
+	set erec("payload")=$$read^VSLTAP(seq)
+	set erec("seq")=seq,erec("station")=station,erec("protocol")=proto
+	set erec("direction")=$$cfg^VSLTAP("s3dir","")
+	quit
 	;
 shipBatch(ctx,bucket,key,body,opt,resp)	; (private) ship one batch object; honour the capture-sink test seam.
 	; doc: The §6.2-style injected seam: with ^VSLTAP("cfg","s3sink")="capture"

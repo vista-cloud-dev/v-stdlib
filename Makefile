@@ -34,6 +34,7 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
               tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPFENCETST.m \
               tests/VSLTAPHLTST.m tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m \
+              tests/VSLTAPV2TST.m \
               tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
 
 # The MinIO testbed for the live round-trip (vendored — see scripts/s3-testbed.sh).

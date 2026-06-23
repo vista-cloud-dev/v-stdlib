@@ -37,6 +37,10 @@ VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 	;   $$enabled^VSLTAP()           1 iff egress should run now (capture-on + consumer)
 	;   $$append^VSLTAP(rec)         gated memory-copy append -> 1 captured / 0 not
 	;   $$tee^VSLTAP(rec)            fault-fenced $$append (used by VSLRPCTAP)
+	;   $$appendRec^VSLTAP(.rec)     gated append of a RICH record (cache layout v2; FU-5)
+	;   $$teeRec^VSLTAP(.rec)        fault-fenced $$appendRec (used by the FU-5 wrap)
+	;   $$hdr^VSLTAP(seq,.out)       parse the v2 header at seq -> out(field); 1 iff v2
+	;   $$isV2^VSLTAP(seq) / $$chunk^VSLTAP(seq,i)   v2 record classify / payload chunk
 	;   $$size^VSLTAP() / $$head() / $$tail() / $$read(seq) / $$present(seq)   ring inspection
 	;   $$state^VSLTAP()             OFF | ARMED-IDLE | ACTIVE | AUTO-DISABLED | UNHEALTHY
 	;   $$disabled^VSLTAP()          auto-failover reason or ""
@@ -169,6 +173,104 @@ tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fe
 	; doc: result / $ECODE / $T untouched.
 	quit $$append(rec)
 	;
+	; ---------- cache layout v2: the rich capture record (FU-5 / FU-14 / FU-17) ----------
+	;
+	; The Phase-6 wrap (FU-5) at the active broker CALLP captures a STRUCTURED record,
+	; not a flat string: a header node + payload chunk node(s) + (for a GLOBAL ARRAY
+	; result) a single MERGE snapshot subtree (FU-17). The schema is frozen in
+	; docs/design/s3tap-envelope-schema-lock.md (cache layout v2):
+	;   ^XTMP("VSLTAP","data",seq)        = HEADER (^-pieces; no field may contain ^)
+	;   ^XTMP("VSLTAP","data",seq,"p",i)  = payload chunk i (RAW bytes; i=1..chunk_count)
+	;   ^XTMP("VSLTAP","data",seq,"hc",i) = per-chunk sha256 (FU-2 integrity)
+	;   ^XTMP("VSLTAP","data",seq,"g")    = MERGE snapshot of a GLOBAL ARRAY result (FU-17)
+	; The ring stores RAW payload bytes; the wire encoding (base64/raw) and the
+	; expensive serialize/hash of a global subtree are deferred to the drain (off the
+	; in-path, §6.1). `payload_encoding` in the header records the intended wire encoding.
+	; The drain is dual-mode: a v2 record (a "p"/"g" child present) frames schema v1 from
+	; the header; a legacy v1 string record ($$append) still ships as before.
+	;
+appendRec(rec)	; FU-5: gated, fault-fenced, bounded append of a RICH (cache layout v2) record.
+	; doc: @param rec   array  by-ref record descriptor (dir/rpc/payload/gref/call_id/...; read-only)
+	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
+	; doc: The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write
+	; doc: (write1rec) so the trap's arg-less QUIT is legal. The caller-state fence
+	; doc: (naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).
+	new ok,$etrap,wrote
+	if '$$captureOn() quit 0
+	set ok=1,wrote=0
+	set $etrap="set ok=0,$ecode="""" quit"
+	do write1rec(.rec,.wrote)
+	if ok quit wrote
+	set $etrap=""
+	do disable("fault")
+	quit 0
+	;
+teeRec(rec)	; The named rich-record capture seam the FU-5 wrap calls (via VSLRPCTAP) — fenced.
+	; doc: @param rec   array  by-ref record descriptor
+	; doc: @returns bool the $$appendRec result (0 if gated or a fault was fenced)
+	quit $$appendRec(.rec)
+	;
+write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so the fence's QUIT is legal.
+	; doc: @param rec    array  by-ref record descriptor (read-only)
+	; doc: @param wrote  bool   by-ref; set 1 iff the record was appended
+	new seq,cap,kind,gref,pl,wl,cc,hash,enc
+	; fault-injection seam (mirrors write1) — the §6.2 exit-gate (b) lever.
+	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
+	set gref=$get(rec("gref"))
+	set kind=$get(rec("result_kind"))
+	if (gref'=""),(kind="") set kind="global"
+	if (kind=""),($get(rec("dir"))="resp") set kind="scalar"
+	set pl=$get(rec("payload"))
+	set enc=$$cfg("payloadenc","raw")
+	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
+	; (A GLOBAL ARRAY snapshot is a single MERGE; its drain-side ceiling is FU-2's concern.)
+	if gref="",$length(pl)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
+	set cap=+$$cfg("cap",1000)
+	; FU-8 (G-SEQ): allocate the seq with an ATOMIC $INCREMENT (after the copy-cost guard,
+	; so a rejected mega-payload never burns a seq) — same rationale as write1.
+	set seq=$increment(^XTMP("VSLTAP","head"))
+	if gref'="" do
+	. ; FU-17: ONE merge snapshot of the GLOBAL ARRAY result (snapshot before the broker's
+	. ; SNDDATA^XWBRW:60 kill; the broker spares ^XTMP( roots, so this is collision-free).
+	. ; The drain walks "g", serializes, chunks, and hashes — all off the in-path.
+	. ; gref is a closed-root global ref the broker built (XWBP/XWBY), not external input;
+	. ; the MERGE target is a fixed ^XTMP node — this indirection is the FU-17 snapshot, by design.
+	. ; m-lint: disable-next-line=M-MOD-036
+	. merge ^XTMP("VSLTAP","data",seq,"g")=@gref
+	. ; guarantee a "g" node exists even for an empty result, so $$isV2 still classifies it.
+	. if '$data(^XTMP("VSLTAP","data",seq,"g")) set ^XTMP("VSLTAP","data",seq,"g")=""
+	. set wl=0,cc=0,hash=""
+	else  do
+	. set wl=$length(pl),cc=1
+	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
+	. set hash=$$sha256^STDCRYPTO(pl)
+	. set ^XTMP("VSLTAP","data",seq,"hc",1)=hash
+	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
+	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.
+	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
+	do trim(seq,cap)
+	do record^VSLTAPHL(0,wl,0)
+	set wrote=1
+	quit
+	;
+hdrLine(seq,rec,kind,wl,cc,enc,hash)	; (private) assemble the cache-layout-v2 ^-delimited header.
+	; doc: The frozen 18-piece header (schema-lock §4); NO field may contain "^" (the
+	; doc: payload — which can — lives in the "p"/"g" subtree, never the header).
+	new dir,cid,eid,h
+	set dir=$get(rec("dir"))
+	set cid=$get(rec("call_id"))
+	set eid=$select($get(rec("event_id"))'="":rec("event_id"),cid'="":cid_":"_dir,1:"")
+	; schema_version^event_id^call_id^direction^protocol^rpc^result_kind^wire_len^
+	; chunk_count^payload_encoding^duz^job^client^ts^tag^nam^denied^payload_sha256
+	set h=1_"^"_eid_"^"_cid_"^"_dir
+	set h=h_"^"_$get(rec("protocol"),"rpc")_"^"_$get(rec("rpc"))_"^"_kind
+	set h=h_"^"_(+wl)_"^"_(+cc)_"^"_enc
+	set h=h_"^"_$get(rec("duz"))_"^"_(+$get(rec("job")))_"^"_$get(rec("client"))
+	set h=h_"^"_$get(rec("ts"),$horolog)
+	set h=h_"^"_$get(rec("tag"))_"^"_$get(rec("nam"))
+	set h=h_"^"_(+$get(rec("denied")))_"^"_hash
+	quit h
+	;
 size()	; Current ring entry count (head - tail).
 	quit +$get(^XTMP("VSLTAP","head"))-+$get(^XTMP("VSLTAP","tail"))
 	;
@@ -189,6 +291,43 @@ present(seq)	; 1 iff a data node exists at `seq` ($DATA'=0) — distinguishes an
 	; doc: than shipping "" and trimming a record that is about to land. `$$read` can't tell
 	; doc: an absent slot from a legitimately-empty record ($get-> "" for both); this can.
 	quit $data(^XTMP("VSLTAP","data",+$get(seq)))'=0
+	;
+isV2(seq)	; 1 iff the record at `seq` is a cache-layout-v2 record (a "p" or "g" child present).
+	; doc: A legacy v1 string record ($$append) has only the scalar data node — no child.
+	new s
+	set s=+$get(seq)
+	quit ($data(^XTMP("VSLTAP","data",s,"p"))'=0)!($data(^XTMP("VSLTAP","data",s,"g"))'=0)
+	;
+hdr(seq,out)	; Parse the v2 header at `seq` into out("schema_version"/...); return 1 iff a v2 record.
+	; doc: @param seq  numeric  the ring sequence
+	; doc: @param out  array    OUT by-ref: the 18 header fields keyed by their schema-v1 names
+	; doc: @returns    bool     1 iff `seq` is a v2 record (else `out` is killed, returns 0)
+	new h,s
+	kill out
+	if '$$isV2(seq) quit 0
+	set s=+$get(seq),h=$get(^XTMP("VSLTAP","data",s))
+	set out("schema_version")=$piece(h,"^",1)
+	set out("event_id")=$piece(h,"^",2)
+	set out("call_id")=$piece(h,"^",3)
+	set out("direction")=$piece(h,"^",4)
+	set out("protocol")=$piece(h,"^",5)
+	set out("rpc")=$piece(h,"^",6)
+	set out("result_kind")=$piece(h,"^",7)
+	set out("wire_len")=$piece(h,"^",8)
+	set out("chunk_count")=$piece(h,"^",9)
+	set out("payload_encoding")=$piece(h,"^",10)
+	set out("duz")=$piece(h,"^",11)
+	set out("job")=$piece(h,"^",12)
+	set out("client")=$piece(h,"^",13)
+	set out("ts")=$piece(h,"^",14)
+	set out("tag")=$piece(h,"^",15)
+	set out("nam")=$piece(h,"^",16)
+	set out("denied")=$piece(h,"^",17)
+	set out("payload_sha256")=$piece(h,"^",18)
+	quit 1
+	;
+chunk(seq,i)	; The i-th RAW payload chunk of a v2 record ("" if absent).
+	quit $get(^XTMP("VSLTAP","data",+$get(seq),"p",+$get(i)))
 	;
 drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
 	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
