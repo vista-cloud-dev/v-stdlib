@@ -43,6 +43,7 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 	;   $$ctx(ctx,opt)                             build the S3 ctx+opt from the seam -> bucket
 	;   $$ship(ctx,bucket,key,body,opt,resp)       PUT one object (status; egress)
 	;   $$readback(ctx,bucket,key,opt,resp)        GET one object (status; egress)
+	;   $$list(ctx,bucket,prefix,opt,listing)      LIST object keys under a prefix (status; egress)
 	;   $$drain(res)                               flush the ^XTMP ring -> ship -> trim
 	;
 	quit
@@ -224,6 +225,19 @@ readback(ctx,bucket,key,opt,resp)	; GET one object back from S3 / the S3-equival
 	; doc: endpoint override (from $$ctx) so the GET reaches the same endpoint the
 	; doc: PUT used — without it the read op signs+sends to real AWS, not MinIO.
 	quit $$getObject^STDS3(.ctx,bucket,key,.opt,.resp)
+	;
+list(ctx,bucket,prefix,opt,listing)	; LIST object keys under `prefix` via STDS3 listObjectsV2.
+	; doc: @param ctx      array  the credential context (from $$ctx), by-ref
+	; doc: @param bucket   string the source bucket
+	; doc: @param prefix   string the key prefix to list under ("" = whole bucket)
+	; doc: @param opt      array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
+	; doc: @param listing  array  OUT by-ref: listing(1..n,"key"/"size"/"etag") + ("truncated"/"next")
+	; doc: @returns        int    HTTP status (200 ok); 0 on transport failure
+	; doc: The discovery leg for the periodic fidelity sampler (VSLTAPRUN
+	; doc: $$fidelityNow): enumerate recently-shipped objects under the per-station
+	; doc: prefix so they can be read back and integrity-verified. Same `opt`
+	; doc: endpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).
+	quit $$listObjectsV2^STDS3(.ctx,bucket,$get(prefix),.opt,.listing)
 	;
 	; ---------- the drain loop (VSLTASK-driven flush; spec §4.1.3) ----------
 	;

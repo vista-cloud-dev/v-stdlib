@@ -1,7 +1,7 @@
 {
   "package": "VSL",
   "version": "1.0",
-  "patch": "2",
+  "patch": "3",
   "allowLongNames": true,
   "envCheck": "VSLENV",
   "components": {
@@ -18,14 +18,76 @@
       "VSLS3",
       "VSLSEC",
       "VSLTAP",
+      "VSLTAPBO",
       "VSLTAPFC",
       "VSLTAPHL",
+      "VSLTAPRUN",
       "VSLTASK"
     ],
     "parameterDefinitions": [
       {
         "name": "VPNG GREETING",
         "displayText": "VPNG greeting (read by VPNG via $$get^VSLCFG at SYS)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP CAP",
+        "displayText": "Traffic-tap rolling-ring capacity (records); VSLTAP cap knob",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP MAXBYTES",
+        "displayText": "Traffic-tap copy-cost ceiling (bytes); a larger record trips auto-failover OFF",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP HBSTALE",
+        "displayText": "Traffic-tap heartbeat staleness bound (seconds) for the liveness check",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP RETAIN",
+        "displayText": "Traffic-tap cache retain days (the ^XTMP Kernel auto-purge horizon)",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP ALWAYSON",
+        "displayText": "Traffic-tap always-on flight-recorder opt-in (capture with no consumer present)",
+        "dataType": "yes/no",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL TAP FIDELITY CADENCE",
+        "displayText": "Periodic fidelity-run period (seconds) read by VSLTAPRUN",
+        "dataType": "numeric",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL S3 ENDPOINT",
+        "displayText": "S3 endpoint override (empty=real AWS virtual-host; set=path-style S3-equivalent)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL S3 BUCKET",
+        "displayText": "S3 target bucket for the traffic-tap egress",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL S3 REGION",
+        "displayText": "S3 region for SigV4 signing (e.g. us-gov-west-1 for GovCloud)",
+        "dataType": "free text",
+        "entities": [ { "entity": "SYS", "precedence": 1 } ]
+      },
+      {
+        "name": "VSL S3 PREFIX",
+        "displayText": "Per-station S3 key prefix (the §11 partition for fleet rollout)",
         "dataType": "free text",
         "entities": [ { "entity": "SYS", "precedence": 1 } ]
       }

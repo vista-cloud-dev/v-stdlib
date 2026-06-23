@@ -1,20 +1,60 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*2^
+**KIDS**:VSL*1.0*3^
 
 **INSTALL NAME**
-VSL*1.0*2
+VSL*1.0*3
 "BLD",1,0)
-VSL*1.0*2^VSL^0^0
+VSL*1.0*3^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
 8989.51
 "BLD",1,"KRN",8989.51,"NM",0)
-^9.68A^1^1
+^9.68A^11^11
 "BLD",1,"KRN",8989.51,"NM",1,0)
 VPNG GREETING^^0
 "BLD",1,"KRN",8989.51,"NM","B","VPNG GREETING",1)
+
+"BLD",1,"KRN",8989.51,"NM",2,0)
+VSL TAP CAP^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP CAP",2)
+
+"BLD",1,"KRN",8989.51,"NM",3,0)
+VSL TAP MAXBYTES^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP MAXBYTES",3)
+
+"BLD",1,"KRN",8989.51,"NM",4,0)
+VSL TAP HBSTALE^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP HBSTALE",4)
+
+"BLD",1,"KRN",8989.51,"NM",5,0)
+VSL TAP RETAIN^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP RETAIN",5)
+
+"BLD",1,"KRN",8989.51,"NM",6,0)
+VSL TAP ALWAYSON^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP ALWAYSON",6)
+
+"BLD",1,"KRN",8989.51,"NM",7,0)
+VSL TAP FIDELITY CADENCE^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL TAP FIDELITY CADENCE",7)
+
+"BLD",1,"KRN",8989.51,"NM",8,0)
+VSL S3 ENDPOINT^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 ENDPOINT",8)
+
+"BLD",1,"KRN",8989.51,"NM",9,0)
+VSL S3 BUCKET^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 BUCKET",9)
+
+"BLD",1,"KRN",8989.51,"NM",10,0)
+VSL S3 REGION^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 REGION",10)
+
+"BLD",1,"KRN",8989.51,"NM",11,0)
+VSL S3 PREFIX^^0
+"BLD",1,"KRN",8989.51,"NM","B","VSL S3 PREFIX",11)
 
 "BLD",1,"KRN","B",8989.51,8989.51)
 
@@ -25,7 +65,7 @@ MSL*0.1*1^2
 "BLD",1,"REQB","B","MSL*0.1*1",1)
 
 "RTN")
-15
+17
 "RTN","VSLBLD")
 0^76^0^0
 "RTN","VSLBLD",1,0)
@@ -115,7 +155,7 @@ manifest(out)	; Fill out() with the VSL base's routines, its Required Build and 
 "RTN","VSLBLD",43,0)
 	set out("requiredBuild")="MSL*0.1*1"
 "RTN","VSLBLD",44,0)
-	set out("patch")="VSL*1.0*2"
+	set out("patch")="VSL*1.0*3"
 "RTN","VSLBLD",45,0)
 	quit n
 "RTN","VSLBLD",46,0)
@@ -1767,7 +1807,7 @@ ctx(rec)	; (private) FU-18 context read at the wrap depth (process scope; ancest
 "RTN","VSLRPCWRAP",138,0)
 	quit
 "RTN","VSLS3")
-0^305^0^0
+0^319^0^0
 "RTN","VSLS3",1,0)
 VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 "RTN","VSLS3",2,0)
@@ -1859,524 +1899,552 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 "RTN","VSLS3",45,0)
 	;   $$readback(ctx,bucket,key,opt,resp)        GET one object (status; egress)
 "RTN","VSLS3",46,0)
-	;   $$drain(res)                               flush the ^XTMP ring -> ship -> trim
+	;   $$list(ctx,bucket,prefix,opt,listing)      LIST object keys under a prefix (status; egress)
 "RTN","VSLS3",47,0)
-	;
+	;   $$drain(res)                               flush the ^XTMP ring -> ship -> trim
 "RTN","VSLS3",48,0)
-	quit
+	;
 "RTN","VSLS3",49,0)
-	;
+	quit
 "RTN","VSLS3",50,0)
-	; ---------- the LDJSON envelope (spec §9) ----------
+	;
 "RTN","VSLS3",51,0)
-	;
+	; ---------- the LDJSON envelope (spec §9) ----------
 "RTN","VSLS3",52,0)
-envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
+	;
 "RTN","VSLS3",53,0)
-	; doc: @param rec  array  by-ref schema-v1 field array; rec("payload") = the RAW bytes,
+envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
 "RTN","VSLS3",54,0)
-	; doc:                    plus event_id/call_id/ts/protocol/direction/station/seq/rpc/
+	; doc: @param rec  array  by-ref schema-v1 field array; rec("payload") = the RAW bytes,
 "RTN","VSLS3",55,0)
-	; doc:                    duz/job/client[/denied|result_kind]/chunk_count/payload_encoding
+	; doc:                    plus event_id/call_id/ts/protocol/direction/station/seq/rpc/
 "RTN","VSLS3",56,0)
-	; doc: @param opt  array  by-ref: opt("ts") (default ts) / opt("base64") (default encoding)
+	; doc:                    duz/job/client[/denied|result_kind]/chunk_count/payload_encoding
 "RTN","VSLS3",57,0)
-	; doc: @returns    string one schema-v1 JSON object line, no trailing newline
+	; doc: @param opt  array  by-ref: opt("ts") (default ts) / opt("base64") (default encoding)
 "RTN","VSLS3",58,0)
-	; doc: The object is assembled as a STDJSON node and serialised by the PUBLIC
+	; doc: @returns    string one schema-v1 JSON object line, no trailing newline
 "RTN","VSLS3",59,0)
-	; doc: $$encode^STDJSON — so the payload's JSON string-escaping is lossless and never
+	; doc: The object is assembled as a STDJSON node and serialised by the PUBLIC
 "RTN","VSLS3",60,0)
-	; doc: hand-rolled. Keys emit in M collation order (deterministic, so fixtures
+	; doc: $$encode^STDJSON — so the payload's JSON string-escaping is lossless and never
 "RTN","VSLS3",61,0)
-	; doc: byte-compare). ONE shape serves req and resp (`direction` discriminates): a req
+	; doc: hand-rolled. Keys emit in M collation order (deterministic, so fixtures
 "RTN","VSLS3",62,0)
-	; doc: carries `denied`, a resp carries `result_kind`. wire_len/payload_sha256 are
+	; doc: byte-compare). ONE shape serves req and resp (`direction` discriminates): a req
 "RTN","VSLS3",63,0)
-	; doc: computed HERE over the RAW bytes (the hash anchors §7; the expensive op is kept
+	; doc: carries `denied`, a resp carries `result_kind`. wire_len/payload_sha256 are
 "RTN","VSLS3",64,0)
-	; doc: in the drain, off the in-path). RAW is byte-faithful + greppable and round-trips
+	; doc: computed HERE over the RAW bytes (the hash anchors §7; the expensive op is kept
 "RTN","VSLS3",65,0)
-	; doc: under byte mode (1 M char == 1 byte); set opt("base64") (the §9 per-stream switch,
+	; doc: in the drain, off the in-path). RAW is byte-faithful + greppable and round-trips
 "RTN","VSLS3",66,0)
-	; doc: FU-1 default) for guaranteed-conformant UTF-8 output on binary streams.
+	; doc: under byte mode (1 M char == 1 byte); set opt("base64") (the §9 per-stream switch,
 "RTN","VSLS3",67,0)
-	; doc: Full contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).
+	; doc: FU-1 default) for guaranteed-conformant UTF-8 output on binary streams.
 "RTN","VSLS3",68,0)
-	new env,enc,pl,raw,dir,wl,cc
+	; doc: Full contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).
 "RTN","VSLS3",69,0)
-	set raw=$get(rec("payload"))
+	new env,enc,pl,raw,dir,wl,cc
 "RTN","VSLS3",70,0)
-	set dir=$get(rec("direction"))
+	set raw=$get(rec("payload"))
 "RTN","VSLS3",71,0)
-	set enc=$get(rec("payload_encoding"))
+	set dir=$get(rec("direction"))
 "RTN","VSLS3",72,0)
-	if enc="" set enc=$select(+$get(opt("base64")):"base64",1:"raw")
+	set enc=$get(rec("payload_encoding"))
 "RTN","VSLS3",73,0)
-	set pl=$select(enc="base64":$$encode^STDB64(raw),1:raw)
+	if enc="" set enc=$select(+$get(opt("base64")):"base64",1:"raw")
 "RTN","VSLS3",74,0)
-	set wl=$length(raw)
+	set pl=$select(enc="base64":$$encode^STDB64(raw),1:raw)
 "RTN","VSLS3",75,0)
-	set cc=+$get(rec("chunk_count")) if cc<1 set cc=1
+	set wl=$length(raw)
 "RTN","VSLS3",76,0)
-	set env="o"
+	set cc=+$get(rec("chunk_count")) if cc<1 set cc=1
 "RTN","VSLS3",77,0)
-	set env("schema_version")="n:"_(+$get(rec("schema_version"),1))
+	set env="o"
 "RTN","VSLS3",78,0)
-	set env("event_id")="s:"_$$eventId(.rec)
+	set env("schema_version")="n:"_(+$get(rec("schema_version"),1))
 "RTN","VSLS3",79,0)
-	set env("call_id")="s:"_$get(rec("call_id"))
+	set env("event_id")="s:"_$$eventId(.rec)
 "RTN","VSLS3",80,0)
-	set env("ts")="s:"_$get(rec("ts"),$get(opt("ts"),$horolog))
+	set env("call_id")="s:"_$get(rec("call_id"))
 "RTN","VSLS3",81,0)
-	set env("protocol")="s:"_$get(rec("protocol"),"rpc")
+	set env("ts")="s:"_$get(rec("ts"),$get(opt("ts"),$horolog))
 "RTN","VSLS3",82,0)
-	set env("direction")="s:"_dir
+	set env("protocol")="s:"_$get(rec("protocol"),"rpc")
 "RTN","VSLS3",83,0)
-	set env("station")="s:"_$get(rec("station"))
+	set env("direction")="s:"_dir
 "RTN","VSLS3",84,0)
-	set env("seq")="n:"_(+$get(rec("seq")))
+	set env("station")="s:"_$get(rec("station"))
 "RTN","VSLS3",85,0)
-	set env("rpc")="s:"_$get(rec("rpc"))
+	set env("seq")="n:"_(+$get(rec("seq")))
 "RTN","VSLS3",86,0)
-	set env("duz")="s:"_$get(rec("duz"))
+	set env("rpc")="s:"_$get(rec("rpc"))
 "RTN","VSLS3",87,0)
-	set env("job")="n:"_(+$get(rec("job")))
+	set env("duz")="s:"_$get(rec("duz"))
 "RTN","VSLS3",88,0)
-	set env("client")="s:"_$get(rec("client"))
+	set env("job")="n:"_(+$get(rec("job")))
 "RTN","VSLS3",89,0)
-	if dir="req" set env("denied")="n:"_(+$get(rec("denied")))
+	set env("client")="s:"_$get(rec("client"))
 "RTN","VSLS3",90,0)
-	if dir="resp" set env("result_kind")="s:"_$get(rec("result_kind"),"scalar")
+	if dir="req" set env("denied")="n:"_(+$get(rec("denied")))
 "RTN","VSLS3",91,0)
-	set env("wire_len")="n:"_wl
+	if dir="resp" set env("result_kind")="s:"_$get(rec("result_kind"),"scalar")
 "RTN","VSLS3",92,0)
-	set env("chunk_count")="n:"_cc
+	set env("wire_len")="n:"_wl
 "RTN","VSLS3",93,0)
-	set env("payload_encoding")="s:"_enc
+	set env("chunk_count")="n:"_cc
 "RTN","VSLS3",94,0)
-	set env("payload_sha256")="s:"_$$sha256^STDCRYPTO(raw)
+	set env("payload_encoding")="s:"_enc
 "RTN","VSLS3",95,0)
-	set env("payload")="s:"_pl
+	set env("payload_sha256")="s:"_$$sha256^STDCRYPTO(raw)
 "RTN","VSLS3",96,0)
-	quit $$encode^STDJSON(.env)
+	set env("payload")="s:"_pl
 "RTN","VSLS3",97,0)
-	;
+	quit $$encode^STDJSON(.env)
 "RTN","VSLS3",98,0)
-eventId(rec)	; (private) event_id = the explicit override, else call_id ":" direction (schema-lock §2).
+	;
 "RTN","VSLS3",99,0)
-	if $get(rec("event_id"))'="" quit rec("event_id")
+eventId(rec)	; (private) event_id = the explicit override, else call_id ":" direction (schema-lock §2).
 "RTN","VSLS3",100,0)
-	quit $get(rec("call_id"))_":"_$get(rec("direction"))
+	if $get(rec("event_id"))'="" quit rec("event_id")
 "RTN","VSLS3",101,0)
-	;
+	quit $get(rec("call_id"))_":"_$get(rec("direction"))
 "RTN","VSLS3",102,0)
-gSerialize(seq)	; Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a deterministic, lossless blob.
+	;
 "RTN","VSLS3",103,0)
-	; doc: @param seq  numeric  the ring sequence of a v2 record whose result_kind="global"
+gSerialize(seq)	; Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a deterministic, lossless blob.
 "RTN","VSLS3",104,0)
-	; doc: @returns    byte-string  one node per line: $$encode^STDJSON of {s:<subscripts>,v:<value>}
+	; doc: @param seq  numeric  the ring sequence of a v2 record whose result_kind="global"
 "RTN","VSLS3",105,0)
-	; doc: FU-17 defers ALL of a global result's serialize/chunk/hash to the drain (off the
+	; doc: @returns    byte-string  one node per line: $$encode^STDJSON of {s:<subscripts>,v:<value>}
 "RTN","VSLS3",106,0)
-	; doc: in-path; capture did one MERGE). The $QUERY walk is in M-collation order so the
+	; doc: FU-17 defers ALL of a global result's serialize/chunk/hash to the drain (off the
 "RTN","VSLS3",107,0)
-	; doc: blob is deterministic across engines, and STDJSON escaping makes each node lossless
+	; doc: in-path; capture did one MERGE). The $QUERY walk is in M-collation order so the
 "RTN","VSLS3",108,0)
-	; doc: for arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form
+	; doc: blob is deterministic across engines, and STDJSON escaping makes each node lossless
 "RTN","VSLS3",109,0)
-	; doc: (vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a
+	; doc: for arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form
 "RTN","VSLS3",110,0)
-	; doc: deterministic, byte-faithful representation the §15.2 round-trip can prove.
+	; doc: (vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a
 "RTN","VSLS3",111,0)
-	new root,pfx,nref,out,sub
+	; doc: deterministic, byte-faithful representation the §15.2 round-trip can prove.
 "RTN","VSLS3",112,0)
-	set root=$name(^XTMP("VSLTAP","data",+$get(seq),"g"))
+	new root,pfx,nref,out,sub
 "RTN","VSLS3",113,0)
-	; the descendant prefix is the root WITHOUT its trailing ")": "^...,""g""" — so a
+	set root=$name(^XTMP("VSLTAP","data",+$get(seq),"g"))
 "RTN","VSLS3",114,0)
-	; sibling subtree ("hc"/"p") or the next seq stops the walk, but every "g" descendant
+	; the descendant prefix is the root WITHOUT its trailing ")": "^...,""g""" — so a
 "RTN","VSLS3",115,0)
-	; (which begins pfx_",") is included. (Comparing against the full root would mismatch
+	; sibling subtree ("hc"/"p") or the next seq stops the walk, but every "g" descendant
 "RTN","VSLS3",116,0)
-	; legitimate descendants, since root ends in ")" and descendants continue with ",".)
+	; (which begins pfx_",") is included. (Comparing against the full root would mismatch
 "RTN","VSLS3",117,0)
-	set pfx=$extract(root,1,$length(root)-1)
+	; legitimate descendants, since root ends in ")" and descendants continue with ",".)
 "RTN","VSLS3",118,0)
-	set out=""
+	set pfx=$extract(root,1,$length(root)-1)
 "RTN","VSLS3",119,0)
-	; the snapshot root may itself carry a value (MERGE copies the source root value).
+	set out=""
 "RTN","VSLS3",120,0)
-	if $data(@root)#10 set out=$$gNode("",$get(@root))
+	; the snapshot root may itself carry a value (MERGE copies the source root value).
 "RTN","VSLS3",121,0)
-	set nref=root
+	if $data(@root)#10 set out=$$gNode("",$get(@root))
 "RTN","VSLS3",122,0)
-	for  do gStep(.nref,pfx,.out) quit:nref=""
+	set nref=root
 "RTN","VSLS3",123,0)
-	quit out
+	for  do gStep(.nref,pfx,.out) quit:nref=""
 "RTN","VSLS3",124,0)
-	;
+	quit out
 "RTN","VSLS3",125,0)
-gStep(nref,pfx,out)	; (private) advance to the next "g" descendant; append its serialized node ("" nref stops the walk).
+	;
 "RTN","VSLS3",126,0)
-	set nref=$query(@nref)
+gStep(nref,pfx,out)	; (private) advance to the next "g" descendant; append its serialized node ("" nref stops the walk).
 "RTN","VSLS3",127,0)
-	if nref="" quit
+	set nref=$query(@nref)
 "RTN","VSLS3",128,0)
-	; left the "g" subtree (next sibling subtree / next seq) -> stop the walk.
+	if nref="" quit
 "RTN","VSLS3",129,0)
-	if $extract(nref,1,$length(pfx)+1)'=(pfx_",") set nref="" quit
+	; left the "g" subtree (next sibling subtree / next seq) -> stop the walk.
 "RTN","VSLS3",130,0)
-	new sub
+	if $extract(nref,1,$length(pfx)+1)'=(pfx_",") set nref="" quit
 "RTN","VSLS3",131,0)
-	set sub=$extract(nref,$length(pfx)+2,$length(nref)-1)
+	new sub
 "RTN","VSLS3",132,0)
-	set out=$select(out="":$$gNode(sub,$get(@nref)),1:out_$char(10)_$$gNode(sub,$get(@nref)))
+	set sub=$extract(nref,$length(pfx)+2,$length(nref)-1)
 "RTN","VSLS3",133,0)
-	quit
+	set out=$select(out="":$$gNode(sub,$get(@nref)),1:out_$char(10)_$$gNode(sub,$get(@nref)))
 "RTN","VSLS3",134,0)
-	;
-"RTN","VSLS3",135,0)
-gNode(sub,val)	; (private) one serialized global-subtree node as a JSON object {s:subscripts,v:value}.
-"RTN","VSLS3",136,0)
-	new n
-"RTN","VSLS3",137,0)
-	set n="o"
-"RTN","VSLS3",138,0)
-	set n("s")="s:"_sub
-"RTN","VSLS3",139,0)
-	set n("v")="s:"_val
-"RTN","VSLS3",140,0)
-	quit $$encode^STDJSON(.n)
-"RTN","VSLS3",141,0)
-	;
-"RTN","VSLS3",142,0)
-	; ---------- the §11 bucket / object key layout ----------
-"RTN","VSLS3",143,0)
-	;
-"RTN","VSLS3",144,0)
-key(station,proto,seq,ymd)	; The object key for one traffic stream: traffic/<st>/<proto>/Y/M/D/<seq>.ndjson.
-"RTN","VSLS3",145,0)
-	; doc: @param station  string  the station partition
-"RTN","VSLS3",146,0)
-	; doc: @param proto    string  protocol tag ("rpc"/"hl7")
-"RTN","VSLS3",147,0)
-	; doc: @param seq      numeric the capture sequence number
-"RTN","VSLS3",148,0)
-	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
-"RTN","VSLS3",149,0)
-	; doc: @returns        string  the S3 object key
-"RTN","VSLS3",150,0)
-	new d
-"RTN","VSLS3",151,0)
-	set d=$get(ymd) if d="" set d=$$today()
-"RTN","VSLS3",152,0)
-	quit "traffic/"_station_"/"_proto_"/"_$$ymdPath(d)_"/"_(+seq)_".ndjson"
-"RTN","VSLS3",153,0)
-	;
-"RTN","VSLS3",154,0)
-offWindowsKey(station,ymd)	; The per-day _offwindows manifest key (explicit tap-off windows, §11).
-"RTN","VSLS3",155,0)
-	; doc: @param station  string  the station partition
-"RTN","VSLS3",156,0)
-	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
-"RTN","VSLS3",157,0)
-	; doc: @returns        string  the S3 object key
-"RTN","VSLS3",158,0)
-	new d
-"RTN","VSLS3",159,0)
-	set d=$get(ymd) if d="" set d=$$today()
-"RTN","VSLS3",160,0)
-	quit "traffic/"_station_"/_offwindows/"_$$ymdPath(d)_".json"
-"RTN","VSLS3",161,0)
-	;
-"RTN","VSLS3",162,0)
-fidelityKey(station,ymd)	; The per-day _fidelity manifest key (periodic VSLTAPFC results, §11).
-"RTN","VSLS3",163,0)
-	; doc: @param station  string  the station partition
-"RTN","VSLS3",164,0)
-	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
-"RTN","VSLS3",165,0)
-	; doc: @returns        string  the S3 object key
-"RTN","VSLS3",166,0)
-	new d
-"RTN","VSLS3",167,0)
-	set d=$get(ymd) if d="" set d=$$today()
-"RTN","VSLS3",168,0)
-	quit "traffic/"_station_"/_fidelity/"_$$ymdPath(d)_".json"
-"RTN","VSLS3",169,0)
-	;
-"RTN","VSLS3",170,0)
-ymdPath(ymd)	; (private) YYYYMMDD -> "YYYY/MM/DD".
-"RTN","VSLS3",171,0)
-	quit $extract(ymd,1,4)_"/"_$extract(ymd,5,6)_"/"_$extract(ymd,7,8)
-"RTN","VSLS3",172,0)
-	;
-"RTN","VSLS3",173,0)
-today()	; (private) today's date as YYYYMMDD, from $H via STDDATE.
-"RTN","VSLS3",174,0)
-	new z,y,m,d
-"RTN","VSLS3",175,0)
-	set z=+$horolog-47117
-"RTN","VSLS3",176,0)
-	do civilFromDays^STDDATE(z,.y,.m,.d)
-"RTN","VSLS3",177,0)
-	quit (y*10000)+(m*100)+d_""
-"RTN","VSLS3",178,0)
-	;
-"RTN","VSLS3",179,0)
-	; ---------- the config seam (S3 ctx from ^VSLTAP) ----------
-"RTN","VSLS3",180,0)
-	;
-"RTN","VSLS3",181,0)
-ctx(ctx,opt)	; Build the S3 credential ctx + opt(endpoint) from the ^VSLTAP config seam.
-"RTN","VSLS3",182,0)
-	; doc: @param ctx  array  OUT by-ref: accessKey/secretKey/region/service[/sessionToken]
-"RTN","VSLS3",183,0)
-	; doc: @param opt  array  OUT by-ref: opt("endpoint") for path-style (MinIO/LocalStack)
-"RTN","VSLS3",184,0)
-	; doc: @returns    string the bucket name from the seam
-"RTN","VSLS3",185,0)
-	; doc: The same control state the Phase-2 core uses (^VSLTAP("cfg",…)). An
-"RTN","VSLS3",186,0)
-	; doc: empty endpoint -> virtual-hosted real S3; a set endpoint -> path-style
-"RTN","VSLS3",187,0)
-	; doc: S3-equivalent (the no-code-change testbed hook, §15.1).
-"RTN","VSLS3",188,0)
-	new ep,tok
-"RTN","VSLS3",189,0)
-	set ctx("accessKey")=$$cfg^VSLTAP("s3accesskey","")
-"RTN","VSLS3",190,0)
-	set ctx("secretKey")=$$cfg^VSLTAP("s3secretkey","")
-"RTN","VSLS3",191,0)
-	set ctx("region")=$$cfg^VSLTAP("s3region","us-east-1")
-"RTN","VSLS3",192,0)
-	set ctx("service")=$$cfg^VSLTAP("s3service","s3")
-"RTN","VSLS3",193,0)
-	set tok=$$cfg^VSLTAP("s3token","")
-"RTN","VSLS3",194,0)
-	if tok'="" set ctx("sessionToken")=tok
-"RTN","VSLS3",195,0)
-	set ep=$$cfg^VSLTAP("s3endpoint","")
-"RTN","VSLS3",196,0)
-	if ep'="" set opt("endpoint")=ep
-"RTN","VSLS3",197,0)
-	quit $$cfg^VSLTAP("s3bucket","")
-"RTN","VSLS3",198,0)
-	;
-"RTN","VSLS3",199,0)
-	; ---------- egress (the STDS3 transport monopoly; needs engine HTTP) ----------
-"RTN","VSLS3",200,0)
-	;
-"RTN","VSLS3",201,0)
-ship(ctx,bucket,key,body,opt,resp)	; PUT one object to S3 / the S3-equivalent via STDS3.
-"RTN","VSLS3",202,0)
-	; doc: @param ctx     array  the credential context (from $$ctx), by-ref
-"RTN","VSLS3",203,0)
-	; doc: @param bucket  string the target bucket
-"RTN","VSLS3",204,0)
-	; doc: @param key     string the object key (from $$key)
-"RTN","VSLS3",205,0)
-	; doc: @param body    byte-string  the LDJSON body (one or more envelope lines)
-"RTN","VSLS3",206,0)
-	; doc: @param opt     array  by-ref: opt("endpoint") + contentType
-"RTN","VSLS3",207,0)
-	; doc: @param resp    array  OUT by-ref: resp("header",*)/("error",*)
-"RTN","VSLS3",208,0)
-	; doc: @returns       int    HTTP status (200 ok); 0 on transport failure
-"RTN","VSLS3",209,0)
-	; doc: The ONLY way to reach S3 (waterline rule 3: the m S3 client is the
-"RTN","VSLS3",210,0)
-	; doc: transport monopoly). Runs in the SEPARATE flush process, never the
-"RTN","VSLS3",211,0)
-	; doc: RPC path (§4.1.3). 0 on a bare engine with no HTTP egress (G-HTTP-*).
-"RTN","VSLS3",212,0)
-	set opt("contentType")=$get(opt("contentType"),"application/x-ndjson")
-"RTN","VSLS3",213,0)
-	quit $$putObject^STDS3(.ctx,bucket,key,$get(body),.opt,.resp)
-"RTN","VSLS3",214,0)
-	;
-"RTN","VSLS3",215,0)
-readback(ctx,bucket,key,opt,resp)	; GET one object back from S3 / the S3-equivalent via STDS3.
-"RTN","VSLS3",216,0)
-	; doc: @param ctx     array  the credential context (from $$ctx), by-ref
-"RTN","VSLS3",217,0)
-	; doc: @param bucket  string the source bucket
-"RTN","VSLS3",218,0)
-	; doc: @param key     string the object key
-"RTN","VSLS3",219,0)
-	; doc: @param opt     array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
-"RTN","VSLS3",220,0)
-	; doc: @param resp    array  OUT by-ref: resp("body") holds the bytes on 200
-"RTN","VSLS3",221,0)
-	; doc: @returns       int    HTTP status (200 ok); 0 on transport failure
-"RTN","VSLS3",222,0)
-	; doc: The fidelity-harness read leg (spec §15.2 step 4): read the shipped
-"RTN","VSLS3",223,0)
-	; doc: object back and compare byte-for-byte (VSLTAPFC). `opt` carries the
-"RTN","VSLS3",224,0)
-	; doc: endpoint override (from $$ctx) so the GET reaches the same endpoint the
-"RTN","VSLS3",225,0)
-	; doc: PUT used — without it the read op signs+sends to real AWS, not MinIO.
-"RTN","VSLS3",226,0)
-	quit $$getObject^STDS3(.ctx,bucket,key,.opt,.resp)
-"RTN","VSLS3",227,0)
-	;
-"RTN","VSLS3",228,0)
-	; ---------- the drain loop (VSLTASK-driven flush; spec §4.1.3) ----------
-"RTN","VSLS3",229,0)
-	;
-"RTN","VSLS3",230,0)
-drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipped entries.
-"RTN","VSLS3",231,0)
-	; doc: @param res  array  OUT by-ref: res("shipped")/("key")/("body")/("status")
-"RTN","VSLS3",232,0)
-	; doc: @returns    int    the number of records shipped (0 if gated/empty/failed)
-"RTN","VSLS3",233,0)
-	; doc: The whole egress path runs in the SEPARATE flush process (VSLTASK calls
-"RTN","VSLS3",234,0)
-	; doc: this) — never the RPC CPU (§4.1.3). It is consumer-gated AND auto-
-"RTN","VSLS3",235,0)
-	; doc: failover-aware: it ships ONLY while the Phase-2 gate is enabled, so a
-"RTN","VSLS3",236,0)
-	; doc: dead/slow sink or any interference signal turns it off cleanly (the gate
-"RTN","VSLS3",237,0)
-	; doc: records the off-window). On a 200 it self-drains the shipped seqs
-"RTN","VSLS3",238,0)
-	; doc: (drainTo^VSLTAP); on any other status it leaves the ring for retry.
-"RTN","VSLS3",239,0)
-	new ctx,opt,bucket,station,proto,h,t,seq,erec,body,line,n,last,key,sc
-"RTN","VSLS3",240,0)
-	kill res
-"RTN","VSLS3",241,0)
-	set res("shipped")=0
-"RTN","VSLS3",242,0)
-	; consumer-gate + auto-failover (the Phase-2 safety reflexes) — fail-safe-OFF.
-"RTN","VSLS3",243,0)
-	if '$$enabled^VSLTAP() quit 0
-"RTN","VSLS3",244,0)
-	set h=$$head^VSLTAP(),t=$$tail^VSLTAP()
-"RTN","VSLS3",245,0)
-	if h'>t quit 0
-"RTN","VSLS3",246,0)
-	set bucket=$$ctx(.ctx,.opt)
-"RTN","VSLS3",247,0)
-	set station=$$cfg^VSLTAP("s3station","")
-"RTN","VSLS3",248,0)
-	set proto=$$cfg^VSLTAP("s3proto","rpc")
-"RTN","VSLS3",249,0)
-	; assemble the batch: one LDJSON line per retained record, in seq order. Ship the
-"RTN","VSLS3",250,0)
-	; CONTIGUOUS COMMITTED PREFIX (tail,last] and STOP at the first uncommitted slot
-"RTN","VSLS3",251,0)
-	; ($$present=0). FU-8's atomic $INCREMENT advances head one statement before the data
-"RTN","VSLS3",252,0)
-	; SET, so an always-on drain (FU-9) can momentarily see head ahead of an in-flight
-"RTN","VSLS3",253,0)
-	; record; stopping at the gap (and trimming only to `last`, not `h`) leaves that slot
-"RTN","VSLS3",254,0)
-	; for the next tick instead of shipping "" and KILLing a record about to land. A
-"RTN","VSLS3",255,0)
-	; genuinely-empty captured record still ships ($$present is true for an empty value).
-"RTN","VSLS3",256,0)
-	set body="",n=0,last=t
-"RTN","VSLS3",257,0)
-	for seq=t+1:1:h quit:'$$present^VSLTAP(seq)  do
-"RTN","VSLS3",258,0)
-	. kill erec
-"RTN","VSLS3",259,0)
-	. do resolveRec(seq,station,proto,.erec)
-"RTN","VSLS3",260,0)
-	. set line=$$envelope(.erec,.opt)
-"RTN","VSLS3",261,0)
-	. set body=body_line_$char(10),n=n+1,last=seq
-"RTN","VSLS3",262,0)
-	if 'n quit 0
-"RTN","VSLS3",263,0)
-	set key=$$key(station,proto,last)
-"RTN","VSLS3",264,0)
-	set sc=$$shipBatch(.ctx,bucket,key,body,.opt,.res)
-"RTN","VSLS3",265,0)
-	set res("key")=key,res("body")=body,res("status")=sc
-"RTN","VSLS3",266,0)
-	; ship failed -> leave the ring intact for the next flush tick (no trim).
-"RTN","VSLS3",267,0)
-	if sc'=200 quit 0
-"RTN","VSLS3",268,0)
-	do drainTo^VSLTAP(last)
-"RTN","VSLS3",269,0)
-	set res("shipped")=n
-"RTN","VSLS3",270,0)
-	quit n
-"RTN","VSLS3",271,0)
-	;
-"RTN","VSLS3",272,0)
-resolveRec(seq,station,proto,erec)	; Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / v1 legacy).
-"RTN","VSLS3",273,0)
-	; doc: @param seq      numeric  the ring sequence
-"RTN","VSLS3",274,0)
-	; doc: @param station  string   the station partition (authoritative for the §11 key)
-"RTN","VSLS3",275,0)
-	; doc: @param proto     string   default protocol when the record carries none
-"RTN","VSLS3",276,0)
-	; doc: @param erec     array    OUT by-ref: the schema-v1 fields incl. erec("payload") = RAW bytes
-"RTN","VSLS3",277,0)
-	; doc: A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY
-"RTN","VSLS3",278,0)
-	; doc: result is serialized from the "g" MERGE snapshot (FU-17) and base64'd; a scalar
-"RTN","VSLS3",279,0)
-	; doc: from its "p",1 chunk. A legacy v1 string record ($$append — the synthetic
-"RTN","VSLS3",280,0)
-	; doc: demonstrator path) ships as a plain payload under the configured direction. The
-"RTN","VSLS3",281,0)
-	; doc: header's schema_version keeps both readable from one ring (schema-lock §4).
-"RTN","VSLS3",282,0)
-	new hdr
-"RTN","VSLS3",283,0)
-	kill erec
-"RTN","VSLS3",284,0)
-	if $$hdr^VSLTAP(seq,.hdr) do  quit
-"RTN","VSLS3",285,0)
-	. merge erec=hdr
-"RTN","VSLS3",286,0)
-	. set erec("seq")=seq,erec("station")=station
-"RTN","VSLS3",287,0)
-	. if hdr("protocol")="" set erec("protocol")=proto
-"RTN","VSLS3",288,0)
-	. if hdr("result_kind")="global" do  quit
-"RTN","VSLS3",289,0)
-	. . set erec("payload")=$$gSerialize(seq)
-"RTN","VSLS3",290,0)
-	. . set erec("payload_encoding")="base64"
-"RTN","VSLS3",291,0)
-	. . set erec("chunk_count")=1
-"RTN","VSLS3",292,0)
-	. set erec("payload")=$$chunk^VSLTAP(seq,1)
-"RTN","VSLS3",293,0)
-	. set erec("chunk_count")=+hdr("chunk_count")
-"RTN","VSLS3",294,0)
-	; legacy v1 string record (the synthetic demonstrator / VSLS3DRAINTST path)
-"RTN","VSLS3",295,0)
-	set erec("payload")=$$read^VSLTAP(seq)
-"RTN","VSLS3",296,0)
-	set erec("seq")=seq,erec("station")=station,erec("protocol")=proto
-"RTN","VSLS3",297,0)
-	set erec("direction")=$$cfg^VSLTAP("s3dir","")
-"RTN","VSLS3",298,0)
 	quit
-"RTN","VSLS3",299,0)
+"RTN","VSLS3",135,0)
 	;
+"RTN","VSLS3",136,0)
+gNode(sub,val)	; (private) one serialized global-subtree node as a JSON object {s:subscripts,v:value}.
+"RTN","VSLS3",137,0)
+	new n
+"RTN","VSLS3",138,0)
+	set n="o"
+"RTN","VSLS3",139,0)
+	set n("s")="s:"_sub
+"RTN","VSLS3",140,0)
+	set n("v")="s:"_val
+"RTN","VSLS3",141,0)
+	quit $$encode^STDJSON(.n)
+"RTN","VSLS3",142,0)
+	;
+"RTN","VSLS3",143,0)
+	; ---------- the §11 bucket / object key layout ----------
+"RTN","VSLS3",144,0)
+	;
+"RTN","VSLS3",145,0)
+key(station,proto,seq,ymd)	; The object key for one traffic stream: traffic/<st>/<proto>/Y/M/D/<seq>.ndjson.
+"RTN","VSLS3",146,0)
+	; doc: @param station  string  the station partition
+"RTN","VSLS3",147,0)
+	; doc: @param proto    string  protocol tag ("rpc"/"hl7")
+"RTN","VSLS3",148,0)
+	; doc: @param seq      numeric the capture sequence number
+"RTN","VSLS3",149,0)
+	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
+"RTN","VSLS3",150,0)
+	; doc: @returns        string  the S3 object key
+"RTN","VSLS3",151,0)
+	new d
+"RTN","VSLS3",152,0)
+	set d=$get(ymd) if d="" set d=$$today()
+"RTN","VSLS3",153,0)
+	quit "traffic/"_station_"/"_proto_"/"_$$ymdPath(d)_"/"_(+seq)_".ndjson"
+"RTN","VSLS3",154,0)
+	;
+"RTN","VSLS3",155,0)
+offWindowsKey(station,ymd)	; The per-day _offwindows manifest key (explicit tap-off windows, §11).
+"RTN","VSLS3",156,0)
+	; doc: @param station  string  the station partition
+"RTN","VSLS3",157,0)
+	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
+"RTN","VSLS3",158,0)
+	; doc: @returns        string  the S3 object key
+"RTN","VSLS3",159,0)
+	new d
+"RTN","VSLS3",160,0)
+	set d=$get(ymd) if d="" set d=$$today()
+"RTN","VSLS3",161,0)
+	quit "traffic/"_station_"/_offwindows/"_$$ymdPath(d)_".json"
+"RTN","VSLS3",162,0)
+	;
+"RTN","VSLS3",163,0)
+fidelityKey(station,ymd)	; The per-day _fidelity manifest key (periodic VSLTAPFC results, §11).
+"RTN","VSLS3",164,0)
+	; doc: @param station  string  the station partition
+"RTN","VSLS3",165,0)
+	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
+"RTN","VSLS3",166,0)
+	; doc: @returns        string  the S3 object key
+"RTN","VSLS3",167,0)
+	new d
+"RTN","VSLS3",168,0)
+	set d=$get(ymd) if d="" set d=$$today()
+"RTN","VSLS3",169,0)
+	quit "traffic/"_station_"/_fidelity/"_$$ymdPath(d)_".json"
+"RTN","VSLS3",170,0)
+	;
+"RTN","VSLS3",171,0)
+ymdPath(ymd)	; (private) YYYYMMDD -> "YYYY/MM/DD".
+"RTN","VSLS3",172,0)
+	quit $extract(ymd,1,4)_"/"_$extract(ymd,5,6)_"/"_$extract(ymd,7,8)
+"RTN","VSLS3",173,0)
+	;
+"RTN","VSLS3",174,0)
+today()	; (private) today's date as YYYYMMDD, from $H via STDDATE.
+"RTN","VSLS3",175,0)
+	new z,y,m,d
+"RTN","VSLS3",176,0)
+	set z=+$horolog-47117
+"RTN","VSLS3",177,0)
+	do civilFromDays^STDDATE(z,.y,.m,.d)
+"RTN","VSLS3",178,0)
+	quit (y*10000)+(m*100)+d_""
+"RTN","VSLS3",179,0)
+	;
+"RTN","VSLS3",180,0)
+	; ---------- the config seam (S3 ctx from ^VSLTAP) ----------
+"RTN","VSLS3",181,0)
+	;
+"RTN","VSLS3",182,0)
+ctx(ctx,opt)	; Build the S3 credential ctx + opt(endpoint) from the ^VSLTAP config seam.
+"RTN","VSLS3",183,0)
+	; doc: @param ctx  array  OUT by-ref: accessKey/secretKey/region/service[/sessionToken]
+"RTN","VSLS3",184,0)
+	; doc: @param opt  array  OUT by-ref: opt("endpoint") for path-style (MinIO/LocalStack)
+"RTN","VSLS3",185,0)
+	; doc: @returns    string the bucket name from the seam
+"RTN","VSLS3",186,0)
+	; doc: The same control state the Phase-2 core uses (^VSLTAP("cfg",…)). An
+"RTN","VSLS3",187,0)
+	; doc: empty endpoint -> virtual-hosted real S3; a set endpoint -> path-style
+"RTN","VSLS3",188,0)
+	; doc: S3-equivalent (the no-code-change testbed hook, §15.1).
+"RTN","VSLS3",189,0)
+	new ep,tok
+"RTN","VSLS3",190,0)
+	set ctx("accessKey")=$$cfg^VSLTAP("s3accesskey","")
+"RTN","VSLS3",191,0)
+	set ctx("secretKey")=$$cfg^VSLTAP("s3secretkey","")
+"RTN","VSLS3",192,0)
+	set ctx("region")=$$cfg^VSLTAP("s3region","us-east-1")
+"RTN","VSLS3",193,0)
+	set ctx("service")=$$cfg^VSLTAP("s3service","s3")
+"RTN","VSLS3",194,0)
+	set tok=$$cfg^VSLTAP("s3token","")
+"RTN","VSLS3",195,0)
+	if tok'="" set ctx("sessionToken")=tok
+"RTN","VSLS3",196,0)
+	set ep=$$cfg^VSLTAP("s3endpoint","")
+"RTN","VSLS3",197,0)
+	if ep'="" set opt("endpoint")=ep
+"RTN","VSLS3",198,0)
+	quit $$cfg^VSLTAP("s3bucket","")
+"RTN","VSLS3",199,0)
+	;
+"RTN","VSLS3",200,0)
+	; ---------- egress (the STDS3 transport monopoly; needs engine HTTP) ----------
+"RTN","VSLS3",201,0)
+	;
+"RTN","VSLS3",202,0)
+ship(ctx,bucket,key,body,opt,resp)	; PUT one object to S3 / the S3-equivalent via STDS3.
+"RTN","VSLS3",203,0)
+	; doc: @param ctx     array  the credential context (from $$ctx), by-ref
+"RTN","VSLS3",204,0)
+	; doc: @param bucket  string the target bucket
+"RTN","VSLS3",205,0)
+	; doc: @param key     string the object key (from $$key)
+"RTN","VSLS3",206,0)
+	; doc: @param body    byte-string  the LDJSON body (one or more envelope lines)
+"RTN","VSLS3",207,0)
+	; doc: @param opt     array  by-ref: opt("endpoint") + contentType
+"RTN","VSLS3",208,0)
+	; doc: @param resp    array  OUT by-ref: resp("header",*)/("error",*)
+"RTN","VSLS3",209,0)
+	; doc: @returns       int    HTTP status (200 ok); 0 on transport failure
+"RTN","VSLS3",210,0)
+	; doc: The ONLY way to reach S3 (waterline rule 3: the m S3 client is the
+"RTN","VSLS3",211,0)
+	; doc: transport monopoly). Runs in the SEPARATE flush process, never the
+"RTN","VSLS3",212,0)
+	; doc: RPC path (§4.1.3). 0 on a bare engine with no HTTP egress (G-HTTP-*).
+"RTN","VSLS3",213,0)
+	set opt("contentType")=$get(opt("contentType"),"application/x-ndjson")
+"RTN","VSLS3",214,0)
+	quit $$putObject^STDS3(.ctx,bucket,key,$get(body),.opt,.resp)
+"RTN","VSLS3",215,0)
+	;
+"RTN","VSLS3",216,0)
+readback(ctx,bucket,key,opt,resp)	; GET one object back from S3 / the S3-equivalent via STDS3.
+"RTN","VSLS3",217,0)
+	; doc: @param ctx     array  the credential context (from $$ctx), by-ref
+"RTN","VSLS3",218,0)
+	; doc: @param bucket  string the source bucket
+"RTN","VSLS3",219,0)
+	; doc: @param key     string the object key
+"RTN","VSLS3",220,0)
+	; doc: @param opt     array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
+"RTN","VSLS3",221,0)
+	; doc: @param resp    array  OUT by-ref: resp("body") holds the bytes on 200
+"RTN","VSLS3",222,0)
+	; doc: @returns       int    HTTP status (200 ok); 0 on transport failure
+"RTN","VSLS3",223,0)
+	; doc: The fidelity-harness read leg (spec §15.2 step 4): read the shipped
+"RTN","VSLS3",224,0)
+	; doc: object back and compare byte-for-byte (VSLTAPFC). `opt` carries the
+"RTN","VSLS3",225,0)
+	; doc: endpoint override (from $$ctx) so the GET reaches the same endpoint the
+"RTN","VSLS3",226,0)
+	; doc: PUT used — without it the read op signs+sends to real AWS, not MinIO.
+"RTN","VSLS3",227,0)
+	quit $$getObject^STDS3(.ctx,bucket,key,.opt,.resp)
+"RTN","VSLS3",228,0)
+	;
+"RTN","VSLS3",229,0)
+list(ctx,bucket,prefix,opt,listing)	; LIST object keys under `prefix` via STDS3 listObjectsV2.
+"RTN","VSLS3",230,0)
+	; doc: @param ctx      array  the credential context (from $$ctx), by-ref
+"RTN","VSLS3",231,0)
+	; doc: @param bucket   string the source bucket
+"RTN","VSLS3",232,0)
+	; doc: @param prefix   string the key prefix to list under ("" = whole bucket)
+"RTN","VSLS3",233,0)
+	; doc: @param opt      array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
+"RTN","VSLS3",234,0)
+	; doc: @param listing  array  OUT by-ref: listing(1..n,"key"/"size"/"etag") + ("truncated"/"next")
+"RTN","VSLS3",235,0)
+	; doc: @returns        int    HTTP status (200 ok); 0 on transport failure
+"RTN","VSLS3",236,0)
+	; doc: The discovery leg for the periodic fidelity sampler (VSLTAPRUN
+"RTN","VSLS3",237,0)
+	; doc: $$fidelityNow): enumerate recently-shipped objects under the per-station
+"RTN","VSLS3",238,0)
+	; doc: prefix so they can be read back and integrity-verified. Same `opt`
+"RTN","VSLS3",239,0)
+	; doc: endpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).
+"RTN","VSLS3",240,0)
+	quit $$listObjectsV2^STDS3(.ctx,bucket,$get(prefix),.opt,.listing)
+"RTN","VSLS3",241,0)
+	;
+"RTN","VSLS3",242,0)
+	; ---------- the drain loop (VSLTASK-driven flush; spec §4.1.3) ----------
+"RTN","VSLS3",243,0)
+	;
+"RTN","VSLS3",244,0)
+drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipped entries.
+"RTN","VSLS3",245,0)
+	; doc: @param res  array  OUT by-ref: res("shipped")/("key")/("body")/("status")
+"RTN","VSLS3",246,0)
+	; doc: @returns    int    the number of records shipped (0 if gated/empty/failed)
+"RTN","VSLS3",247,0)
+	; doc: The whole egress path runs in the SEPARATE flush process (VSLTASK calls
+"RTN","VSLS3",248,0)
+	; doc: this) — never the RPC CPU (§4.1.3). It is consumer-gated AND auto-
+"RTN","VSLS3",249,0)
+	; doc: failover-aware: it ships ONLY while the Phase-2 gate is enabled, so a
+"RTN","VSLS3",250,0)
+	; doc: dead/slow sink or any interference signal turns it off cleanly (the gate
+"RTN","VSLS3",251,0)
+	; doc: records the off-window). On a 200 it self-drains the shipped seqs
+"RTN","VSLS3",252,0)
+	; doc: (drainTo^VSLTAP); on any other status it leaves the ring for retry.
+"RTN","VSLS3",253,0)
+	new ctx,opt,bucket,station,proto,h,t,seq,erec,body,line,n,last,key,sc
+"RTN","VSLS3",254,0)
+	kill res
+"RTN","VSLS3",255,0)
+	set res("shipped")=0
+"RTN","VSLS3",256,0)
+	; consumer-gate + auto-failover (the Phase-2 safety reflexes) — fail-safe-OFF.
+"RTN","VSLS3",257,0)
+	if '$$enabled^VSLTAP() quit 0
+"RTN","VSLS3",258,0)
+	set h=$$head^VSLTAP(),t=$$tail^VSLTAP()
+"RTN","VSLS3",259,0)
+	if h'>t quit 0
+"RTN","VSLS3",260,0)
+	set bucket=$$ctx(.ctx,.opt)
+"RTN","VSLS3",261,0)
+	set station=$$cfg^VSLTAP("s3station","")
+"RTN","VSLS3",262,0)
+	set proto=$$cfg^VSLTAP("s3proto","rpc")
+"RTN","VSLS3",263,0)
+	; assemble the batch: one LDJSON line per retained record, in seq order. Ship the
+"RTN","VSLS3",264,0)
+	; CONTIGUOUS COMMITTED PREFIX (tail,last] and STOP at the first uncommitted slot
+"RTN","VSLS3",265,0)
+	; ($$present=0). FU-8's atomic $INCREMENT advances head one statement before the data
+"RTN","VSLS3",266,0)
+	; SET, so an always-on drain (FU-9) can momentarily see head ahead of an in-flight
+"RTN","VSLS3",267,0)
+	; record; stopping at the gap (and trimming only to `last`, not `h`) leaves that slot
+"RTN","VSLS3",268,0)
+	; for the next tick instead of shipping "" and KILLing a record about to land. A
+"RTN","VSLS3",269,0)
+	; genuinely-empty captured record still ships ($$present is true for an empty value).
+"RTN","VSLS3",270,0)
+	set body="",n=0,last=t
+"RTN","VSLS3",271,0)
+	for seq=t+1:1:h quit:'$$present^VSLTAP(seq)  do
+"RTN","VSLS3",272,0)
+	. kill erec
+"RTN","VSLS3",273,0)
+	. do resolveRec(seq,station,proto,.erec)
+"RTN","VSLS3",274,0)
+	. set line=$$envelope(.erec,.opt)
+"RTN","VSLS3",275,0)
+	. set body=body_line_$char(10),n=n+1,last=seq
+"RTN","VSLS3",276,0)
+	if 'n quit 0
+"RTN","VSLS3",277,0)
+	set key=$$key(station,proto,last)
+"RTN","VSLS3",278,0)
+	set sc=$$shipBatch(.ctx,bucket,key,body,.opt,.res)
+"RTN","VSLS3",279,0)
+	set res("key")=key,res("body")=body,res("status")=sc
+"RTN","VSLS3",280,0)
+	; ship failed -> leave the ring intact for the next flush tick (no trim).
+"RTN","VSLS3",281,0)
+	if sc'=200 quit 0
+"RTN","VSLS3",282,0)
+	do drainTo^VSLTAP(last)
+"RTN","VSLS3",283,0)
+	set res("shipped")=n
+"RTN","VSLS3",284,0)
+	quit n
+"RTN","VSLS3",285,0)
+	;
+"RTN","VSLS3",286,0)
+resolveRec(seq,station,proto,erec)	; Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / v1 legacy).
+"RTN","VSLS3",287,0)
+	; doc: @param seq      numeric  the ring sequence
+"RTN","VSLS3",288,0)
+	; doc: @param station  string   the station partition (authoritative for the §11 key)
+"RTN","VSLS3",289,0)
+	; doc: @param proto     string   default protocol when the record carries none
+"RTN","VSLS3",290,0)
+	; doc: @param erec     array    OUT by-ref: the schema-v1 fields incl. erec("payload") = RAW bytes
+"RTN","VSLS3",291,0)
+	; doc: A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY
+"RTN","VSLS3",292,0)
+	; doc: result is serialized from the "g" MERGE snapshot (FU-17) and base64'd; a scalar
+"RTN","VSLS3",293,0)
+	; doc: from its "p",1 chunk. A legacy v1 string record ($$append — the synthetic
+"RTN","VSLS3",294,0)
+	; doc: demonstrator path) ships as a plain payload under the configured direction. The
+"RTN","VSLS3",295,0)
+	; doc: header's schema_version keeps both readable from one ring (schema-lock §4).
+"RTN","VSLS3",296,0)
+	new hdr
+"RTN","VSLS3",297,0)
+	kill erec
+"RTN","VSLS3",298,0)
+	if $$hdr^VSLTAP(seq,.hdr) do  quit
+"RTN","VSLS3",299,0)
+	. merge erec=hdr
 "RTN","VSLS3",300,0)
-shipBatch(ctx,bucket,key,body,opt,resp)	; (private) ship one batch object; honour the capture-sink test seam.
+	. set erec("seq")=seq,erec("station")=station
 "RTN","VSLS3",301,0)
-	; doc: The §6.2-style injected seam: with ^VSLTAP("cfg","s3sink")="capture"
+	. if hdr("protocol")="" set erec("protocol")=proto
 "RTN","VSLS3",302,0)
-	; doc: the batch is returned in `res` (no real PUT) so the drain logic is
+	. if hdr("result_kind")="global" do  quit
 "RTN","VSLS3",303,0)
-	; doc: provable on a bare engine; otherwise it PUTs via the STDS3 monopoly.
+	. . set erec("payload")=$$gSerialize(seq)
 "RTN","VSLS3",304,0)
-	if $$cfg^VSLTAP("s3sink","")="capture" quit 200
+	. . set erec("payload_encoding")="base64"
 "RTN","VSLS3",305,0)
+	. . set erec("chunk_count")=1
+"RTN","VSLS3",306,0)
+	. set erec("payload")=$$chunk^VSLTAP(seq,1)
+"RTN","VSLS3",307,0)
+	. set erec("chunk_count")=+hdr("chunk_count")
+"RTN","VSLS3",308,0)
+	; legacy v1 string record (the synthetic demonstrator / VSLS3DRAINTST path)
+"RTN","VSLS3",309,0)
+	set erec("payload")=$$read^VSLTAP(seq)
+"RTN","VSLS3",310,0)
+	set erec("seq")=seq,erec("station")=station,erec("protocol")=proto
+"RTN","VSLS3",311,0)
+	set erec("direction")=$$cfg^VSLTAP("s3dir","")
+"RTN","VSLS3",312,0)
+	quit
+"RTN","VSLS3",313,0)
+	;
+"RTN","VSLS3",314,0)
+shipBatch(ctx,bucket,key,body,opt,resp)	; (private) ship one batch object; honour the capture-sink test seam.
+"RTN","VSLS3",315,0)
+	; doc: The §6.2-style injected seam: with ^VSLTAP("cfg","s3sink")="capture"
+"RTN","VSLS3",316,0)
+	; doc: the batch is returned in `res` (no real PUT) so the drain logic is
+"RTN","VSLS3",317,0)
+	; doc: provable on a bare engine; otherwise it PUTs via the STDS3 monopoly.
+"RTN","VSLS3",318,0)
+	if $$cfg^VSLTAP("s3sink","")="capture" quit 200
+"RTN","VSLS3",319,0)
 	quit $$ship(.ctx,bucket,key,$get(body),.opt,.resp)
 "RTN","VSLSEC")
 0^105^0^0
@@ -2591,7 +2659,7 @@ raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
 "RTN","VSLSEC",105,0)
 	quit
 "RTN","VSLTAP")
-0^414^0^0
+0^459^0^0
 "RTN","VSLTAP",1,0)
 VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 "RTN","VSLTAP",2,0)
@@ -2759,667 +2827,1095 @@ setAlwaysOn(flag)	; LEGACY/SUBSUMED (D-8 -> FU-9): kept for backward compatibili
 "RTN","VSLTAP",83,0)
 	;
 "RTN","VSLTAP",84,0)
-	; ---------- the capture gate + the rolling ring ----------
+	; ---------- the install-time XPAR -> cfg seed (self-configuring install) ----------
 "RTN","VSLTAP",85,0)
 	;
 "RTN","VSLTAP",86,0)
-captureOn()	; FU-9 (D-6): 1 iff the RING should capture now — armed AND not auto-disabled.
+seed()	; Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (self-configuring install).
 "RTN","VSLTAP",87,0)
-	; doc: @returns bool  the ALWAYS-ON capture gate. The ring records whenever the tap
+	; doc: The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path
 "RTN","VSLTAP",88,0)
-	; doc: is armed and not auto-failed-over, INDEPENDENT of any consumer/sink — a down or
+	; doc: gate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP("cfg",…), NOT XPAR (no
 "RTN","VSLTAP",89,0)
-	; doc: absent sink pauses only EGRESS ($$enabled), never capture (the flight-recorder
+	; doc: XPAR/FileMan read on the capture path). seed bridges the two: it copies
 "RTN","VSLTAP",90,0)
-	; doc: keeps a window of traffic ready for whenever a consumer attaches; it laps to
+	; doc: each set param into its cfg key once, at install/configure time. The
 "RTN","VSLTAP",91,0)
-	; doc: drop_oldest only under sustained pressure). The ONLY things that stop the ring
+	; doc: fidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not
 "RTN","VSLTAP",92,0)
-	; doc: are the operator kill-switch ($$off) and auto-failover ($$disable) — fail-safe-OFF.
+	; doc: mirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.
 "RTN","VSLTAP",93,0)
-	if $$cfg("mode","off")'="armed" quit 0
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 "RTN","VSLTAP",94,0)
-	if $$disabled()'="" quit 0
+	new $etrap,map,n,i
 "RTN","VSLTAP",95,0)
-	quit 1
+	set $etrap="set $ecode="""" quit"
 "RTN","VSLTAP",96,0)
-	;
+	if $text(GET^XPAR)="" quit
 "RTN","VSLTAP",97,0)
-enabled()	; 1 iff EGRESS should run now: capture-on AND a consumer/sink is present (D-5).
+	set n=$$seedMap(.map)
 "RTN","VSLTAP",98,0)
-	; doc: @returns bool  the EGRESS gate. The drain ships and $$state reports ACTIVE only
+	for i=1:1:n do seedOne(map(i,"param"),map(i,"cfg"))
 "RTN","VSLTAP",99,0)
-	; doc: when this holds; with no consumer the ring still captures ($$captureOn) but the
+	quit
 "RTN","VSLTAP",100,0)
-	; doc: PUT pauses (the off-window is recorded, never silent). [FU-9 split the former
+	;
 "RTN","VSLTAP",101,0)
-	; doc: single gate into capture (always-on) vs egress (consumer-gated).] The legacy
+seedOne(param,cfgkey)	; (private) copy XPAR param `param` into ^VSLTAP("cfg",cfgkey) when it is set.
 "RTN","VSLTAP",102,0)
-	; doc: `alwayson` flag is SUBSUMED — the ring is always-on by default now — and no
+	new v
 "RTN","VSLTAP",103,0)
-	; doc: longer gates anything (the setter/cfg are kept for backward compatibility).
+	set v=$$get^VSLCFG(param,"")
 "RTN","VSLTAP",104,0)
-	if '$$captureOn() quit 0
+	if v'="" set ^VSLTAP("cfg",cfgkey)=v
 "RTN","VSLTAP",105,0)
-	if +$$cfg("consumer",0) quit 1
+	quit
 "RTN","VSLTAP",106,0)
-	quit 0
+	;
 "RTN","VSLTAP",107,0)
-	;
+seedMap(map)	; Map each installed XPAR param name to the ^VSLTAP("cfg") key the tap reads; return the count.
 "RTN","VSLTAP",108,0)
-append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim record.
+	; doc: @param map  array  OUT by-ref: map(i,"param")=XPAR name, map(i,"cfg")=cfg key
 "RTN","VSLTAP",109,0)
-	; doc: @param rec   string  the verbatim payload (no parse, no transform — D-1)
+	; doc: @returns    numeric  the number of param->cfg mappings (the fidelity cadence is read direct)
 "RTN","VSLTAP",110,0)
-	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
+	new n
 "RTN","VSLTAP",111,0)
-	; doc: The ONLY in-path op (besides the $G gate): one global SET + bounded trim.
+	kill map
 "RTN","VSLTAP",112,0)
-	; doc: No LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:
+	set n=0
 "RTN","VSLTAP",113,0)
-	; doc: ANY fault inside the write self-disables and returns 0 — never the caller.
+	do sm(.map,.n,"VSL TAP CAP","cap")
 "RTN","VSLTAP",114,0)
-	; doc: Flag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness
+	do sm(.map,.n,"VSL TAP MAXBYTES","maxbytes")
 "RTN","VSLTAP",115,0)
-	; doc: gotcha). The write runs in a DO-invoked frame (write1) so the trap's
+	do sm(.map,.n,"VSL TAP HBSTALE","hbstale")
 "RTN","VSLTAP",116,0)
-	; doc: argument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic
+	do sm(.map,.n,"VSL TAP RETAIN","retain")
 "RTN","VSLTAP",117,0)
-	; doc: ($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).
+	do sm(.map,.n,"VSL TAP ALWAYSON","alwayson")
 "RTN","VSLTAP",118,0)
-	new ok,$etrap,wrote
+	do sm(.map,.n,"VSL S3 ENDPOINT","s3endpoint")
 "RTN","VSLTAP",119,0)
-	if '$$captureOn() quit 0
+	do sm(.map,.n,"VSL S3 BUCKET","s3bucket")
 "RTN","VSLTAP",120,0)
-	set ok=1,wrote=0
+	do sm(.map,.n,"VSL S3 REGION","s3region")
 "RTN","VSLTAP",121,0)
-	set $etrap="set ok=0,$ecode="""" quit"
+	do sm(.map,.n,"VSL S3 PREFIX","s3station")
 "RTN","VSLTAP",122,0)
-	do write1(rec,.wrote)
+	quit n
 "RTN","VSLTAP",123,0)
-	if ok quit wrote
+	;
 "RTN","VSLTAP",124,0)
-	set $etrap=""
+sm(map,n,param,cfg)	; (private) append one param->cfg mapping row.
 "RTN","VSLTAP",125,0)
-	do disable("fault")
+	set n=n+1
 "RTN","VSLTAP",126,0)
-	quit 0
+	set map(n,"param")=param,map(n,"cfg")=cfg
 "RTN","VSLTAP",127,0)
-	;
+	quit
 "RTN","VSLTAP",128,0)
-write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's QUIT is legal.
+	;
 "RTN","VSLTAP",129,0)
-	; doc: @param rec    string  the verbatim payload
+	; ---------- the capture gate + the rolling ring ----------
 "RTN","VSLTAP",130,0)
-	; doc: @param wrote  bool    by-ref; set 1 iff the record was appended
+	;
 "RTN","VSLTAP",131,0)
-	new seq,cap
+captureOn()	; FU-9 (D-6): 1 iff the RING should capture now — armed AND not auto-disabled.
 "RTN","VSLTAP",132,0)
-	; fault-injection seam — the §6.2 "injected deviation" exit-gate (b) lever.
+	; doc: @returns bool  the ALWAYS-ON capture gate. The ring records whenever the tap
 "RTN","VSLTAP",133,0)
-	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
+	; doc: is armed and not auto-failed-over, INDEPENDENT of any consumer/sink — a down or
 "RTN","VSLTAP",134,0)
-	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
+	; doc: absent sink pauses only EGRESS ($$enabled), never capture (the flight-recorder
 "RTN","VSLTAP",135,0)
-	if $length(rec)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
+	; doc: keeps a window of traffic ready for whenever a consumer attaches; it laps to
 "RTN","VSLTAP",136,0)
-	set cap=+$$cfg("cap",1000)
+	; doc: drop_oldest only under sustained pressure). The ONLY things that stop the ring
 "RTN","VSLTAP",137,0)
-	; FU-8 (G-SEQ): allocate the sequence with an ATOMIC $INCREMENT (atomic on both YDB
+	; doc: are the operator kill-switch ($$off) and auto-failover ($$disable) — fail-safe-OFF.
 "RTN","VSLTAP",138,0)
-	; and IRIS, no LOCK) — many concurrent broker handlers append to one ring, so the old
+	if $$cfg("mode","off")'="armed" quit 0
 "RTN","VSLTAP",139,0)
-	; non-atomic read-then-write (`set seq=$get(head)+1` … `set head=seq`) RACED: two
+	if $$disabled()'="" quit 0
 "RTN","VSLTAP",140,0)
-	; handlers read the same head, both wrote `data,N`, one clobbered the other — a lost
+	quit 1
 "RTN","VSLTAP",141,0)
-	; record AND a duplicate seq (which breaks the §11 idempotent S3 key). $INCREMENT both
+	;
 "RTN","VSLTAP",142,0)
-	; allocates a unique seq and advances head in one indivisible step. It sits AFTER
+enabled()	; 1 iff EGRESS should run now: capture-on AND a consumer/sink is present (D-5).
 "RTN","VSLTAP",143,0)
-	; the maxbytes copy-cost guard above ON PURPOSE — a rejected mega-payload must not
+	; doc: @returns bool  the EGRESS gate. The drain ships and $$state reports ACTIVE only
 "RTN","VSLTAP",144,0)
-	; burn a seq (which would leave a permanent hole the gap-safe drain stops at forever).
+	; doc: when this holds; with no consumer the ring still captures ($$captureOn) but the
 "RTN","VSLTAP",145,0)
-	set seq=$increment(^XTMP("VSLTAP","head"))
+	; doc: PUT pauses (the off-window is recorded, never silent). [FU-9 split the former
 "RTN","VSLTAP",146,0)
-	set ^XTMP("VSLTAP","data",seq)=rec
+	; doc: single gate into capture (always-on) vs egress (consumer-gated).] The legacy
 "RTN","VSLTAP",147,0)
-	; FU-4 post-write fault-injection seam: fire AFTER the ring SET so the fence
+	; doc: `alwayson` flag is SUBSUMED — the ring is always-on by default now — and no
 "RTN","VSLTAP",148,0)
-	; property suite (VSLTAPFENCETST) proves the naked-reference restore even once
+	; doc: longer gates anything (the setter/cfg are kept for backward compatibility).
 "RTN","VSLTAP",149,0)
-	; the tap has dirtied the caller's indicator (AC-1). Inert unless configured.
-"RTN","VSLTAP",150,0)
-	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
-"RTN","VSLTAP",151,0)
-	do trim(seq,cap)
-"RTN","VSLTAP",152,0)
-	do record^VSLTAPHL(0,$length(rec),0)
-"RTN","VSLTAP",153,0)
-	set wrote=1
-"RTN","VSLTAP",154,0)
-	quit
-"RTN","VSLTAP",155,0)
-	;
-"RTN","VSLTAP",156,0)
-trim(seq,cap)	; (private) overwrite-oldest: drop entries until the ring holds at most `cap`.
-"RTN","VSLTAP",157,0)
-	new t
-"RTN","VSLTAP",158,0)
-	set t=+$get(^XTMP("VSLTAP","tail"))
-"RTN","VSLTAP",159,0)
-	for  quit:(seq-t)'>cap  do dropOldest(.t)
-"RTN","VSLTAP",160,0)
-	set ^XTMP("VSLTAP","tail")=t
-"RTN","VSLTAP",161,0)
-	quit
-"RTN","VSLTAP",162,0)
-	;
-"RTN","VSLTAP",163,0)
-dropOldest(t)	; (private) drop the oldest retained entry and advance the tail cursor.
-"RTN","VSLTAP",164,0)
-	set t=t+1
-"RTN","VSLTAP",165,0)
-	kill ^XTMP("VSLTAP","data",t)
-"RTN","VSLTAP",166,0)
-	quit
-"RTN","VSLTAP",167,0)
-	;
-"RTN","VSLTAP",168,0)
-tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
-"RTN","VSLTAP",169,0)
-	; doc: @param rec   string  the verbatim payload
-"RTN","VSLTAP",170,0)
-	; doc: @returns bool the $$append result (0 if gated or a fault was fenced)
-"RTN","VSLTAP",171,0)
-	; doc: $$append is already self-fenced (a DO-framed $ETRAP that self-disables on
-"RTN","VSLTAP",172,0)
-	; doc: any fault); tee is the stable adapter entry. Either leaves the caller's
-"RTN","VSLTAP",173,0)
-	; doc: result / $ECODE / $T untouched.
-"RTN","VSLTAP",174,0)
-	quit $$append(rec)
-"RTN","VSLTAP",175,0)
-	;
-"RTN","VSLTAP",176,0)
-	; ---------- cache layout v2: the rich capture record (FU-5 / FU-14 / FU-17) ----------
-"RTN","VSLTAP",177,0)
-	;
-"RTN","VSLTAP",178,0)
-	; The Phase-6 wrap (FU-5) at the active broker CALLP captures a STRUCTURED record,
-"RTN","VSLTAP",179,0)
-	; not a flat string: a header node + payload chunk node(s) + (for a GLOBAL ARRAY
-"RTN","VSLTAP",180,0)
-	; result) a single MERGE snapshot subtree (FU-17). The schema is frozen in
-"RTN","VSLTAP",181,0)
-	; docs/design/s3tap-envelope-schema-lock.md (cache layout v2):
-"RTN","VSLTAP",182,0)
-	;   ^XTMP("VSLTAP","data",seq)        = HEADER (^-pieces; no field may contain ^)
-"RTN","VSLTAP",183,0)
-	;   ^XTMP("VSLTAP","data",seq,"p",i)  = payload chunk i (RAW bytes; i=1..chunk_count)
-"RTN","VSLTAP",184,0)
-	;   ^XTMP("VSLTAP","data",seq,"hc",i) = per-chunk sha256 (FU-2 integrity)
-"RTN","VSLTAP",185,0)
-	;   ^XTMP("VSLTAP","data",seq,"g")    = MERGE snapshot of a GLOBAL ARRAY result (FU-17)
-"RTN","VSLTAP",186,0)
-	; The ring stores RAW payload bytes; the wire encoding (base64/raw) and the
-"RTN","VSLTAP",187,0)
-	; expensive serialize/hash of a global subtree are deferred to the drain (off the
-"RTN","VSLTAP",188,0)
-	; in-path, §6.1). `payload_encoding` in the header records the intended wire encoding.
-"RTN","VSLTAP",189,0)
-	; The drain is dual-mode: a v2 record (a "p"/"g" child present) frames schema v1 from
-"RTN","VSLTAP",190,0)
-	; the header; a legacy v1 string record ($$append) still ships as before.
-"RTN","VSLTAP",191,0)
-	;
-"RTN","VSLTAP",192,0)
-appendRec(rec)	; FU-5: gated, fault-fenced, bounded append of a RICH (cache layout v2) record.
-"RTN","VSLTAP",193,0)
-	; doc: @param rec   array  by-ref record descriptor (dir/rpc/payload/gref/call_id/...; read-only)
-"RTN","VSLTAP",194,0)
-	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
-"RTN","VSLTAP",195,0)
-	; doc: The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write
-"RTN","VSLTAP",196,0)
-	; doc: (write1rec) so the trap's arg-less QUIT is legal. The caller-state fence
-"RTN","VSLTAP",197,0)
-	; doc: (naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).
-"RTN","VSLTAP",198,0)
-	new ok,$etrap,wrote
-"RTN","VSLTAP",199,0)
 	if '$$captureOn() quit 0
-"RTN","VSLTAP",200,0)
-	set ok=1,wrote=0
-"RTN","VSLTAP",201,0)
-	set $etrap="set ok=0,$ecode="""" quit"
-"RTN","VSLTAP",202,0)
-	do write1rec(.rec,.wrote)
-"RTN","VSLTAP",203,0)
-	if ok quit wrote
-"RTN","VSLTAP",204,0)
-	set $etrap=""
-"RTN","VSLTAP",205,0)
-	do disable("fault")
-"RTN","VSLTAP",206,0)
+"RTN","VSLTAP",150,0)
+	if +$$cfg("consumer",0) quit 1
+"RTN","VSLTAP",151,0)
 	quit 0
+"RTN","VSLTAP",152,0)
+	;
+"RTN","VSLTAP",153,0)
+append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim record.
+"RTN","VSLTAP",154,0)
+	; doc: @param rec   string  the verbatim payload (no parse, no transform — D-1)
+"RTN","VSLTAP",155,0)
+	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
+"RTN","VSLTAP",156,0)
+	; doc: The ONLY in-path op (besides the $G gate): one global SET + bounded trim.
+"RTN","VSLTAP",157,0)
+	; doc: No LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:
+"RTN","VSLTAP",158,0)
+	; doc: ANY fault inside the write self-disables and returns 0 — never the caller.
+"RTN","VSLTAP",159,0)
+	; doc: Flag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness
+"RTN","VSLTAP",160,0)
+	; doc: gotcha). The write runs in a DO-invoked frame (write1) so the trap's
+"RTN","VSLTAP",161,0)
+	; doc: argument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic
+"RTN","VSLTAP",162,0)
+	; doc: ($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).
+"RTN","VSLTAP",163,0)
+	new ok,$etrap,wrote
+"RTN","VSLTAP",164,0)
+	if '$$captureOn() quit 0
+"RTN","VSLTAP",165,0)
+	set ok=1,wrote=0
+"RTN","VSLTAP",166,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLTAP",167,0)
+	do write1(rec,.wrote)
+"RTN","VSLTAP",168,0)
+	if ok quit wrote
+"RTN","VSLTAP",169,0)
+	set $etrap=""
+"RTN","VSLTAP",170,0)
+	do disable("fault")
+"RTN","VSLTAP",171,0)
+	quit 0
+"RTN","VSLTAP",172,0)
+	;
+"RTN","VSLTAP",173,0)
+write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's QUIT is legal.
+"RTN","VSLTAP",174,0)
+	; doc: @param rec    string  the verbatim payload
+"RTN","VSLTAP",175,0)
+	; doc: @param wrote  bool    by-ref; set 1 iff the record was appended
+"RTN","VSLTAP",176,0)
+	new seq,cap
+"RTN","VSLTAP",177,0)
+	; fault-injection seam — the §6.2 "injected deviation" exit-gate (b) lever.
+"RTN","VSLTAP",178,0)
+	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
+"RTN","VSLTAP",179,0)
+	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
+"RTN","VSLTAP",180,0)
+	if $length(rec)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
+"RTN","VSLTAP",181,0)
+	set cap=+$$cfg("cap",1000)
+"RTN","VSLTAP",182,0)
+	; FU-8 (G-SEQ): allocate the sequence with an ATOMIC $INCREMENT (atomic on both YDB
+"RTN","VSLTAP",183,0)
+	; and IRIS, no LOCK) — many concurrent broker handlers append to one ring, so the old
+"RTN","VSLTAP",184,0)
+	; non-atomic read-then-write (`set seq=$get(head)+1` … `set head=seq`) RACED: two
+"RTN","VSLTAP",185,0)
+	; handlers read the same head, both wrote `data,N`, one clobbered the other — a lost
+"RTN","VSLTAP",186,0)
+	; record AND a duplicate seq (which breaks the §11 idempotent S3 key). $INCREMENT both
+"RTN","VSLTAP",187,0)
+	; allocates a unique seq and advances head in one indivisible step. It sits AFTER
+"RTN","VSLTAP",188,0)
+	; the maxbytes copy-cost guard above ON PURPOSE — a rejected mega-payload must not
+"RTN","VSLTAP",189,0)
+	; burn a seq (which would leave a permanent hole the gap-safe drain stops at forever).
+"RTN","VSLTAP",190,0)
+	set seq=$increment(^XTMP("VSLTAP","head"))
+"RTN","VSLTAP",191,0)
+	set ^XTMP("VSLTAP","data",seq)=rec
+"RTN","VSLTAP",192,0)
+	; FU-4 post-write fault-injection seam: fire AFTER the ring SET so the fence
+"RTN","VSLTAP",193,0)
+	; property suite (VSLTAPFENCETST) proves the naked-reference restore even once
+"RTN","VSLTAP",194,0)
+	; the tap has dirtied the caller's indicator (AC-1). Inert unless configured.
+"RTN","VSLTAP",195,0)
+	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
+"RTN","VSLTAP",196,0)
+	do trim(seq,cap)
+"RTN","VSLTAP",197,0)
+	do record^VSLTAPHL(0,$length(rec),0)
+"RTN","VSLTAP",198,0)
+	set wrote=1
+"RTN","VSLTAP",199,0)
+	quit
+"RTN","VSLTAP",200,0)
+	;
+"RTN","VSLTAP",201,0)
+trim(seq,cap)	; (private) overwrite-oldest: drop entries until the ring holds at most `cap`.
+"RTN","VSLTAP",202,0)
+	new t
+"RTN","VSLTAP",203,0)
+	set t=+$get(^XTMP("VSLTAP","tail"))
+"RTN","VSLTAP",204,0)
+	for  quit:(seq-t)'>cap  do dropOldest(.t)
+"RTN","VSLTAP",205,0)
+	set ^XTMP("VSLTAP","tail")=t
+"RTN","VSLTAP",206,0)
+	quit
 "RTN","VSLTAP",207,0)
 	;
 "RTN","VSLTAP",208,0)
-teeRec(rec)	; The named rich-record capture seam the FU-5 wrap calls (via VSLRPCTAP) — fenced.
+dropOldest(t)	; (private) drop the oldest retained entry and advance the tail cursor.
 "RTN","VSLTAP",209,0)
-	; doc: @param rec   array  by-ref record descriptor
+	set t=t+1
 "RTN","VSLTAP",210,0)
-	; doc: @returns bool the $$appendRec result (0 if gated or a fault was fenced)
+	kill ^XTMP("VSLTAP","data",t)
 "RTN","VSLTAP",211,0)
-	quit $$appendRec(.rec)
+	quit
 "RTN","VSLTAP",212,0)
 	;
 "RTN","VSLTAP",213,0)
-write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so the fence's QUIT is legal.
+tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
 "RTN","VSLTAP",214,0)
-	; doc: @param rec    array  by-ref record descriptor (read-only)
+	; doc: @param rec   string  the verbatim payload
 "RTN","VSLTAP",215,0)
-	; doc: @param wrote  bool   by-ref; set 1 iff the record was appended
+	; doc: @returns bool the $$append result (0 if gated or a fault was fenced)
 "RTN","VSLTAP",216,0)
-	new seq,cap,kind,gref,pl,wl,cc,hash,enc
+	; doc: $$append is already self-fenced (a DO-framed $ETRAP that self-disables on
 "RTN","VSLTAP",217,0)
-	; fault-injection seam (mirrors write1) — the §6.2 exit-gate (b) lever.
+	; doc: any fault); tee is the stable adapter entry. Either leaves the caller's
 "RTN","VSLTAP",218,0)
-	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
+	; doc: result / $ECODE / $T untouched.
 "RTN","VSLTAP",219,0)
-	set gref=$get(rec("gref"))
+	quit $$append(rec)
 "RTN","VSLTAP",220,0)
-	set kind=$get(rec("result_kind"))
+	;
 "RTN","VSLTAP",221,0)
-	if (gref'=""),(kind="") set kind="global"
+	; ---------- cache layout v2: the rich capture record (FU-5 / FU-14 / FU-17) ----------
 "RTN","VSLTAP",222,0)
-	if (kind=""),($get(rec("dir"))="resp") set kind="scalar"
+	;
 "RTN","VSLTAP",223,0)
-	set pl=$get(rec("payload"))
+	; The Phase-6 wrap (FU-5) at the active broker CALLP captures a STRUCTURED record,
 "RTN","VSLTAP",224,0)
-	set enc=$$cfg("payloadenc","raw")
+	; not a flat string: a header node + payload chunk node(s) + (for a GLOBAL ARRAY
 "RTN","VSLTAP",225,0)
-	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
+	; result) a single MERGE snapshot subtree (FU-17). The schema is frozen in
 "RTN","VSLTAP",226,0)
-	; (A GLOBAL ARRAY snapshot is a single MERGE; its drain-side ceiling is FU-2's concern.)
+	; docs/design/s3tap-envelope-schema-lock.md (cache layout v2):
 "RTN","VSLTAP",227,0)
-	if gref="",$length(pl)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
+	;   ^XTMP("VSLTAP","data",seq)        = HEADER (^-pieces; no field may contain ^)
 "RTN","VSLTAP",228,0)
-	set cap=+$$cfg("cap",1000)
+	;   ^XTMP("VSLTAP","data",seq,"p",i)  = payload chunk i (RAW bytes; i=1..chunk_count)
 "RTN","VSLTAP",229,0)
-	; FU-8 (G-SEQ): allocate the seq with an ATOMIC $INCREMENT (after the copy-cost guard,
+	;   ^XTMP("VSLTAP","data",seq,"hc",i) = per-chunk sha256 (FU-2 integrity)
 "RTN","VSLTAP",230,0)
-	; so a rejected mega-payload never burns a seq) — same rationale as write1.
+	;   ^XTMP("VSLTAP","data",seq,"g")    = MERGE snapshot of a GLOBAL ARRAY result (FU-17)
 "RTN","VSLTAP",231,0)
-	set seq=$increment(^XTMP("VSLTAP","head"))
+	; The ring stores RAW payload bytes; the wire encoding (base64/raw) and the
 "RTN","VSLTAP",232,0)
-	if gref'="" do
+	; expensive serialize/hash of a global subtree are deferred to the drain (off the
 "RTN","VSLTAP",233,0)
-	. ; FU-17: ONE merge snapshot of the GLOBAL ARRAY result (snapshot before the broker's
+	; in-path, §6.1). `payload_encoding` in the header records the intended wire encoding.
 "RTN","VSLTAP",234,0)
-	. ; SNDDATA^XWBRW:60 kill; the broker spares ^XTMP( roots, so this is collision-free).
+	; The drain is dual-mode: a v2 record (a "p"/"g" child present) frames schema v1 from
 "RTN","VSLTAP",235,0)
-	. ; The drain walks "g", serializes, chunks, and hashes — all off the in-path.
+	; the header; a legacy v1 string record ($$append) still ships as before.
 "RTN","VSLTAP",236,0)
-	. ; gref is a closed-root global ref the broker built (XWBP/XWBY), not external input;
+	;
 "RTN","VSLTAP",237,0)
-	. ; the MERGE target is a fixed ^XTMP node — this indirection is the FU-17 snapshot, by design.
+appendRec(rec)	; FU-5: gated, fault-fenced, bounded append of a RICH (cache layout v2) record.
 "RTN","VSLTAP",238,0)
-	. ; m-lint: disable-next-line=M-MOD-036
+	; doc: @param rec   array  by-ref record descriptor (dir/rpc/payload/gref/call_id/...; read-only)
 "RTN","VSLTAP",239,0)
-	. merge ^XTMP("VSLTAP","data",seq,"g")=@gref
+	; doc: @returns bool 1 iff captured; 0 iff gated, auto-disabled, copy-cost-tripped, or fenced
 "RTN","VSLTAP",240,0)
-	. ; guarantee a "g" node exists even for an empty result, so $$isV2 still classifies it.
+	; doc: The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write
 "RTN","VSLTAP",241,0)
-	. if '$data(^XTMP("VSLTAP","data",seq,"g")) set ^XTMP("VSLTAP","data",seq,"g")=""
+	; doc: (write1rec) so the trap's arg-less QUIT is legal. The caller-state fence
 "RTN","VSLTAP",242,0)
-	. set wl=0,cc=0,hash=""
+	; doc: (naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).
 "RTN","VSLTAP",243,0)
-	else  do
+	new ok,$etrap,wrote
 "RTN","VSLTAP",244,0)
-	. set wl=$length(pl),cc=1
+	if '$$captureOn() quit 0
 "RTN","VSLTAP",245,0)
-	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
+	set ok=1,wrote=0
 "RTN","VSLTAP",246,0)
-	. set hash=$$sha256^STDCRYPTO(pl)
+	set $etrap="set ok=0,$ecode="""" quit"
 "RTN","VSLTAP",247,0)
-	. set ^XTMP("VSLTAP","data",seq,"hc",1)=hash
+	do write1rec(.rec,.wrote)
 "RTN","VSLTAP",248,0)
-	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
+	if ok quit wrote
 "RTN","VSLTAP",249,0)
-	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.
+	set $etrap=""
 "RTN","VSLTAP",250,0)
-	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
+	do disable("fault")
 "RTN","VSLTAP",251,0)
-	do trim(seq,cap)
+	quit 0
 "RTN","VSLTAP",252,0)
-	do record^VSLTAPHL(0,wl,0)
+	;
 "RTN","VSLTAP",253,0)
-	set wrote=1
+teeRec(rec)	; The named rich-record capture seam the FU-5 wrap calls (via VSLRPCTAP) — fenced.
 "RTN","VSLTAP",254,0)
-	quit
+	; doc: @param rec   array  by-ref record descriptor
 "RTN","VSLTAP",255,0)
-	;
+	; doc: @returns bool the $$appendRec result (0 if gated or a fault was fenced)
 "RTN","VSLTAP",256,0)
-hdrLine(seq,rec,kind,wl,cc,enc,hash)	; (private) assemble the cache-layout-v2 ^-delimited header.
+	quit $$appendRec(.rec)
 "RTN","VSLTAP",257,0)
-	; doc: The frozen 18-piece header (schema-lock §4); NO field may contain "^" (the
+	;
 "RTN","VSLTAP",258,0)
-	; doc: payload — which can — lives in the "p"/"g" subtree, never the header).
+write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so the fence's QUIT is legal.
 "RTN","VSLTAP",259,0)
-	new dir,cid,eid,h
+	; doc: @param rec    array  by-ref record descriptor (read-only)
 "RTN","VSLTAP",260,0)
-	set dir=$get(rec("dir"))
+	; doc: @param wrote  bool   by-ref; set 1 iff the record was appended
 "RTN","VSLTAP",261,0)
-	set cid=$get(rec("call_id"))
+	new seq,cap,kind,gref,pl,wl,cc,hash,enc
 "RTN","VSLTAP",262,0)
-	set eid=$select($get(rec("event_id"))'="":rec("event_id"),cid'="":cid_":"_dir,1:"")
+	; fault-injection seam (mirrors write1) — the §6.2 exit-gate (b) lever.
 "RTN","VSLTAP",263,0)
-	; schema_version^event_id^call_id^direction^protocol^rpc^result_kind^wire_len^
+	if +$$cfg("faultinject",0) set $ecode=",U-VSLTAP-INJECT,"
 "RTN","VSLTAP",264,0)
-	; chunk_count^payload_encoding^duz^job^client^ts^tag^nam^denied^payload_sha256
+	set gref=$get(rec("gref"))
 "RTN","VSLTAP",265,0)
-	set h=1_"^"_eid_"^"_cid_"^"_dir
+	set kind=$get(rec("result_kind"))
 "RTN","VSLTAP",266,0)
-	set h=h_"^"_$get(rec("protocol"),"rpc")_"^"_$get(rec("rpc"))_"^"_kind
+	if (gref'=""),(kind="") set kind="global"
 "RTN","VSLTAP",267,0)
-	set h=h_"^"_(+wl)_"^"_(+cc)_"^"_enc
+	if (kind=""),($get(rec("dir"))="resp") set kind="scalar"
 "RTN","VSLTAP",268,0)
-	set h=h_"^"_$get(rec("duz"))_"^"_(+$get(rec("job")))_"^"_$get(rec("client"))
+	set pl=$get(rec("payload"))
 "RTN","VSLTAP",269,0)
-	set h=h_"^"_$get(rec("ts"),$horolog)
+	set enc=$$cfg("payloadenc","raw")
 "RTN","VSLTAP",270,0)
-	set h=h_"^"_$get(rec("tag"))_"^"_$get(rec("nam"))
+	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
 "RTN","VSLTAP",271,0)
-	set h=h_"^"_(+$get(rec("denied")))_"^"_hash
+	; (A GLOBAL ARRAY snapshot is a single MERGE; its drain-side ceiling is FU-2's concern.)
 "RTN","VSLTAP",272,0)
-	quit h
+	if gref="",$length(pl)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
 "RTN","VSLTAP",273,0)
-	;
+	set cap=+$$cfg("cap",1000)
 "RTN","VSLTAP",274,0)
-size()	; Current ring entry count (head - tail).
+	; FU-8 (G-SEQ): allocate the seq with an ATOMIC $INCREMENT (after the copy-cost guard,
 "RTN","VSLTAP",275,0)
-	quit +$get(^XTMP("VSLTAP","head"))-+$get(^XTMP("VSLTAP","tail"))
+	; so a rejected mega-payload never burns a seq) — same rationale as write1.
 "RTN","VSLTAP",276,0)
-	;
+	set seq=$increment(^XTMP("VSLTAP","head"))
 "RTN","VSLTAP",277,0)
-head()	; Highest written seq (0 if empty).
+	if gref'="" do
 "RTN","VSLTAP",278,0)
-	quit +$get(^XTMP("VSLTAP","head"))
+	. ; FU-17: ONE merge snapshot of the GLOBAL ARRAY result (snapshot before the broker's
 "RTN","VSLTAP",279,0)
-	;
+	. ; SNDDATA^XWBRW:60 kill; the broker spares ^XTMP( roots, so this is collision-free).
 "RTN","VSLTAP",280,0)
-tail()	; (lowest-retained seq) - 1 (0 if empty).
+	. ; The drain walks "g", serializes, chunks, and hashes — all off the in-path.
 "RTN","VSLTAP",281,0)
-	quit +$get(^XTMP("VSLTAP","tail"))
+	. ; gref is a closed-root global ref the broker built (XWBP/XWBY), not external input;
 "RTN","VSLTAP",282,0)
-	;
+	. ; the MERGE target is a fixed ^XTMP node — this indirection is the FU-17 snapshot, by design.
 "RTN","VSLTAP",283,0)
-read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
+	. ; m-lint: disable-next-line=M-MOD-036
 "RTN","VSLTAP",284,0)
-	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
+	. merge ^XTMP("VSLTAP","data",seq,"g")=@gref
 "RTN","VSLTAP",285,0)
-	;
+	. ; guarantee a "g" node exists even for an empty result, so $$isV2 still classifies it.
 "RTN","VSLTAP",286,0)
-present(seq)	; 1 iff a data node exists at `seq` ($DATA'=0) — distinguishes an empty-string record from an absent/uncommitted slot.
+	. if '$data(^XTMP("VSLTAP","data",seq,"g")) set ^XTMP("VSLTAP","data",seq,"g")=""
 "RTN","VSLTAP",287,0)
-	; doc: @returns bool  The drain ships only the CONTIGUOUS COMMITTED prefix using this:
+	. set wl=0,cc=0,hash=""
 "RTN","VSLTAP",288,0)
-	; doc: FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a
+	else  do
 "RTN","VSLTAP",289,0)
-	; doc: concurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight
+	. set wl=$length(pl),cc=1
 "RTN","VSLTAP",290,0)
-	; doc: slot; stopping at the first absent node leaves that slot for the next tick rather
+	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
 "RTN","VSLTAP",291,0)
-	; doc: than shipping "" and trimming a record that is about to land. `$$read` can't tell
+	. set hash=$$sha256^STDCRYPTO(pl)
 "RTN","VSLTAP",292,0)
-	; doc: an absent slot from a legitimately-empty record ($get-> "" for both); this can.
+	. set ^XTMP("VSLTAP","data",seq,"hc",1)=hash
 "RTN","VSLTAP",293,0)
-	quit $data(^XTMP("VSLTAP","data",+$get(seq)))'=0
+	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
 "RTN","VSLTAP",294,0)
-	;
+	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.
 "RTN","VSLTAP",295,0)
-isV2(seq)	; 1 iff the record at `seq` is a cache-layout-v2 record (a "p" or "g" child present).
+	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
 "RTN","VSLTAP",296,0)
-	; doc: A legacy v1 string record ($$append) has only the scalar data node — no child.
+	do trim(seq,cap)
 "RTN","VSLTAP",297,0)
-	new s
+	do record^VSLTAPHL(0,wl,0)
 "RTN","VSLTAP",298,0)
-	set s=+$get(seq)
+	set wrote=1
 "RTN","VSLTAP",299,0)
-	quit ($data(^XTMP("VSLTAP","data",s,"p"))'=0)!($data(^XTMP("VSLTAP","data",s,"g"))'=0)
+	quit
 "RTN","VSLTAP",300,0)
 	;
 "RTN","VSLTAP",301,0)
-hdr(seq,out)	; Parse the v2 header at `seq` into out("schema_version"/...); return 1 iff a v2 record.
+hdrLine(seq,rec,kind,wl,cc,enc,hash)	; (private) assemble the cache-layout-v2 ^-delimited header.
 "RTN","VSLTAP",302,0)
-	; doc: @param seq  numeric  the ring sequence
+	; doc: The frozen 18-piece header (schema-lock §4); NO field may contain "^" (the
 "RTN","VSLTAP",303,0)
-	; doc: @param out  array    OUT by-ref: the 18 header fields keyed by their schema-v1 names
+	; doc: payload — which can — lives in the "p"/"g" subtree, never the header).
 "RTN","VSLTAP",304,0)
-	; doc: @returns    bool     1 iff `seq` is a v2 record (else `out` is killed, returns 0)
+	new dir,cid,eid,h
 "RTN","VSLTAP",305,0)
-	new h,s
+	set dir=$get(rec("dir"))
 "RTN","VSLTAP",306,0)
-	kill out
+	set cid=$get(rec("call_id"))
 "RTN","VSLTAP",307,0)
-	if '$$isV2(seq) quit 0
+	set eid=$select($get(rec("event_id"))'="":rec("event_id"),cid'="":cid_":"_dir,1:"")
 "RTN","VSLTAP",308,0)
-	set s=+$get(seq),h=$get(^XTMP("VSLTAP","data",s))
+	; schema_version^event_id^call_id^direction^protocol^rpc^result_kind^wire_len^
 "RTN","VSLTAP",309,0)
-	set out("schema_version")=$piece(h,"^",1)
+	; chunk_count^payload_encoding^duz^job^client^ts^tag^nam^denied^payload_sha256
 "RTN","VSLTAP",310,0)
-	set out("event_id")=$piece(h,"^",2)
+	set h=1_"^"_eid_"^"_cid_"^"_dir
 "RTN","VSLTAP",311,0)
-	set out("call_id")=$piece(h,"^",3)
+	set h=h_"^"_$get(rec("protocol"),"rpc")_"^"_$get(rec("rpc"))_"^"_kind
 "RTN","VSLTAP",312,0)
-	set out("direction")=$piece(h,"^",4)
+	set h=h_"^"_(+wl)_"^"_(+cc)_"^"_enc
 "RTN","VSLTAP",313,0)
-	set out("protocol")=$piece(h,"^",5)
+	set h=h_"^"_$get(rec("duz"))_"^"_(+$get(rec("job")))_"^"_$get(rec("client"))
 "RTN","VSLTAP",314,0)
-	set out("rpc")=$piece(h,"^",6)
+	set h=h_"^"_$get(rec("ts"),$horolog)
 "RTN","VSLTAP",315,0)
-	set out("result_kind")=$piece(h,"^",7)
+	set h=h_"^"_$get(rec("tag"))_"^"_$get(rec("nam"))
 "RTN","VSLTAP",316,0)
-	set out("wire_len")=$piece(h,"^",8)
+	set h=h_"^"_(+$get(rec("denied")))_"^"_hash
 "RTN","VSLTAP",317,0)
-	set out("chunk_count")=$piece(h,"^",9)
+	quit h
 "RTN","VSLTAP",318,0)
-	set out("payload_encoding")=$piece(h,"^",10)
+	;
 "RTN","VSLTAP",319,0)
-	set out("duz")=$piece(h,"^",11)
+size()	; Current ring entry count (head - tail).
 "RTN","VSLTAP",320,0)
-	set out("job")=$piece(h,"^",12)
+	quit +$get(^XTMP("VSLTAP","head"))-+$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",321,0)
-	set out("client")=$piece(h,"^",13)
+	;
 "RTN","VSLTAP",322,0)
-	set out("ts")=$piece(h,"^",14)
+head()	; Highest written seq (0 if empty).
 "RTN","VSLTAP",323,0)
-	set out("tag")=$piece(h,"^",15)
+	quit +$get(^XTMP("VSLTAP","head"))
 "RTN","VSLTAP",324,0)
-	set out("nam")=$piece(h,"^",16)
+	;
 "RTN","VSLTAP",325,0)
-	set out("denied")=$piece(h,"^",17)
+tail()	; (lowest-retained seq) - 1 (0 if empty).
 "RTN","VSLTAP",326,0)
-	set out("payload_sha256")=$piece(h,"^",18)
+	quit +$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",327,0)
-	quit 1
+	;
 "RTN","VSLTAP",328,0)
-	;
+read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
 "RTN","VSLTAP",329,0)
-chunk(seq,i)	; The i-th RAW payload chunk of a v2 record ("" if absent).
+	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
 "RTN","VSLTAP",330,0)
-	quit $get(^XTMP("VSLTAP","data",+$get(seq),"p",+$get(i)))
+	;
 "RTN","VSLTAP",331,0)
-	;
+present(seq)	; 1 iff a data node exists at `seq` ($DATA'=0) — distinguishes an empty-string record from an absent/uncommitted slot.
 "RTN","VSLTAP",332,0)
-drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
+	; doc: @returns bool  The drain ships only the CONTIGUOUS COMMITTED prefix using this:
 "RTN","VSLTAP",333,0)
-	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
+	; doc: FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a
 "RTN","VSLTAP",334,0)
-	; doc: @returns    void     the drain self-KILLs shipped entries (spec §4.1.3)
+	; doc: concurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight
 "RTN","VSLTAP",335,0)
-	; doc: Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships
+	; doc: slot; stopping at the first absent node leaves that slot for the next tick rather
 "RTN","VSLTAP",336,0)
-	; doc: 200 — never from the RPC path. Idempotent; never advances past head.
+	; doc: than shipping "" and trimming a record that is about to land. `$$read` can't tell
 "RTN","VSLTAP",337,0)
-	new t,h
+	; doc: an absent slot from a legitimately-empty record ($get-> "" for both); this can.
 "RTN","VSLTAP",338,0)
-	set h=+$get(^XTMP("VSLTAP","head"))
+	quit $data(^XTMP("VSLTAP","data",+$get(seq)))'=0
 "RTN","VSLTAP",339,0)
-	if +$get(seq)>h set seq=h
+	;
 "RTN","VSLTAP",340,0)
-	set t=+$get(^XTMP("VSLTAP","tail"))
+isV2(seq)	; 1 iff the record at `seq` is a cache-layout-v2 record (a "p" or "g" child present).
 "RTN","VSLTAP",341,0)
-	for  quit:t'<+$get(seq)  do dropOldest(.t)
+	; doc: A legacy v1 string record ($$append) has only the scalar data node — no child.
 "RTN","VSLTAP",342,0)
-	set ^XTMP("VSLTAP","tail")=t
+	new s
 "RTN","VSLTAP",343,0)
-	quit
+	set s=+$get(seq)
 "RTN","VSLTAP",344,0)
-	;
+	quit ($data(^XTMP("VSLTAP","data",s,"p"))'=0)!($data(^XTMP("VSLTAP","data",s,"g"))'=0)
 "RTN","VSLTAP",345,0)
-	; ---------- auto-failover + state machine ----------
+	;
 "RTN","VSLTAP",346,0)
-	;
+hdr(seq,out)	; Parse the v2 header at `seq` into out("schema_version"/...); return 1 iff a v2 record.
 "RTN","VSLTAP",347,0)
-disable(reason)	; Auto-failover: disable the tap, record an off-window (explicit, never silent).
+	; doc: @param seq  numeric  the ring sequence
 "RTN","VSLTAP",348,0)
-	; doc: @param reason  string  the interference signal (fault/copycost/latency/pressure)
+	; doc: @param out  array    OUT by-ref: the 18 header fields keyed by their schema-v1 names
 "RTN","VSLTAP",349,0)
-	new n
+	; doc: @returns    bool     1 iff `seq` is a v2 record (else `out` is killed, returns 0)
 "RTN","VSLTAP",350,0)
-	if $get(^VSLTAP("disabled"))'="" quit
+	new h,s
 "RTN","VSLTAP",351,0)
-	set ^VSLTAP("disabled")=reason
-"RTN","VSLTAP",352,0)
-	set n=+$get(^VSLTAP("_offwindows"))+1
-"RTN","VSLTAP",353,0)
-	set ^VSLTAP("_offwindows")=n
-"RTN","VSLTAP",354,0)
-	set ^VSLTAP("_offwindows",n)=$horolog_"^"_reason_"^"
-"RTN","VSLTAP",355,0)
-	quit
-"RTN","VSLTAP",356,0)
-	;
-"RTN","VSLTAP",357,0)
-disabled()	; The auto-failover reason, or "" if armed/clean.
-"RTN","VSLTAP",358,0)
-	quit $get(^VSLTAP("disabled"))
-"RTN","VSLTAP",359,0)
-	;
-"RTN","VSLTAP",360,0)
-rearm()	; Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.
-"RTN","VSLTAP",361,0)
-	new n
-"RTN","VSLTAP",362,0)
-	kill ^VSLTAP("disabled")
-"RTN","VSLTAP",363,0)
-	set n=+$get(^VSLTAP("_offwindows"))
-"RTN","VSLTAP",364,0)
-	if n,$piece($get(^VSLTAP("_offwindows",n)),"^",3)="" set $piece(^VSLTAP("_offwindows",n),"^",3)=$horolog
-"RTN","VSLTAP",365,0)
-	quit
-"RTN","VSLTAP",366,0)
-	;
-"RTN","VSLTAP",367,0)
-offWindows(out)	; Populate out(1..N) with the recorded off-windows; return the count.
-"RTN","VSLTAP",368,0)
-	; doc: @param out  array  by-ref; killed then filled with open^reason^close rows
-"RTN","VSLTAP",369,0)
-	new n,i
-"RTN","VSLTAP",370,0)
 	kill out
+"RTN","VSLTAP",352,0)
+	if '$$isV2(seq) quit 0
+"RTN","VSLTAP",353,0)
+	set s=+$get(seq),h=$get(^XTMP("VSLTAP","data",s))
+"RTN","VSLTAP",354,0)
+	set out("schema_version")=$piece(h,"^",1)
+"RTN","VSLTAP",355,0)
+	set out("event_id")=$piece(h,"^",2)
+"RTN","VSLTAP",356,0)
+	set out("call_id")=$piece(h,"^",3)
+"RTN","VSLTAP",357,0)
+	set out("direction")=$piece(h,"^",4)
+"RTN","VSLTAP",358,0)
+	set out("protocol")=$piece(h,"^",5)
+"RTN","VSLTAP",359,0)
+	set out("rpc")=$piece(h,"^",6)
+"RTN","VSLTAP",360,0)
+	set out("result_kind")=$piece(h,"^",7)
+"RTN","VSLTAP",361,0)
+	set out("wire_len")=$piece(h,"^",8)
+"RTN","VSLTAP",362,0)
+	set out("chunk_count")=$piece(h,"^",9)
+"RTN","VSLTAP",363,0)
+	set out("payload_encoding")=$piece(h,"^",10)
+"RTN","VSLTAP",364,0)
+	set out("duz")=$piece(h,"^",11)
+"RTN","VSLTAP",365,0)
+	set out("job")=$piece(h,"^",12)
+"RTN","VSLTAP",366,0)
+	set out("client")=$piece(h,"^",13)
+"RTN","VSLTAP",367,0)
+	set out("ts")=$piece(h,"^",14)
+"RTN","VSLTAP",368,0)
+	set out("tag")=$piece(h,"^",15)
+"RTN","VSLTAP",369,0)
+	set out("nam")=$piece(h,"^",16)
+"RTN","VSLTAP",370,0)
+	set out("denied")=$piece(h,"^",17)
 "RTN","VSLTAP",371,0)
-	set n=+$get(^VSLTAP("_offwindows"))
+	set out("payload_sha256")=$piece(h,"^",18)
 "RTN","VSLTAP",372,0)
-	for i=1:1:n set out(i)=$get(^VSLTAP("_offwindows",i))
+	quit 1
 "RTN","VSLTAP",373,0)
-	quit n
+	;
 "RTN","VSLTAP",374,0)
-	;
+chunk(seq,i)	; The i-th RAW payload chunk of a v2 record ("" if absent).
 "RTN","VSLTAP",375,0)
-state()	; The standby state-machine label (spec §8.1).
+	quit $get(^XTMP("VSLTAP","data",+$get(seq),"p",+$get(i)))
 "RTN","VSLTAP",376,0)
-	; doc: @returns string OFF | AUTO-DISABLED | UNHEALTHY | ACTIVE | ARMED-IDLE
+	;
 "RTN","VSLTAP",377,0)
-	if $$cfg("mode","off")'="armed" quit "OFF"
+drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
 "RTN","VSLTAP",378,0)
-	if $$disabled()'="" quit "AUTO-DISABLED"
+	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
 "RTN","VSLTAP",379,0)
-	if '$$healthy() quit "UNHEALTHY"
+	; doc: @returns    void     the drain self-KILLs shipped entries (spec §4.1.3)
 "RTN","VSLTAP",380,0)
-	if $$enabled() quit "ACTIVE"
+	; doc: Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships
 "RTN","VSLTAP",381,0)
-	quit "ARMED-IDLE"
+	; doc: 200 — never from the RPC path. Idempotent; never advances past head.
 "RTN","VSLTAP",382,0)
-	;
+	new t,h
 "RTN","VSLTAP",383,0)
-	; ---------- liveness ----------
+	set h=+$get(^XTMP("VSLTAP","head"))
 "RTN","VSLTAP",384,0)
-	;
+	if +$get(seq)>h set seq=h
 "RTN","VSLTAP",385,0)
-heartbeat()	; Stamp the liveness heartbeat (the watchdog beats this every N seconds).
+	set t=+$get(^XTMP("VSLTAP","tail"))
 "RTN","VSLTAP",386,0)
-	set ^VSLTAP("hb")=$horolog
+	for  quit:t'<+$get(seq)  do dropOldest(.t)
 "RTN","VSLTAP",387,0)
-	quit
+	set ^XTMP("VSLTAP","tail")=t
 "RTN","VSLTAP",388,0)
-	;
-"RTN","VSLTAP",389,0)
-healthy()	; 1 iff the heartbeat is fresh within the staleness bound (k8s-style liveness).
-"RTN","VSLTAP",390,0)
-	; doc: @returns bool  a stale/absent heartbeat -> 0 (UNHEALTHY) even with zero traffic
-"RTN","VSLTAP",391,0)
-	new hb,age,now
-"RTN","VSLTAP",392,0)
-	set hb=$get(^VSLTAP("hb"))
-"RTN","VSLTAP",393,0)
-	if hb="" quit 0
-"RTN","VSLTAP",394,0)
-	set now=$horolog
-"RTN","VSLTAP",395,0)
-	set age=(($piece(now,",",1)-$piece(hb,",",1))*86400)+($piece(now,",",2)-$piece(hb,",",2))
-"RTN","VSLTAP",396,0)
-	quit (age'>+$$cfg("hbstale",60))
-"RTN","VSLTAP",397,0)
-	;
-"RTN","VSLTAP",398,0)
-	; ---------- Kernel auto-purge node (the cache backstop) ----------
-"RTN","VSLTAP",399,0)
-	;
-"RTN","VSLTAP",400,0)
-purgeNode()	; Write ^XTMP("VSLTAP",0)=purgedate^createdate^description so Kernel XQ82 reaps it.
-"RTN","VSLTAP",401,0)
-	; doc: The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of
-"RTN","VSLTAP",402,0)
-	; doc: FileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No
-"RTN","VSLTAP",403,0)
-	; doc: FileMan file (§4.1.1). Scheduling the option is an install-time seam.
-"RTN","VSLTAP",404,0)
-	new td,ret
-"RTN","VSLTAP",405,0)
-	set ret=+$$cfg("retain",2)
-"RTN","VSLTAP",406,0)
-	set td=+$horolog
-"RTN","VSLTAP",407,0)
-	set ^XTMP("VSLTAP",0)=$$fmDate(td+ret)_"^"_$$fmDate(td)_"^VSL RPC traffic-tap rolling cache"
-"RTN","VSLTAP",408,0)
 	quit
-"RTN","VSLTAP",409,0)
+"RTN","VSLTAP",389,0)
 	;
+"RTN","VSLTAP",390,0)
+	; ---------- auto-failover + state machine ----------
+"RTN","VSLTAP",391,0)
+	;
+"RTN","VSLTAP",392,0)
+disable(reason)	; Auto-failover: disable the tap, record an off-window (explicit, never silent).
+"RTN","VSLTAP",393,0)
+	; doc: @param reason  string  the interference signal (fault/copycost/latency/pressure)
+"RTN","VSLTAP",394,0)
+	new n
+"RTN","VSLTAP",395,0)
+	if $get(^VSLTAP("disabled"))'="" quit
+"RTN","VSLTAP",396,0)
+	set ^VSLTAP("disabled")=reason
+"RTN","VSLTAP",397,0)
+	set n=+$get(^VSLTAP("_offwindows"))+1
+"RTN","VSLTAP",398,0)
+	set ^VSLTAP("_offwindows")=n
+"RTN","VSLTAP",399,0)
+	set ^VSLTAP("_offwindows",n)=$horolog_"^"_reason_"^"
+"RTN","VSLTAP",400,0)
+	quit
+"RTN","VSLTAP",401,0)
+	;
+"RTN","VSLTAP",402,0)
+disabled()	; The auto-failover reason, or "" if armed/clean.
+"RTN","VSLTAP",403,0)
+	quit $get(^VSLTAP("disabled"))
+"RTN","VSLTAP",404,0)
+	;
+"RTN","VSLTAP",405,0)
+rearm()	; Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.
+"RTN","VSLTAP",406,0)
+	new n
+"RTN","VSLTAP",407,0)
+	kill ^VSLTAP("disabled")
+"RTN","VSLTAP",408,0)
+	set n=+$get(^VSLTAP("_offwindows"))
+"RTN","VSLTAP",409,0)
+	if n,$piece($get(^VSLTAP("_offwindows",n)),"^",3)="" set $piece(^VSLTAP("_offwindows",n),"^",3)=$horolog
 "RTN","VSLTAP",410,0)
-fmDate(hday)	; ($H day-count) -> FileMan internal date (YYYMMDD, YYY=year-1700).
+	quit
 "RTN","VSLTAP",411,0)
-	new z,y,m,d
+	;
 "RTN","VSLTAP",412,0)
-	set z=hday-47117
+offWindows(out)	; Populate out(1..N) with the recorded off-windows; return the count.
 "RTN","VSLTAP",413,0)
-	do civilFromDays^STDDATE(z,.y,.m,.d)
+	; doc: @param out  array  by-ref; killed then filled with open^reason^close rows
 "RTN","VSLTAP",414,0)
+	new n,i
+"RTN","VSLTAP",415,0)
+	kill out
+"RTN","VSLTAP",416,0)
+	set n=+$get(^VSLTAP("_offwindows"))
+"RTN","VSLTAP",417,0)
+	for i=1:1:n set out(i)=$get(^VSLTAP("_offwindows",i))
+"RTN","VSLTAP",418,0)
+	quit n
+"RTN","VSLTAP",419,0)
+	;
+"RTN","VSLTAP",420,0)
+state()	; The standby state-machine label (spec §8.1).
+"RTN","VSLTAP",421,0)
+	; doc: @returns string OFF | AUTO-DISABLED | UNHEALTHY | ACTIVE | ARMED-IDLE
+"RTN","VSLTAP",422,0)
+	if $$cfg("mode","off")'="armed" quit "OFF"
+"RTN","VSLTAP",423,0)
+	if $$disabled()'="" quit "AUTO-DISABLED"
+"RTN","VSLTAP",424,0)
+	if '$$healthy() quit "UNHEALTHY"
+"RTN","VSLTAP",425,0)
+	if $$enabled() quit "ACTIVE"
+"RTN","VSLTAP",426,0)
+	quit "ARMED-IDLE"
+"RTN","VSLTAP",427,0)
+	;
+"RTN","VSLTAP",428,0)
+	; ---------- liveness ----------
+"RTN","VSLTAP",429,0)
+	;
+"RTN","VSLTAP",430,0)
+heartbeat()	; Stamp the liveness heartbeat (the watchdog beats this every N seconds).
+"RTN","VSLTAP",431,0)
+	set ^VSLTAP("hb")=$horolog
+"RTN","VSLTAP",432,0)
+	quit
+"RTN","VSLTAP",433,0)
+	;
+"RTN","VSLTAP",434,0)
+healthy()	; 1 iff the heartbeat is fresh within the staleness bound (k8s-style liveness).
+"RTN","VSLTAP",435,0)
+	; doc: @returns bool  a stale/absent heartbeat -> 0 (UNHEALTHY) even with zero traffic
+"RTN","VSLTAP",436,0)
+	new hb,age,now
+"RTN","VSLTAP",437,0)
+	set hb=$get(^VSLTAP("hb"))
+"RTN","VSLTAP",438,0)
+	if hb="" quit 0
+"RTN","VSLTAP",439,0)
+	set now=$horolog
+"RTN","VSLTAP",440,0)
+	set age=(($piece(now,",",1)-$piece(hb,",",1))*86400)+($piece(now,",",2)-$piece(hb,",",2))
+"RTN","VSLTAP",441,0)
+	quit (age'>+$$cfg("hbstale",60))
+"RTN","VSLTAP",442,0)
+	;
+"RTN","VSLTAP",443,0)
+	; ---------- Kernel auto-purge node (the cache backstop) ----------
+"RTN","VSLTAP",444,0)
+	;
+"RTN","VSLTAP",445,0)
+purgeNode()	; Write ^XTMP("VSLTAP",0)=purgedate^createdate^description so Kernel XQ82 reaps it.
+"RTN","VSLTAP",446,0)
+	; doc: The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of
+"RTN","VSLTAP",447,0)
+	; doc: FileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No
+"RTN","VSLTAP",448,0)
+	; doc: FileMan file (§4.1.1). Scheduling the option is an install-time seam.
+"RTN","VSLTAP",449,0)
+	new td,ret
+"RTN","VSLTAP",450,0)
+	set ret=+$$cfg("retain",2)
+"RTN","VSLTAP",451,0)
+	set td=+$horolog
+"RTN","VSLTAP",452,0)
+	set ^XTMP("VSLTAP",0)=$$fmDate(td+ret)_"^"_$$fmDate(td)_"^VSL RPC traffic-tap rolling cache"
+"RTN","VSLTAP",453,0)
+	quit
+"RTN","VSLTAP",454,0)
+	;
+"RTN","VSLTAP",455,0)
+fmDate(hday)	; ($H day-count) -> FileMan internal date (YYYMMDD, YYY=year-1700).
+"RTN","VSLTAP",456,0)
+	new z,y,m,d
+"RTN","VSLTAP",457,0)
+	set z=hday-47117
+"RTN","VSLTAP",458,0)
+	do civilFromDays^STDDATE(z,.y,.m,.d)
+"RTN","VSLTAP",459,0)
 	quit ((y-1700)*10000)+(m*100)+d
+"RTN","VSLTAPBO")
+0^168^0^0
+"RTN","VSLTAPBO",1,0)
+VSLTAPBO	; v-stdlib — traffic-tap back-out / verify-clean (the G-UNINST gate).
+"RTN","VSLTAPBO",2,0)
+	;
+"RTN","VSLTAPBO",3,0)
+	; Phase 5 / M4 (GA), plan stage 5.1. v-pkg's KIDS uninstall is routine-only
+"RTN","VSLTAPBO",4,0)
+	; (it removes the routines + the #9.7/#9.6 build records); it deliberately
+"RTN","VSLTAPBO",5,0)
+	; leaves the tap's RUNTIME footprint behind. VSLTAPBO reverses exactly that
+"RTN","VSLTAPBO",6,0)
+	; footprint and then PROVES, by inspection, that nothing is orphaned — the
+"RTN","VSLTAPBO",7,0)
+	; reversible-install invariant a fleet rollout depends on (risk G-UNINST):
+"RTN","VSLTAPBO",8,0)
+	;
+"RTN","VSLTAPBO",9,0)
+	;   1. the scheduled flush / fidelity TaskMan jobs (recorded in ^VSLTAP("task"))
+"RTN","VSLTAPBO",10,0)
+	;   2. the tap's XPAR #8989.51 PARAMETER instances + definitions (the config seam)
+"RTN","VSLTAPBO",11,0)
+	;   3. the ^XTMP("VSLTAP",…) rolling capture cache (the SAC scratch global)
+"RTN","VSLTAPBO",12,0)
+	;   4. the ^VSLTAP control state (cfg / disabled / hb / _offwindows / hl / fc)
+"RTN","VSLTAPBO",13,0)
+	;
+"RTN","VSLTAPBO",14,0)
+	; *** Layer: v (above the m/v waterline). The state-global cleanup (3,4) is
+"RTN","VSLTAPBO",15,0)
+	; pure M and runs on a BARE engine; the XPAR (2) and TaskMan (1) legs are
+"RTN","VSLTAPBO",16,0)
+	; VistA seams, each fault-fenced so a bare engine survives them and a partial
+"RTN","VSLTAPBO",17,0)
+	; VistA absence never blocks the cleanup. Order matters: dequeue tasks (their
+"RTN","VSLTAPBO",18,0)
+	; numbers live in ^VSLTAP) BEFORE the state kill removes the record.
+"RTN","VSLTAPBO",19,0)
+	;
+"RTN","VSLTAPBO",20,0)
+	; Public API:
+"RTN","VSLTAPBO",21,0)
+	;   do backout()              full back-out: dequeue tasks -> drop params -> kill state
+"RTN","VSLTAPBO",22,0)
+	;   $$verifyClean(detail)     1 iff no tap residue; detail(globals/params/tasks) names any
+"RTN","VSLTAPBO",23,0)
+	;   do cleanState()           kill ^XTMP("VSLTAP") + ^VSLTAP (the bare-testable core)
+"RTN","VSLTAPBO",24,0)
+	;   do cleanParams()          drop the tap #8989.51 XPAR instances + definitions (fenced)
+"RTN","VSLTAPBO",25,0)
+	;   do cleanTasks()           dequeue the recorded flush/fidelity TaskMan jobs (fenced)
+"RTN","VSLTAPBO",26,0)
+	;   $$params(out)             the canonical tap XPAR param-name list -> count
+"RTN","VSLTAPBO",27,0)
+	;
+"RTN","VSLTAPBO",28,0)
+	quit
+"RTN","VSLTAPBO",29,0)
+	;
+"RTN","VSLTAPBO",30,0)
+	; ---------- the canonical tap XPAR param list (single source of truth) ----------
+"RTN","VSLTAPBO",31,0)
+	;
+"RTN","VSLTAPBO",32,0)
+params(out)	; Fill out(1..N) with the tap's XPAR #8989.51 param names; return N.
+"RTN","VSLTAPBO",33,0)
+	; doc: @param out  array  by-ref; killed then filled out(1)=name … out(N)=name
+"RTN","VSLTAPBO",34,0)
+	; doc: @returns    numeric  the count of tap params (the KIDS build + the back-out share this list)
+"RTN","VSLTAPBO",35,0)
+	; doc: The durable install-time config + the S3 deployment knobs. Operator
+"RTN","VSLTAPBO",36,0)
+	; doc: RUNTIME state (mode/consumer) stays in ^VSLTAP("cfg"), not XPAR.
+"RTN","VSLTAPBO",37,0)
+	new n
+"RTN","VSLTAPBO",38,0)
+	kill out
+"RTN","VSLTAPBO",39,0)
+	set n=0
+"RTN","VSLTAPBO",40,0)
+	do add(.out,.n,"VSL TAP CAP")
+"RTN","VSLTAPBO",41,0)
+	do add(.out,.n,"VSL TAP MAXBYTES")
+"RTN","VSLTAPBO",42,0)
+	do add(.out,.n,"VSL TAP HBSTALE")
+"RTN","VSLTAPBO",43,0)
+	do add(.out,.n,"VSL TAP RETAIN")
+"RTN","VSLTAPBO",44,0)
+	do add(.out,.n,"VSL TAP ALWAYSON")
+"RTN","VSLTAPBO",45,0)
+	do add(.out,.n,"VSL TAP FIDELITY CADENCE")
+"RTN","VSLTAPBO",46,0)
+	do add(.out,.n,"VSL S3 ENDPOINT")
+"RTN","VSLTAPBO",47,0)
+	do add(.out,.n,"VSL S3 BUCKET")
+"RTN","VSLTAPBO",48,0)
+	do add(.out,.n,"VSL S3 REGION")
+"RTN","VSLTAPBO",49,0)
+	do add(.out,.n,"VSL S3 PREFIX")
+"RTN","VSLTAPBO",50,0)
+	quit n
+"RTN","VSLTAPBO",51,0)
+	;
+"RTN","VSLTAPBO",52,0)
+add(out,n,name)	; (private) append `name` to the param list.
+"RTN","VSLTAPBO",53,0)
+	set n=n+1
+"RTN","VSLTAPBO",54,0)
+	set out(n)=name
+"RTN","VSLTAPBO",55,0)
+	quit
+"RTN","VSLTAPBO",56,0)
+	;
+"RTN","VSLTAPBO",57,0)
+	; ---------- the orchestrated back-out ----------
+"RTN","VSLTAPBO",58,0)
+	;
+"RTN","VSLTAPBO",59,0)
+backout()	; Full back-out: dequeue tasks, drop the XPAR params, kill the state. Idempotent.
+"RTN","VSLTAPBO",60,0)
+	; doc: Each leg is independently fault-fenced, so a missing TaskMan/XPAR/FileMan
+"RTN","VSLTAPBO",61,0)
+	; doc: (a bare engine, or a partial install) never blocks the state cleanup. Tasks
+"RTN","VSLTAPBO",62,0)
+	; doc: first — their numbers live in ^VSLTAP, which the state kill then removes.
+"RTN","VSLTAPBO",63,0)
+	do cleanTasks()
+"RTN","VSLTAPBO",64,0)
+	do cleanParams()
+"RTN","VSLTAPBO",65,0)
+	do cleanState()
+"RTN","VSLTAPBO",66,0)
+	quit
+"RTN","VSLTAPBO",67,0)
+	;
+"RTN","VSLTAPBO",68,0)
+	; ---------- (3,4) the state-global cleanup — the bare-testable core ----------
+"RTN","VSLTAPBO",69,0)
+	;
+"RTN","VSLTAPBO",70,0)
+cleanState()	; Kill the rolling capture cache and ALL VSL control state.
+"RTN","VSLTAPBO",71,0)
+	; doc: The whole tap footprint that lives in globals: ^XTMP("VSLTAP",…) (the
+"RTN","VSLTAPBO",72,0)
+	; doc: SAC auto-purge scratch cache) and ^VSLTAP (cfg/disabled/hb/_offwindows/
+"RTN","VSLTAPBO",73,0)
+	; doc: hl/fc/task). Pure M — no VistA needed; this is what the bare suite proves.
+"RTN","VSLTAPBO",74,0)
+	kill ^XTMP("VSLTAP")
+"RTN","VSLTAPBO",75,0)
+	kill ^VSLTAP
+"RTN","VSLTAPBO",76,0)
+	quit
+"RTN","VSLTAPBO",77,0)
+	;
+"RTN","VSLTAPBO",78,0)
+	; ---------- (2) the XPAR #8989.51 param cleanup — a fenced VistA seam ----------
+"RTN","VSLTAPBO",79,0)
+	;
+"RTN","VSLTAPBO",80,0)
+cleanParams()	; Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition.
+"RTN","VSLTAPBO",81,0)
+	; doc: Fault-fenced as a whole (a bare engine has no XPAR/FileMan), and per-param
+"RTN","VSLTAPBO",82,0)
+	; doc: inside delParam, so one missing param does not strand the rest.
+"RTN","VSLTAPBO",83,0)
+	new $etrap,out,n,i
+"RTN","VSLTAPBO",84,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPBO",85,0)
+	set n=$$params(.out)
+"RTN","VSLTAPBO",86,0)
+	for i=1:1:n do delParam(out(i))
+"RTN","VSLTAPBO",87,0)
+	quit
+"RTN","VSLTAPBO",88,0)
+	;
+"RTN","VSLTAPBO",89,0)
+delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.51 definition record.
+"RTN","VSLTAPBO",90,0)
+	; doc: @param name  string  the XPAR parameter name (#8989.51 .01)
+"RTN","VSLTAPBO",91,0)
+	; doc: EN^XPAR(...,"@") removes the SYS instance value; the definition record is
+"RTN","VSLTAPBO",92,0)
+	; doc: deleted via FileMan DBS FILE^DIE with .01="@" (no DELETE^DIE exists — the
+"RTN","VSLTAPBO",93,0)
+	; doc: VSLFS pattern). Per-param fenced so a not-present param is a clean no-op.
+"RTN","VSLTAPBO",94,0)
+	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
+"RTN","VSLTAPBO",95,0)
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+"RTN","VSLTAPBO",96,0)
+	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+"RTN","VSLTAPBO",97,0)
+	; doc: $text-guarded: a bare engine has no XPAR/FileMan, so each leg is a clean
+"RTN","VSLTAPBO",98,0)
+	; doc: skip (there is nothing to remove); the $etrap still fences a genuine fault.
+"RTN","VSLTAPBO",99,0)
+	new $etrap,ien,FDA,ERR
+"RTN","VSLTAPBO",100,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPBO",101,0)
+	if $text(EN^XPAR)'="" do EN^XPAR("SYS",name,1,"@")
+"RTN","VSLTAPBO",102,0)
+	if $text(FIND1^DIC)="" quit
+"RTN","VSLTAPBO",103,0)
+	set ien=+$$FIND1^DIC(8989.51,"","X",name,"B")
+"RTN","VSLTAPBO",104,0)
+	if ien'>0 quit
+"RTN","VSLTAPBO",105,0)
+	set FDA(8989.51,ien_",",.01)="@"
+"RTN","VSLTAPBO",106,0)
+	do FILE^DIE("","FDA","ERR")
+"RTN","VSLTAPBO",107,0)
+	quit
+"RTN","VSLTAPBO",108,0)
+	;
+"RTN","VSLTAPBO",109,0)
+	; ---------- (1) the TaskMan dequeue — a fenced VistA seam ----------
+"RTN","VSLTAPBO",110,0)
+	;
+"RTN","VSLTAPBO",111,0)
+cleanTasks()	; Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState).
+"RTN","VSLTAPBO",112,0)
+	; doc: The scheduled-task numbers live in ^VSLTAP("task",label)=ztsk. The
+"RTN","VSLTAPBO",113,0)
+	; doc: fidelity/flush jobs are periodic re-queues (NOT persistent listeners),
+"RTN","VSLTAPBO",114,0)
+	; doc: so they dequeue cleanly. Fenced — no TaskMan on a bare engine.
+"RTN","VSLTAPBO",115,0)
+	new $etrap,k
+"RTN","VSLTAPBO",116,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPBO",117,0)
+	set k=""
+"RTN","VSLTAPBO",118,0)
+	for  do dequeueNext(.k) quit:k=""
+"RTN","VSLTAPBO",119,0)
+	quit
+"RTN","VSLTAPBO",120,0)
+	;
+"RTN","VSLTAPBO",121,0)
+dequeueNext(k)	; (private) advance to the next recorded task label and dequeue its job.
+"RTN","VSLTAPBO",122,0)
+	set k=$order(^VSLTAP("task",k))
+"RTN","VSLTAPBO",123,0)
+	if k="" quit
+"RTN","VSLTAPBO",124,0)
+	do dequeue(+$get(^VSLTAP("task",k)))
+"RTN","VSLTAPBO",125,0)
+	quit
+"RTN","VSLTAPBO",126,0)
+	;
+"RTN","VSLTAPBO",127,0)
+dequeue(ztsk)	; (private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced.
+"RTN","VSLTAPBO",128,0)
+	; doc: @param ztsk  numeric  the task number to remove from the schedule
+"RTN","VSLTAPBO",129,0)
+	; doc: @icr 10063 @call KILL^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#killztload-delete-a-task
+"RTN","VSLTAPBO",130,0)
+	new $etrap,ZTSK
+"RTN","VSLTAPBO",131,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPBO",132,0)
+	if +$get(ztsk)'>0 quit
+"RTN","VSLTAPBO",133,0)
+	if $text(KILL^%ZTLOAD)="" quit
+"RTN","VSLTAPBO",134,0)
+	set ZTSK=ztsk
+"RTN","VSLTAPBO",135,0)
+	do KILL^%ZTLOAD
+"RTN","VSLTAPBO",136,0)
+	quit
+"RTN","VSLTAPBO",137,0)
+	;
+"RTN","VSLTAPBO",138,0)
+	; ---------- the verify-clean proof (the exit gate) ----------
+"RTN","VSLTAPBO",139,0)
+	;
+"RTN","VSLTAPBO",140,0)
+verifyClean(detail)	; 1 iff no tap residue remains across all layers; detail() names any survivor.
+"RTN","VSLTAPBO",141,0)
+	; doc: @param detail  array  OUT by-ref; killed then filled detail(globals/params/tasks)
+"RTN","VSLTAPBO",142,0)
+	; doc: @returns        bool   1 iff globals, XPAR params and tasks are all clean
+"RTN","VSLTAPBO",143,0)
+	; doc: Globals (cache + control state) are checked on any engine; the XPAR-param
+"RTN","VSLTAPBO",144,0)
+	; doc: and task legs are fenced VistA seams — a bare engine reports them clean.
+"RTN","VSLTAPBO",145,0)
+	new ok
+"RTN","VSLTAPBO",146,0)
+	kill detail
+"RTN","VSLTAPBO",147,0)
+	set ok=1
+"RTN","VSLTAPBO",148,0)
+	if $data(^XTMP("VSLTAP"))!$data(^VSLTAP) set detail("globals")="^XTMP(""VSLTAP"") / ^VSLTAP control state survives",ok=0
+"RTN","VSLTAPBO",149,0)
+	if $$paramsResidue(.detail) set ok=0
+"RTN","VSLTAPBO",150,0)
+	if $$tasksResidue(.detail) set ok=0
+"RTN","VSLTAPBO",151,0)
+	quit ok
+"RTN","VSLTAPBO",152,0)
+	;
+"RTN","VSLTAPBO",153,0)
+paramsResidue(detail)	; (private) 1 iff any tap #8989.51 definition survives (fenced; bare -> 0).
+"RTN","VSLTAPBO",154,0)
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+"RTN","VSLTAPBO",155,0)
+	new $etrap,out,n,i,found
+"RTN","VSLTAPBO",156,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPBO",157,0)
+	set found=0
+"RTN","VSLTAPBO",158,0)
+	if $text(FIND1^DIC)="" quit 0
+"RTN","VSLTAPBO",159,0)
+	set n=$$params(.out)
+"RTN","VSLTAPBO",160,0)
+	for i=1:1:n if +$$FIND1^DIC(8989.51,"","X",out(i),"B")>0 set found=found+1
+"RTN","VSLTAPBO",161,0)
+	if found set detail("params")=found_" tap XPAR parameter definition(s) survive"
+"RTN","VSLTAPBO",162,0)
+	quit ''found
+"RTN","VSLTAPBO",163,0)
+	;
+"RTN","VSLTAPBO",164,0)
+tasksResidue(detail)	; (private) 1 iff a recorded flush/fidelity task record survives.
+"RTN","VSLTAPBO",165,0)
+	new found
+"RTN","VSLTAPBO",166,0)
+	set found=($order(^VSLTAP("task",""))'="")
+"RTN","VSLTAPBO",167,0)
+	if found set detail("tasks")="a scheduled task record survives"
+"RTN","VSLTAPBO",168,0)
+	quit found
 "RTN","VSLTAPFC")
 0^177^0^0
 "RTN","VSLTAPFC",1,0)
@@ -4060,6 +4556,306 @@ canary()	; Synthetic byte-exact round-trip of a tagged record through ^XTMP — 
 	if 'ok quit 0
 "RTN","VSLTAPHL",141,0)
 	quit (rb=tag)
+"RTN","VSLTAPRUN")
+0^149^0^0
+"RTN","VSLTAPRUN",1,0)
+VSLTAPRUN	; v-stdlib — the periodic fidelity-run task (closes the console loop).
+"RTN","VSLTAPRUN",2,0)
+	;
+"RTN","VSLTAPRUN",3,0)
+	; Phase 5 / M4 (GA), plan stage 5.1. persist^VSLTAPFC + $$lastFidelity exist
+"RTN","VSLTAPRUN",4,0)
+	; and the VWEBT console reads ^VSLTAP("fc","last"), but in a live install
+"RTN","VSLTAPRUN",5,0)
+	; NOTHING calls persist — only the test suite writes it — so the console's
+"RTN","VSLTAPRUN",6,0)
+	; fidelity panel shows `pending` forever. VSLTAPRUN is the schedulable task
+"RTN","VSLTAPRUN",7,0)
+	; that closes that loop: on a cadence it reconciles a shipped-vs-source sample
+"RTN","VSLTAPRUN",8,0)
+	; and calls persist, giving the operator a real, current match %.
+"RTN","VSLTAPRUN",9,0)
+	;
+"RTN","VSLTAPRUN",10,0)
+	; *** Layer: v. It consumes the fidelity comparator (VSLTAPFC, v) and the gate
+"RTN","VSLTAPRUN",11,0)
+	; (VSLTAP, v) and binds TaskMan (^%ZTLOAD, the same #10063 seam VSLTASK uses)
+"RTN","VSLTAPRUN",12,0)
+	; to re-queue itself. The persist seam ($$reconcilePersist) is pure M and
+"RTN","VSLTAPRUN",13,0)
+	; bare-proven; the live sampler ($$fidelityNow — LIST shipped objects, read
+"RTN","VSLTAPRUN",14,0)
+	; them back, integrity-verify each) is the egress leg that lights the console.
+"RTN","VSLTAPRUN",15,0)
+	;
+"RTN","VSLTAPRUN",16,0)
+	; Public API:
+"RTN","VSLTAPRUN",17,0)
+	;   do run()                     the scheduled task body (gate -> sample -> persist -> re-queue)
+"RTN","VSLTAPRUN",18,0)
+	;   $$fidelityNow()              LIST shipped objects -> read back -> integrity-verify -> persist -> matched
+"RTN","VSLTAPRUN",19,0)
+	;   $$reconcilePersist(corpus,envs)  reconcile a known corpus then persist it -> ok (the e2e-harness seam)
+"RTN","VSLTAPRUN",20,0)
+	;   $$cadence()                  the run period in seconds (XPAR VSL TAP FIDELITY CADENCE; default 3600)
+"RTN","VSLTAPRUN",21,0)
+	;   $$schedule()                 queue run^VSLTAPRUN at now+cadence; record the task# -> task#
+"RTN","VSLTAPRUN",22,0)
+	;
+"RTN","VSLTAPRUN",23,0)
+	quit
+"RTN","VSLTAPRUN",24,0)
+	;
+"RTN","VSLTAPRUN",25,0)
+	; ---------- the persist seam (pure M; the bare-proven loop-closer) ----------
+"RTN","VSLTAPRUN",26,0)
+	;
+"RTN","VSLTAPRUN",27,0)
+reconcilePersist(corpus,envs)	; Reconcile the corpus vs the read-back envelopes, persist the result, return ok.
+"RTN","VSLTAPRUN",28,0)
+	; doc: @param corpus  array  by-ref: corpus(seq) = the source record
+"RTN","VSLTAPRUN",29,0)
+	; doc: @param envs    array  by-ref: envs(seq)   = the read-back envelope line
+"RTN","VSLTAPRUN",30,0)
+	; doc: @returns       bool   1 iff the sample reconciles byte-perfect (ok=true persisted)
+"RTN","VSLTAPRUN",31,0)
+	; doc: The one call that writes ^VSLTAP("fc","last") in production — the live
+"RTN","VSLTAPRUN",32,0)
+	; doc: sampler and the make-test-s3 round-trip both funnel through here so the
+"RTN","VSLTAPRUN",33,0)
+	; doc: console (VWEBT $$lastFidelity^VSLTAPFC) stops showing `pending`.
+"RTN","VSLTAPRUN",34,0)
+	new res,ok
+"RTN","VSLTAPRUN",35,0)
+	set ok=$$reconcile^VSLTAPFC(.corpus,.envs,.res)
+"RTN","VSLTAPRUN",36,0)
+	do persist^VSLTAPFC(.res)
+"RTN","VSLTAPRUN",37,0)
+	quit ok
+"RTN","VSLTAPRUN",38,0)
+	;
+"RTN","VSLTAPRUN",39,0)
+	; ---------- the cadence (XPAR config; the period between runs) ----------
+"RTN","VSLTAPRUN",40,0)
+	;
+"RTN","VSLTAPRUN",41,0)
+cadence()	; The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
+"RTN","VSLTAPRUN",42,0)
+	; doc: @returns numeric  a positive number of seconds between fidelity runs
+"RTN","VSLTAPRUN",43,0)
+	; doc: $text-guarded — a bare engine has no XPAR, so the default (1h) applies.
+"RTN","VSLTAPRUN",44,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLTAPRUN",45,0)
+	new $etrap,v
+"RTN","VSLTAPRUN",46,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",47,0)
+	set v=3600
+"RTN","VSLTAPRUN",48,0)
+	if $text(GET^XPAR)'="" set v=+$$get^VSLCFG("VSL TAP FIDELITY CADENCE",3600)
+"RTN","VSLTAPRUN",49,0)
+	if v'>0 set v=3600
+"RTN","VSLTAPRUN",50,0)
+	quit v
+"RTN","VSLTAPRUN",51,0)
+	;
+"RTN","VSLTAPRUN",52,0)
+	; ---------- the scheduler (non-persistent TaskMan re-queue) ----------
+"RTN","VSLTAPRUN",53,0)
+	;
+"RTN","VSLTAPRUN",54,0)
+schedule()	; Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out can dequeue it); return it.
+"RTN","VSLTAPRUN",55,0)
+	; doc: @returns numeric  the queued task number, or 0 when there is no TaskMan (bare/no-queue)
+"RTN","VSLTAPRUN",56,0)
+	; doc: A NON-persistent periodic task (each run re-queues the next) — NOT a
+"RTN","VSLTAPRUN",57,0)
+	; doc: PSET self-restarting listener (so it is cleanly dequeueable by VSLTAPBO,
+"RTN","VSLTAPRUN",58,0)
+	; doc: unlike a persistent listener). Records ^VSLTAP("task","fidelity")=task#.
+"RTN","VSLTAPRUN",59,0)
+	; doc: $text-guarded so a bare engine is a clean no-op.
+"RTN","VSLTAPRUN",60,0)
+	; doc: @icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points
+"RTN","VSLTAPRUN",61,0)
+	new $etrap,ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSK,ztsk
+"RTN","VSLTAPRUN",62,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",63,0)
+	if $text(^%ZTLOAD)="" quit 0
+"RTN","VSLTAPRUN",64,0)
+	set ZTRTN="run^VSLTAPRUN",ZTIO="",ZTDESC="VSL traffic-tap fidelity run"
+"RTN","VSLTAPRUN",65,0)
+	set ZTDTH=$$nextRun($$cadence())
+"RTN","VSLTAPRUN",66,0)
+	do ^%ZTLOAD
+"RTN","VSLTAPRUN",67,0)
+	set ztsk=+$get(ZTSK)
+"RTN","VSLTAPRUN",68,0)
+	if ztsk>0 set ^VSLTAP("task","fidelity")=ztsk
+"RTN","VSLTAPRUN",69,0)
+	quit ztsk
+"RTN","VSLTAPRUN",70,0)
+	;
+"RTN","VSLTAPRUN",71,0)
+nextRun(secs)	; (private) the $H timestamp `secs` seconds from now (with day rollover).
+"RTN","VSLTAPRUN",72,0)
+	new d,s
+"RTN","VSLTAPRUN",73,0)
+	set d=$piece($horolog,",",1),s=$piece($horolog,",",2)+(+secs)
+"RTN","VSLTAPRUN",74,0)
+	for  quit:s<86400  set s=s-86400,d=d+1
+"RTN","VSLTAPRUN",75,0)
+	quit d_","_s
+"RTN","VSLTAPRUN",76,0)
+	;
+"RTN","VSLTAPRUN",77,0)
+	; ---------- the task body ----------
+"RTN","VSLTAPRUN",78,0)
+	;
+"RTN","VSLTAPRUN",79,0)
+run()	; The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).
+"RTN","VSLTAPRUN",80,0)
+	; doc: Respects the Phase-2 gate — when the tap is OFF / auto-disabled / has no
+"RTN","VSLTAPRUN",81,0)
+	; doc: consumer it skips the live work entirely (no false fidelity result). The
+"RTN","VSLTAPRUN",82,0)
+	; doc: whole body is fault-fenced so a sampling/egress fault self-clears and the
+"RTN","VSLTAPRUN",83,0)
+	; doc: next tick is still re-queued.
+"RTN","VSLTAPRUN",84,0)
+	new $etrap,x
+"RTN","VSLTAPRUN",85,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",86,0)
+	if '$$enabled^VSLTAP() quit
+"RTN","VSLTAPRUN",87,0)
+	set x=$$fidelityNow()
+"RTN","VSLTAPRUN",88,0)
+	do reschedule()
+"RTN","VSLTAPRUN",89,0)
+	quit
+"RTN","VSLTAPRUN",90,0)
+	;
+"RTN","VSLTAPRUN",91,0)
+reschedule()	; (private) re-queue the next periodic run (bare-safe no-op without TaskMan).
+"RTN","VSLTAPRUN",92,0)
+	new ztsk
+"RTN","VSLTAPRUN",93,0)
+	set ztsk=$$schedule()
+"RTN","VSLTAPRUN",94,0)
+	quit
+"RTN","VSLTAPRUN",95,0)
+	;
+"RTN","VSLTAPRUN",96,0)
+	; ---------- the live fidelity sampler (the source seam that lights the console) ----------
+"RTN","VSLTAPRUN",97,0)
+	;
+"RTN","VSLTAPRUN",98,0)
+fidelityNow()	; Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
+"RTN","VSLTAPRUN",99,0)
+	; doc: @returns numeric  the count of shipped envelopes whose payload re-hashes to its
+"RTN","VSLTAPRUN",100,0)
+	; doc:                   sha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled
+"RTN","VSLTAPRUN",101,0)
+	; doc: The PRODUCTION fidelity signal that lights the VWEBT console — it needs no
+"RTN","VSLTAPRUN",102,0)
+	; doc: generated corpus and no separate process. It LISTs the per-station shipped
+"RTN","VSLTAPRUN",103,0)
+	; doc: objects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,
+"RTN","VSLTAPRUN",104,0)
+	; doc: and runs `$$verify^VSLTAPFC` on every envelope (the shipped payload re-hashes
+"RTN","VSLTAPRUN",105,0)
+	; doc: to the sha256 anchor captured at ship time) -> matched/mismatch. This proves
+"RTN","VSLTAPRUN",106,0)
+	; doc: the ship->store->readback path is BYTE-FAITHFUL to what the tap captured —
+"RTN","VSLTAPRUN",107,0)
+	; doc: it catches storage / transport / encoding corruption (exactly the egress
+"RTN","VSLTAPRUN",108,0)
+	; doc: bugs the build hit). [The deeper capture==wire leg — shipped vs an independent
+"RTN","VSLTAPRUN",109,0)
+	; doc: mirror/#772 source — remains a documented future enhancement; the ring is
+"RTN","VSLTAPRUN",110,0)
+	; doc: trimmed post-drain so it cannot be that source.] Fenced; persists
+"RTN","VSLTAPRUN",111,0)
+	; doc: ^VSLTAP("fc","last"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.
+"RTN","VSLTAPRUN",112,0)
+	new $etrap,ctx,opt,bucket,station,proto,prefix,listing,sc,res,k,cap,seen
+"RTN","VSLTAPRUN",113,0)
+	set $etrap="set $ecode="""" quit -1"
+"RTN","VSLTAPRUN",114,0)
+	set bucket=$$ctx^VSLS3(.ctx,.opt)
+"RTN","VSLTAPRUN",115,0)
+	set station=$$cfg^VSLTAP("s3station",""),proto=$$cfg^VSLTAP("s3proto","rpc")
+"RTN","VSLTAPRUN",116,0)
+	set prefix="traffic/"_station_"/"_proto_"/"
+"RTN","VSLTAPRUN",117,0)
+	set sc=$$list^VSLS3(.ctx,bucket,prefix,.opt,.listing)
+"RTN","VSLTAPRUN",118,0)
+	if sc'=200 quit -1
+"RTN","VSLTAPRUN",119,0)
+	set res("matched")=0,res("mismatch")=0,res("missing")=0,res("extra")=0
+"RTN","VSLTAPRUN",120,0)
+	set cap=+$$cfg^VSLTAP("fcmax",50)
+"RTN","VSLTAPRUN",121,0)
+	set seen=0,k=""
+"RTN","VSLTAPRUN",122,0)
+	for  do nextKey(.k,.seen,.listing,.ctx,bucket,.opt,.res) quit:k=""!(seen'<cap)
+"RTN","VSLTAPRUN",123,0)
+	if 'res("matched"),'res("mismatch") quit -1
+"RTN","VSLTAPRUN",124,0)
+	do persist^VSLTAPFC(.res)
+"RTN","VSLTAPRUN",125,0)
+	quit res("matched")
+"RTN","VSLTAPRUN",126,0)
+	;
+"RTN","VSLTAPRUN",127,0)
+nextKey(k,seen,listing,ctx,bucket,opt,res)	; (private) step to the previous listed subscript; verify its object if it's a real key.
+"RTN","VSLTAPRUN",128,0)
+	; doc: The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.
+"RTN","VSLTAPRUN",129,0)
+	set k=$order(listing(k),-1)
+"RTN","VSLTAPRUN",130,0)
+	if k="" quit
+"RTN","VSLTAPRUN",131,0)
+	if $get(listing(k,"key"))="" quit
+"RTN","VSLTAPRUN",132,0)
+	do verifyObject(listing(k,"key"),.ctx,bucket,.opt,.res)
+"RTN","VSLTAPRUN",133,0)
+	set seen=seen+1
+"RTN","VSLTAPRUN",134,0)
+	quit
+"RTN","VSLTAPRUN",135,0)
+	;
+"RTN","VSLTAPRUN",136,0)
+verifyObject(key,ctx,bucket,opt,res)	; (private) read one shipped object back and integrity-verify each NDJSON envelope line.
+"RTN","VSLTAPRUN",137,0)
+	new $etrap,resp,sc,body,i
+"RTN","VSLTAPRUN",138,0)
+	set $etrap="set $ecode="""" quit"
+"RTN","VSLTAPRUN",139,0)
+	set sc=$$readback^VSLS3(.ctx,bucket,key,.opt,.resp)
+"RTN","VSLTAPRUN",140,0)
+	if sc'=200 quit
+"RTN","VSLTAPRUN",141,0)
+	set body=$get(resp("body"))
+"RTN","VSLTAPRUN",142,0)
+	for i=1:1:$length(body,$char(10)) do tallyLine($piece(body,$char(10),i),.res)
+"RTN","VSLTAPRUN",143,0)
+	quit
+"RTN","VSLTAPRUN",144,0)
+	;
+"RTN","VSLTAPRUN",145,0)
+tallyLine(line,res)	; (private) integrity-verify one envelope line; bump matched / mismatch.
+"RTN","VSLTAPRUN",146,0)
+	if line="" quit
+"RTN","VSLTAPRUN",147,0)
+	if $$verify^VSLTAPFC(line) set res("matched")=res("matched")+1 quit
+"RTN","VSLTAPRUN",148,0)
+	set res("mismatch")=res("mismatch")+1
+"RTN","VSLTAPRUN",149,0)
+	quit
 "RTN","VSLTASK")
 0^90^0^0
 "RTN","VSLTASK",1,0)
@@ -4257,6 +5053,126 @@ F^^
 "KRN",8989.51,1,30,1,0)
 1^4.2
 "KRN",8989.51,1,30,"B",1,1)
+
+"KRN",8989.51,2,-1)
+0
+"KRN",8989.51,2,0)
+VSL TAP CAP^Traffic-tap rolling-ring capacity (records); VSLTAP cap knob^
+"KRN",8989.51,2,1)
+N^^
+"KRN",8989.51,2,30,0)
+^8989.513I^1^1
+"KRN",8989.51,2,30,1,0)
+1^4.2
+"KRN",8989.51,2,30,"B",1,1)
+
+"KRN",8989.51,3,-1)
+0
+"KRN",8989.51,3,0)
+VSL TAP MAXBYTES^Traffic-tap copy-cost ceiling (bytes); a larger record trips auto-failover OFF^
+"KRN",8989.51,3,1)
+N^^
+"KRN",8989.51,3,30,0)
+^8989.513I^1^1
+"KRN",8989.51,3,30,1,0)
+1^4.2
+"KRN",8989.51,3,30,"B",1,1)
+
+"KRN",8989.51,4,-1)
+0
+"KRN",8989.51,4,0)
+VSL TAP HBSTALE^Traffic-tap heartbeat staleness bound (seconds) for the liveness check^
+"KRN",8989.51,4,1)
+N^^
+"KRN",8989.51,4,30,0)
+^8989.513I^1^1
+"KRN",8989.51,4,30,1,0)
+1^4.2
+"KRN",8989.51,4,30,"B",1,1)
+
+"KRN",8989.51,5,-1)
+0
+"KRN",8989.51,5,0)
+VSL TAP RETAIN^Traffic-tap cache retain days (the ^XTMP Kernel auto-purge horizon)^
+"KRN",8989.51,5,1)
+N^^
+"KRN",8989.51,5,30,0)
+^8989.513I^1^1
+"KRN",8989.51,5,30,1,0)
+1^4.2
+"KRN",8989.51,5,30,"B",1,1)
+
+"KRN",8989.51,6,-1)
+0
+"KRN",8989.51,6,0)
+VSL TAP ALWAYSON^Traffic-tap always-on flight-recorder opt-in (capture with no consumer present)^
+"KRN",8989.51,6,1)
+Y^^
+"KRN",8989.51,6,30,0)
+^8989.513I^1^1
+"KRN",8989.51,6,30,1,0)
+1^4.2
+"KRN",8989.51,6,30,"B",1,1)
+
+"KRN",8989.51,7,-1)
+0
+"KRN",8989.51,7,0)
+VSL TAP FIDELITY CADENCE^Periodic fidelity-run period (seconds) read by VSLTAPRUN^
+"KRN",8989.51,7,1)
+N^^
+"KRN",8989.51,7,30,0)
+^8989.513I^1^1
+"KRN",8989.51,7,30,1,0)
+1^4.2
+"KRN",8989.51,7,30,"B",1,1)
+
+"KRN",8989.51,8,-1)
+0
+"KRN",8989.51,8,0)
+VSL S3 ENDPOINT^S3 endpoint override (empty=real AWS virtual-host; set=path-style S3-equivalent)^
+"KRN",8989.51,8,1)
+F^^
+"KRN",8989.51,8,30,0)
+^8989.513I^1^1
+"KRN",8989.51,8,30,1,0)
+1^4.2
+"KRN",8989.51,8,30,"B",1,1)
+
+"KRN",8989.51,9,-1)
+0
+"KRN",8989.51,9,0)
+VSL S3 BUCKET^S3 target bucket for the traffic-tap egress^
+"KRN",8989.51,9,1)
+F^^
+"KRN",8989.51,9,30,0)
+^8989.513I^1^1
+"KRN",8989.51,9,30,1,0)
+1^4.2
+"KRN",8989.51,9,30,"B",1,1)
+
+"KRN",8989.51,10,-1)
+0
+"KRN",8989.51,10,0)
+VSL S3 REGION^S3 region for SigV4 signing (e.g. us-gov-west-1 for GovCloud)^
+"KRN",8989.51,10,1)
+F^^
+"KRN",8989.51,10,30,0)
+^8989.513I^1^1
+"KRN",8989.51,10,30,1,0)
+1^4.2
+"KRN",8989.51,10,30,"B",1,1)
+
+"KRN",8989.51,11,-1)
+0
+"KRN",8989.51,11,0)
+VSL S3 PREFIX^Per-station S3 key prefix (the §11 partition for fleet rollout)^
+"KRN",8989.51,11,1)
+F^^
+"KRN",8989.51,11,30,0)
+^8989.513I^1^1
+"KRN",8989.51,11,30,1,0)
+1^4.2
+"KRN",8989.51,11,30,"B",1,1)
 
 "MBREQ")
 1

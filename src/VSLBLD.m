@@ -41,7 +41,7 @@ manifest(out)	; Fill out() with the VSL base's routines, its Required Build and 
 	do add(.out,.n,"VSLSEC")
 	do add(.out,.n,"VSLTASK")
 	set out("requiredBuild")="MSL*0.1*1"
-	set out("patch")="VSL*1.0*2"
+	set out("patch")="VSL*1.0*3"
 	quit n
 	;
 add(out,n,rtn)	; (private) append routine `rtn` to the manifest list.
