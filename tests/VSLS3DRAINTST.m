@@ -14,6 +14,7 @@ VSLS3DRAINTST	; v-stdlib — VSLS3 drain-loop test suite (^XTMP ring -> ship -> 
 	;
 	do tDrainShipsAllInSeqAndTrims(.pass,.fail)
 	do tDrainBatchPayloadsByteExact(.pass,.fail)
+	do tDrainStopsAtUncommittedGap(.pass,.fail)
 	do tDrainConsumerGatedShipsNothing(.pass,.fail)
 	do tDrainAutoDisabledShipsNothing(.pass,.fail)
 	do tDrainEmptyRing(.pass,.fail)
@@ -58,6 +59,25 @@ tDrainBatchPayloadsByteExact(pass,fail)	;@TEST "the shipped batch is LDJSON: one
 	. set line=$piece(body,$char(10),i)
 	. set rec="rec#"_i_$char(1)_"body"_$char(13,10)_i
 	. do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,rec),"batch line "_i_" byte-equals its source record")
+	quit
+	;
+tDrainStopsAtUncommittedGap(pass,fail)	;@TEST "FU-8/FU-9: drain ships only the contiguous committed prefix and never trims an in-flight (head-ahead-of-data) slot"
+	new res,n
+	do setup()
+	do fill(3)
+	; simulate the FU-8 window: an appender atomically advanced head to 4 (allocated
+	; seq 4 via $INCREMENT) but has NOT yet written ^data(4) — head is ahead of the
+	; committed data. A naive drain would ship "" for seq 4 and KILL it.
+	set ^XTMP("VSLTAP","head")=4
+	set n=$$drain^VSLS3(.res)
+	do eq^STDASSERT(.pass,.fail,n,3,"shipped only the committed prefix seq 1..3, stopped at the gap")
+	do eq^STDASSERT(.pass,.fail,$$head^VSLTAP(),4,"head untouched -> the in-flight seq 4 slot is preserved")
+	do eq^STDASSERT(.pass,.fail,$$tail^VSLTAP(),3,"trimmed only to the last committed seq (3), NOT to head")
+	do true^STDASSERT(.pass,.fail,'$$present^VSLTAP(4),"seq 4 left uncommitted for the next tick (not shipped as empty)")
+	; the in-flight append now lands; the next tick ships it — nothing lost
+	set ^XTMP("VSLTAP","data",4)="rec#4-late"
+	set n=$$drain^VSLS3(.res)
+	do eq^STDASSERT(.pass,.fail,n,1,"the late record (seq 4) ships on the next tick — no lost record")
 	quit
 	;
 tDrainConsumerGatedShipsNothing(pass,fail)	;@TEST "consumer-gated: no consumer -> drain ships nothing, ring untouched (D-5)"

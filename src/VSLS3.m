@@ -180,12 +180,15 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	set bucket=$$ctx(.ctx,.opt)
 	set station=$$cfg^VSLTAP("s3station","")
 	set proto=$$cfg^VSLTAP("s3proto","rpc")
-	; assemble the batch: one LDJSON line per retained record, in seq order. The
-	; ring (tail,head] is contiguous (append +1's head; only drainTo/trim KILL,
-	; from the tail up), so every seq in range is present — ship them ALL,
-	; including a genuinely-empty captured record, so nothing is silently dropped.
-	set body="",n=0,last=0
-	for seq=t+1:1:h do
+	; assemble the batch: one LDJSON line per retained record, in seq order. Ship the
+	; CONTIGUOUS COMMITTED PREFIX (tail,last] and STOP at the first uncommitted slot
+	; ($$present=0). FU-8's atomic $INCREMENT advances head one statement before the data
+	; SET, so an always-on drain (FU-9) can momentarily see head ahead of an in-flight
+	; record; stopping at the gap (and trimming only to `last`, not `h`) leaves that slot
+	; for the next tick instead of shipping "" and KILLing a record about to land. A
+	; genuinely-empty captured record still ships ($$present is true for an empty value).
+	set body="",n=0,last=t
+	for seq=t+1:1:h quit:'$$present^VSLTAP(seq)  do
 	. set rec=$$read^VSLTAP(seq)
 	. set line=$$envelope(rec,proto,$$cfg^VSLTAP("s3dir",""),station,seq,.opt)
 	. set body=body_line_$char(10),n=n+1,last=seq
@@ -195,7 +198,7 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	set res("key")=key,res("body")=body,res("status")=sc
 	; ship failed -> leave the ring intact for the next flush tick (no trim).
 	if sc'=200 quit 0
-	do drainTo^VSLTAP(h)
+	do drainTo^VSLTAP(last)
 	set res("shipped")=n
 	quit n
 	;

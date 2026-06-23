@@ -3,9 +3,10 @@ VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 	; Phase 2 / M1 of the RPC+HL7 -> S3 traffic tap (spec §6/§4.1). VSLTAP is the
 	; load-bearing capture core everything downstream waits behind. Its whole job
 	; is to be INVISIBLE to the clinical RPC flow it observes: a bounded, rolling
-	; ^XTMP ring filled by an irreducible memory-copy append, gated three ways
-	; (operator kill-switch / consumer-presence / always-on opt-in), fenced so any
-	; fault self-disables instead of touching the caller, and watched so ANY
+	; ^XTMP ring filled by an irreducible memory-copy append. Post-FU-9 the gates are
+	; SPLIT: the ring CAPTURES whenever armed and not auto-failed-over (always-on,
+	; `$$captureOn`), and only EGRESS is consumer/sink-gated (`$$enabled`); it is fenced
+	; so any fault self-disables instead of touching the caller, and watched so ANY
 	; interference signal flips the tap OFF automatically (fail-safe-OFF).
 	;
 	; *** Layer: v (above the m/v waterline). It touches ^XTMP (Kernel's SAC-
@@ -32,10 +33,11 @@ VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
 	;   ^VSLTAP("fc","last")         last fidelity manifest line (VSLTAPFC persist)
 	;
 	; Public API:
-	;   $$enabled^VSLTAP()           1 iff capture should run now (the one gate)
+	;   $$captureOn^VSLTAP()         1 iff the ring should capture now (always-on; FU-9)
+	;   $$enabled^VSLTAP()           1 iff egress should run now (capture-on + consumer)
 	;   $$append^VSLTAP(rec)         gated memory-copy append -> 1 captured / 0 not
 	;   $$tee^VSLTAP(rec)            fault-fenced $$append (used by VSLRPCTAP)
-	;   $$size^VSLTAP() / $$head() / $$tail() / $$read(seq)   ring inspection
+	;   $$size^VSLTAP() / $$head() / $$tail() / $$read(seq) / $$present(seq)   ring inspection
 	;   $$state^VSLTAP()             OFF | ARMED-IDLE | ACTIVE | AUTO-DISABLED | UNHEALTHY
 	;   $$disabled^VSLTAP()          auto-failover reason or ""
 	;   do arm() / off() / setConsumer(b) / setAlwaysOn(b)   operator/gate controls
@@ -68,18 +70,35 @@ setConsumer(present)	; Set the consumer-presence flag (D-5): no consumer -> egre
 	set ^VSLTAP("cfg","consumer")=+$get(present)
 	quit
 	;
-setAlwaysOn(flag)	; Opt-in always-on flight-recorder (D-8): capture even with no consumer.
+setAlwaysOn(flag)	; LEGACY/SUBSUMED (D-8 -> FU-9): kept for backward compatibility; no longer gates capture.
+	; doc: The ring is ALWAYS-ON by default now ($$captureOn), so this opt-in is a no-op
+	; doc: for gating. The cfg key is still written/readable so existing callers (e.g. the
+	; doc: v-web console display) keep resolving; remove once consumers migrate.
 	set ^VSLTAP("cfg","alwayson")=+$get(flag)
 	quit
 	;
 	; ---------- the capture gate + the rolling ring ----------
 	;
-enabled()	; 1 iff capture should run now: armed AND not auto-disabled AND (consumer OR always-on).
-	; doc: @returns bool  the single capture gate (fail-safe-OFF; consumer-gated default, D-8)
+captureOn()	; FU-9 (D-6): 1 iff the RING should capture now — armed AND not auto-disabled.
+	; doc: @returns bool  the ALWAYS-ON capture gate. The ring records whenever the tap
+	; doc: is armed and not auto-failed-over, INDEPENDENT of any consumer/sink — a down or
+	; doc: absent sink pauses only EGRESS ($$enabled), never capture (the flight-recorder
+	; doc: keeps a window of traffic ready for whenever a consumer attaches; it laps to
+	; doc: drop_oldest only under sustained pressure). The ONLY things that stop the ring
+	; doc: are the operator kill-switch ($$off) and auto-failover ($$disable) — fail-safe-OFF.
 	if $$cfg("mode","off")'="armed" quit 0
 	if $$disabled()'="" quit 0
+	quit 1
+	;
+enabled()	; 1 iff EGRESS should run now: capture-on AND a consumer/sink is present (D-5).
+	; doc: @returns bool  the EGRESS gate. The drain ships and $$state reports ACTIVE only
+	; doc: when this holds; with no consumer the ring still captures ($$captureOn) but the
+	; doc: PUT pauses (the off-window is recorded, never silent). [FU-9 split the former
+	; doc: single gate into capture (always-on) vs egress (consumer-gated).] The legacy
+	; doc: `alwayson` flag is SUBSUMED — the ring is always-on by default now — and no
+	; doc: longer gates anything (the setter/cfg are kept for backward compatibility).
+	if '$$captureOn() quit 0
 	if +$$cfg("consumer",0) quit 1
-	if +$$cfg("alwayson",0) quit 1
 	quit 0
 	;
 append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim record.
@@ -93,7 +112,7 @@ append(rec)	; Gated, fault-fenced, bounded memory-copy append of a verbatim reco
 	; doc: argument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic
 	; doc: ($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).
 	new ok,$etrap,wrote
-	if '$$enabled() quit 0
+	if '$$captureOn() quit 0
 	set ok=1,wrote=0
 	set $etrap="set ok=0,$ecode="""" quit"
 	do write1(rec,.wrote)
@@ -111,13 +130,20 @@ write1(rec,wrote)	; (private) the ring write, DO-invoked so the append fence's Q
 	; copy-cost guard (§6.2): a pathological mega-payload trips auto-failover OFF.
 	if $length(rec)>+$$cfg("maxbytes",1000000) do disable("copycost") quit
 	set cap=+$$cfg("cap",1000)
-	set seq=+$get(^XTMP("VSLTAP","head"))+1
+	; FU-8 (G-SEQ): allocate the sequence with an ATOMIC $INCREMENT (atomic on both YDB
+	; and IRIS, no LOCK) — many concurrent broker handlers append to one ring, so the old
+	; non-atomic read-then-write (`set seq=$get(head)+1` … `set head=seq`) RACED: two
+	; handlers read the same head, both wrote `data,N`, one clobbered the other — a lost
+	; record AND a duplicate seq (which breaks the §11 idempotent S3 key). $INCREMENT both
+	; allocates a unique seq and advances head in one indivisible step. It sits AFTER
+	; the maxbytes copy-cost guard above ON PURPOSE — a rejected mega-payload must not
+	; burn a seq (which would leave a permanent hole the gap-safe drain stops at forever).
+	set seq=$increment(^XTMP("VSLTAP","head"))
 	set ^XTMP("VSLTAP","data",seq)=rec
 	; FU-4 post-write fault-injection seam: fire AFTER the ring SET so the fence
 	; property suite (VSLTAPFENCETST) proves the naked-reference restore even once
 	; the tap has dirtied the caller's indicator (AC-1). Inert unless configured.
 	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
-	set ^XTMP("VSLTAP","head")=seq
 	do trim(seq,cap)
 	do record^VSLTAPHL(0,$length(rec),0)
 	set wrote=1
@@ -154,6 +180,15 @@ tail()	; (lowest-retained seq) - 1 (0 if empty).
 	;
 read(seq)	; The verbatim record at `seq`, or "" if absent/overwritten.
 	quit $get(^XTMP("VSLTAP","data",+$get(seq)))
+	;
+present(seq)	; 1 iff a data node exists at `seq` ($DATA'=0) — distinguishes an empty-string record from an absent/uncommitted slot.
+	; doc: @returns bool  The drain ships only the CONTIGUOUS COMMITTED prefix using this:
+	; doc: FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a
+	; doc: concurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight
+	; doc: slot; stopping at the first absent node leaves that slot for the next tick rather
+	; doc: than shipping "" and trimming a record that is about to land. `$$read` can't tell
+	; doc: an absent slot from a legitimately-empty record ($get-> "" for both); this can.
+	quit $data(^XTMP("VSLTAP","data",+$get(seq)))'=0
 	;
 drainTo(seq)	; Post-ship trim: drop retained entries up to and including `seq`, advance tail.
 	; doc: @param seq  numeric  the highest shipped sequence (bounded to head)
