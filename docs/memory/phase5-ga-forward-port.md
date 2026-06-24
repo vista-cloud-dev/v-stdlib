@@ -68,13 +68,26 @@ VSLTAPBOTST ported byte-identical (the back-out is ring-layout-agnostic — it
   citations verified vs the gold corpus), check-citations 26, check-namespaces 17,
   **check-kids deterministic/golden at patch 3**.
 
-## OWED (next increment — the live + egress re-proof on current main)
-The GA logic is identical to the branch's (which was already live-proven), so
-these are **defense-in-depth re-proofs on Phase-6 main**, not new logic:
-1. **LIVE `install → verify → back-out → verify-clean` on vehu + foia-t12** over
-   the driver (the real G-UNINST gate) — now with `VSLRPCWRAP` co-resident.
-   (Live env recipe + the `delParam` FDA-case bug the live proof once caught are
-   in the stale branch memory.)
+## Live + egress re-proofs on current main — DONE 2026-06-23
+The code re-proofs (1, 2) are GREEN on Phase-6 main; only config/ops (3) remains.
+The GA logic is identical to the branch's (already live-proven), so 1-2 were
+**defense-in-depth re-proofs on Phase-6 main**:
+1. **LIVE `install → verify → back-out → verify-clean → uninstall` GREEN on BOTH
+   engines — DONE 2026-06-23 (the G-UNINST GA exit gate, re-proven on main with
+   `VSLRPCWRAP` co-resident).** Via `v-pkg` + `m vista exec` over the driver:
+   - **foia-t12 (IRIS-VistA 2026.1):** install `VSL*1.0*3` → status 3, all **17
+     routines + 11 params** present → footprint (`do seed^VSLTAP` copied XPAR
+     `VSL TAP CAP`=777 → `^VSLTAP("cfg","cap")`=777, `$$schedule^VSLTAPRUN`
+     queued task **1313**, ring planted) → `do backout^VSLTAPBO()` →
+     `$$verifyClean` **before=0, after=1**, param GONE, ring/state/task removed →
+     `v-pkg uninstall` → all routines + #9.7 record gone.
+   - **vehu (YDB-VistA r2.02):** same sequence — status 3 / 17+11 present;
+     seed cap=777, task **1708**; backout before=0/**after=1**, all residue gone;
+     uninstall clean.
+   No `delParam` regression (the FDA-case bug the original live proof caught is
+   fixed in the ported code; FDA/ERR uppercase). Engine recipe: foia
+   `M_IRIS_TRANSPORT=docker M_IRIS_CONTAINER=foia-t12 M_IRIS_NAMESPACE=VISTA`;
+   vehu `M_YDB_CONTAINER=vehu M_YDB_GBLDIR=/home/vehu/g/vehu.gld M_YDB_ROUTINES='/home/vehu/{p,s,r}/r2.02_x86_64*(…) /home/vehu/lib/gtm/libgtmutil.so'`.
 2. ~~**MinIO matrix for `$$fidelityNow`/`$$list`**~~ — **DONE 2026-06-23.** Ported
    the 2 fidelityNow tests into `VSLS3E2ETST` with a **schema-v1 `tamperLine`**
    (build a good resp envelope, parse it, re-emit every member typed via a fixed
