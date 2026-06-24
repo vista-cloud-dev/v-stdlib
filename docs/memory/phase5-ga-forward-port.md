@@ -75,9 +75,13 @@ these are **defense-in-depth re-proofs on Phase-6 main**, not new logic:
    the driver (the real G-UNINST gate) — now with `VSLRPCWRAP` co-resident.
    (Live env recipe + the `delParam` FDA-case bug the live proof once caught are
    in the stale branch memory.)
-2. **MinIO matrix for `$$fidelityNow`/`$$list`** — port the 2 fidelityNow tests
-   into `VSLS3E2ETST` (the stale branch's `tamperLine` used the old envelope API;
-   rebuild it schema-v1) and run `make test-s3-matrix`.
+2. ~~**MinIO matrix for `$$fidelityNow`/`$$list`**~~ — **DONE 2026-06-23.** Ported
+   the 2 fidelityNow tests into `VSLS3E2ETST` with a **schema-v1 `tamperLine`**
+   (build a good resp envelope, parse it, re-emit every member typed via a fixed
+   numeric-key set, overwrite ONLY `payload` so `payload_sha256` still anchors the
+   original → `$$verify` mismatch). `make test-s3-matrix` **GREEN both engines:
+   VSLS3E2ETST 15/15** (round-trip 7 + verifies-7-shipped + catches-tamper→ok=false).
+   `fidelityNow`/`list` now covered on current main against real MinIO, in `make ci`.
 3. **Real-S3 endpoint flip** smoke + **fleet rollout (5.4)** — config/ops; fleet
    deferred indefinitely (user, 2026-06-21) until a real deployment need.
 
