@@ -28,6 +28,12 @@ import re
 import sys
 from pathlib import Path
 
+# The tag registry lives beside this script; make it importable however this
+# module is loaded (run directly, or imported via importlib by the golden test).
+# It is the single source of truth for the tag set.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mdoc_tags  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = REPO_ROOT / "src"
 DIST_DIR = REPO_ROOT / "dist"
@@ -40,11 +46,11 @@ def _relpath(path: Path) -> str:
         return str(path)
 
 
-KNOWN_TAGS = {
-    "@param", "@returns", "@raises", "@example",
-    "@since", "@stable", "@see", "@deprecated", "@internal",
-    "@seam",
-}
+# DERIVED from the registry (tools/mdoc_tags.py) — the single source of truth.
+# The generator therefore cannot drift from the documented grammar; editing the
+# tag set means editing mdoc_tags.py. See the grammar spec-from-code gate plan
+# (m-stdlib docs/plans/grammar-spec-from-code-gate-plan.md).
+KNOWN_TAGS = mdoc_tags.label_tags()
 
 # A `@seam` tag body: a seam name (the STD* module/contract it belongs to)
 # optionally followed by a contract version `v<N>` (default 1). Examples:
