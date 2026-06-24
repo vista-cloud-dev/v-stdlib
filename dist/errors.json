@@ -1,0 +1,46 @@
+{
+  "U-VSL-BLD-ARG": {
+    "labels": [
+      "requireBase"
+    ],
+    "module": "VSLBLD"
+  },
+  "U-VSL-FS-DIERR": {
+    "labels": [
+      "set"
+    ],
+    "module": "VSLFS"
+  },
+  "U-VSL-LOG-WRITE": {
+    "labels": [
+      "write"
+    ],
+    "module": "VSLLOG"
+  },
+  "U-VSL-SEC-ARG": {
+    "labels": [
+      "hasKey",
+      "bySecid"
+    ],
+    "module": "VSLSEC"
+  },
+  "U-VSL-TASK-ARG": {
+    "labels": [
+      "persist",
+      "schedule"
+    ],
+    "module": "VSLTASK"
+  },
+  "U-VSL-TASK-QUEUE": {
+    "labels": [
+      "schedule"
+    ],
+    "module": "VSLTASK"
+  },
+  "U-VSLIO-NOTLS": {
+    "labels": [
+      "connectTls"
+    ],
+    "module": "VSLIO"
+  }
+}

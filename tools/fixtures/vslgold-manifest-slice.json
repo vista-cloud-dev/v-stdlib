@@ -1,0 +1,59 @@
+{
+  "description": "A tiny synthetic module: the frozen input for the manifest\ngenerator's golden-file regression test (P1.7). It lives under\ntools/fixtures/ — NOT src/ — so the gen-manifest `VSL*.m` glob and\nthe fmt/lint/test source globs never see it, and its line numbers\nstay stable for the source.file:line assertion.",
+  "errors": [
+    "U-VSLGOLD-ARG"
+  ],
+  "labels": {
+    "greet": {
+      "deprecated": "",
+      "description": "",
+      "examples": [
+        "write $$greet^VSLGOLD(\"world\",0)  ; \"hello, world\""
+      ],
+      "form": "extrinsic",
+      "params": [
+        {
+          "doc": "the name to greet",
+          "name": "who",
+          "type": "string"
+        },
+        {
+          "doc": "1 to upper-case the result",
+          "name": "loud",
+          "type": "bool"
+        }
+      ],
+      "raised_in_body": [
+        "U-VSLGOLD-ARG"
+      ],
+      "raises": [
+        {
+          "code": "U-VSLGOLD-ARG",
+          "doc": "`who` is empty"
+        }
+      ],
+      "returns": {
+        "doc": "the rendered greeting",
+        "type": "string"
+      },
+      "seam": null,
+      "see_also": [
+        "$$bye^VSLGOLD"
+      ],
+      "signature": "$$greet^VSLGOLD(who, loud)",
+      "since": "v0.1.0",
+      "source": {
+        "file": "tools/fixtures/VSLGOLD.m",
+        "line": 11
+      },
+      "stable": "stable",
+      "synopsis": "Return a greeting for `who`, optionally shouted."
+    }
+  },
+  "source": {
+    "file": "tools/fixtures/VSLGOLD.m",
+    "line": 1
+  },
+  "synopsis": "v-stdlib — golden fixture for tools/test-manifest-golden.py.",
+  "tier": "core"
+}

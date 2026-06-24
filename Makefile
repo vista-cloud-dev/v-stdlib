@@ -43,7 +43,8 @@ S3_TESTBED := scripts/s3-testbed.sh
 
 .PHONY: all check fmt fmt-check lint arch test test-bare test-s3 test-s3-matrix coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
-        pin check-msl-pin check-engine-access kids check-kids gates
+        pin check-msl-pin check-engine-access kids check-kids gates \
+        manifest manifest-check manifest-golden frontmatter skill skill-check skill-install
 
 all: check
 
@@ -184,9 +185,56 @@ check-kids:
 	  rm -f $$tmp; exit 1; \
 	fi
 
+# ── Stdlib documentation pipeline (engine-free; mirrors m-stdlib) ──────
+# The discoverability half of the org's source-tag → generate → registry →
+# red-gate discipline, activated for the VSL* tier (stdlib-docs Phase 1 / AC1).
+# Pure python3, no engine — it reads `.m` source text only. Keep the
+# generators maintained siblings of m-stdlib's (risk R-DRIFT); fold structural
+# improvements across both rather than letting them fork.
+#   manifest         VSL* `; doc:` tags → dist/vsl-manifest.json + dist/errors.json
+#   manifest-check   drift gate: regenerate + git-diff the two artifacts
+#   manifest-golden  parser golden-file regression (tools/fixtures/VSLGOLD.m)
+#   frontmatter      docs/modules/<module>.md stubs + index.md (idempotent)
+#   skill            dist/skill/{SKILL,manifest-index,patterns,error-codes}.md
+#   skill-check      drift gate for dist/skill/
+#   skill-install    install dist/skill/ to ~/claude/skills/v-stdlib/
+manifest:
+	python3 tools/gen-manifest.py
+
+manifest-check: manifest
+	@git diff --exit-code -- dist/vsl-manifest.json \
+		|| { echo "ERROR: dist/vsl-manifest.json out of date — run 'make manifest' and commit."; exit 1; }
+	@git diff --exit-code -- dist/errors.json \
+		|| { echo "ERROR: dist/errors.json out of date — run 'make manifest' and commit."; exit 1; }
+	@echo "manifest: clean"
+
+manifest-golden:
+	@python3 tools/test-manifest-golden.py --check
+
+frontmatter:
+	python3 tools/write-module-frontmatter.py
+
+skill:
+	python3 tools/gen-skill.py
+
+skill-check:
+	@python3 tools/gen-skill.py --check \
+		|| { echo "ERROR: dist/skill/ is out of date — run 'make skill' and commit."; exit 1; }
+	@echo "skill: clean"
+
+skill-install: skill
+	@mkdir -p $(HOME)/claude/skills/v-stdlib
+	cp -f dist/skill/SKILL.md $(HOME)/claude/skills/v-stdlib/SKILL.md
+	cp -f dist/skill/manifest-index.md $(HOME)/claude/skills/v-stdlib/manifest-index.md
+	cp -f dist/skill/patterns.md $(HOME)/claude/skills/v-stdlib/patterns.md
+	cp -f dist/skill/error-codes.md $(HOME)/claude/skills/v-stdlib/error-codes.md
+	@echo "skill installed at $(HOME)/claude/skills/v-stdlib/"
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
-# upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate).
-gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids
+# upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
+# the doc-pipeline manifest/skill/golden gates).
+gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
+       manifest-check manifest-golden skill-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.

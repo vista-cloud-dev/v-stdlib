@@ -4,7 +4,7 @@
 Spec: docs/guides/m-doc-grammar.md (the doc-comment grammar this consumes)
       docs/plans/discoverability-and-tooling-plan.md  § 3.2 (the schema)
 
-The generator walks src/STD*.m, parses each routine into a module entry
+The generator walks src/VSL*.m, parses each routine into a module entry
 plus per-label entries, and emits a single JSON manifest. The schema is
 deliberately stable: downstream consumers (m-cli `m doc`, the VS Code
 extension, the AI skill) depend on it.
@@ -16,7 +16,7 @@ doc blocks degrade rather than crash, and labels without a `; doc:`
 block (internal helpers) are excluded automatically.
 
 Usage:
-    python3 tools/gen-manifest.py                # writes dist/stdlib-manifest.json + dist/errors.json
+    python3 tools/gen-manifest.py                # writes dist/vsl-manifest.json + dist/errors.json
     python3 tools/gen-manifest.py --self-test    # parse a synthetic fixture and check structure
 """
 
@@ -547,7 +547,7 @@ def build_manifest() -> tuple[dict, dict]:
 def write_outputs(manifest: dict, errors_index: dict) -> None:
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     manifest_path = DIST_DIR / "vsl-manifest.json"
-    errors_path = DIST_DIR / "vsl-errors.json"
+    errors_path = DIST_DIR / "errors.json"
     # Pretty-print with stable key order so diffs read cleanly.
     manifest_path.write_text(
         json.dumps(manifest, indent=2, sort_keys=False, ensure_ascii=False) + "\n",
@@ -662,7 +662,7 @@ silentHelper    ; No doc block → also excluded.
 
 
 def main(argv: list[str]) -> int:
-    p = argparse.ArgumentParser(description="Generate dist/stdlib-manifest.json + dist/errors.json from src/STD*.m.")
+    p = argparse.ArgumentParser(description="Generate dist/vsl-manifest.json + dist/errors.json from src/VSL*.m.")
     p.add_argument("--self-test", action="store_true", help="Run the inline parser self-test and exit.")
     args = p.parse_args(argv)
 
