@@ -115,13 +115,9 @@ def stub_body(name: str, mod: dict) -> str:
     title = f"# `{name}` — {synopsis}" if synopsis else f"# `{name}`"
     return (
         f"{title}\n\n"
-        "> **Stub.** The generated API section (signatures, params, returns,\n"
-        "> errors) lands in Phase 4 and the human-prose sections (rationale,\n"
-        "> gotchas) in Phase 3. Until then the frontmatter above — synced from\n"
-        "> `dist/vsl-manifest.json` — is the source of truth for this module's\n"
-        "> public labels and error codes, and\n"
-        "> [`../../dist/skill/manifest-index.md`](../../dist/skill/manifest-index.md)\n"
-        "> renders every signature with its synopsis.\n"
+        "<!-- Add hand-written prose (overview, rationale, gotchas, examples)\n"
+        "     here or below the generated API reference. The `## API reference`\n"
+        "     block is generated from the manifest by `make docs-bodies`. -->\n"
     )
 
 

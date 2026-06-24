@@ -12,10 +12,72 @@ doc_type: [REFERENCE]
 
 # `VSLSEC` — VistA identity/authorization adapter (Kernel)
 
-> **Stub.** The generated API section (signatures, params, returns,
-> errors) lands in Phase 4 and the human-prose sections (rationale,
-> gotchas) in Phase 3. Until then the frontmatter above — synced from
-> `dist/vsl-manifest.json` — is the source of truth for this module's
-> public labels and error codes, and
-> [`../../dist/skill/manifest-index.md`](../../dist/skill/manifest-index.md)
-> renders every signature with its synopsis.
+<!-- Add hand-written prose (overview, rationale, gotchas, examples)
+     here or below the generated API reference. The `## API reference`
+     block is generated from the manifest by `make docs-bodies`. -->
+
+<!-- BEGIN GENERATED API REFERENCE — managed by tools/gen-bodies.py (`make docs-bodies`); edits between these markers are overwritten. -->
+## API reference
+
+_Generated from `dist/vsl-manifest.json` — the canonical, always-current signature / parameter / return / error surface. Usage narrative and gotchas live in the prose sections._
+
+| Label | Signature | Summary |
+|---|---|---|
+| `bySecid` | `$$bySecid^VSLSEC(secid)` | The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "". |
+| `duz` | `$$duz^VSLSEC()` | The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN. |
+| `hasKey` | `$$hasKey^VSLSEC(key, duz)` | 1 iff `duz` (default: the ambient DUZ) holds security key `key`. |
+| `lastError` | `$$lastError^VSLSEC()` | The last VSLSEC error message (the composed malformed-call detail). |
+| `user` | `$$user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
+
+### `$$bySecid^VSLSEC(secid)`
+
+The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
+
+**Parameters**
+
+- `secid` _(string)_ — the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
+
+**Returns** _numeric_ — the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
+
+**Raises**
+
+- `U-VSL-SEC-ARG` — the call is malformed (an empty SecID)
+
+### `$$duz^VSLSEC()`
+
+The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
+
+**Returns** _numeric_ — the ambient DUZ (0 when no signon context is set)
+
+### `$$hasKey^VSLSEC(key, duz)`
+
+1 iff `duz` (default: the ambient DUZ) holds security key `key`.
+
+**Parameters**
+
+- `key` _(string)_ — security-key name (SECURITY KEY #19.1 .01)
+- `duz` _(numeric)_ — the user's #200 IEN; defaults to +$GET(DUZ)
+
+**Returns** _bool_ — 1 iff the user holds the key; 0 (a normal DENY) otherwise
+
+**Raises**
+
+- `U-VSL-SEC-ARG` — the call is malformed (an empty key name)
+
+### `$$lastError^VSLSEC()`
+
+The last VSLSEC error message (the composed malformed-call detail).
+
+**Returns** _string_ — ^TMP($job,"vslsec","err"), or "" if none
+
+### `$$user^VSLSEC(duz)`
+
+The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
+
+**Parameters**
+
+- `duz` _(numeric)_ — the user's #200 IEN; defaults to +$GET(DUZ)
+
+**Returns** _string_ — the NEW PERSON (#200) .01 NAME, or "" if absent
+
+<!-- END GENERATED API REFERENCE -->

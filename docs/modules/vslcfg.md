@@ -12,10 +12,46 @@ doc_type: [REFERENCE]
 
 # `VSLCFG` — VistA configuration adapter over XPAR (Parameter Tools)
 
-> **Stub.** The generated API section (signatures, params, returns,
-> errors) lands in Phase 4 and the human-prose sections (rationale,
-> gotchas) in Phase 3. Until then the frontmatter above — synced from
-> `dist/vsl-manifest.json` — is the source of truth for this module's
-> public labels and error codes, and
-> [`../../dist/skill/manifest-index.md`](../../dist/skill/manifest-index.md)
-> renders every signature with its synopsis.
+<!-- Add hand-written prose (overview, rationale, gotchas, examples)
+     here or below the generated API reference. The `## API reference`
+     block is generated from the manifest by `make docs-bodies`. -->
+
+<!-- BEGIN GENERATED API REFERENCE — managed by tools/gen-bodies.py (`make docs-bodies`); edits between these markers are overwritten. -->
+## API reference
+
+_Generated from `dist/vsl-manifest.json` — the canonical, always-current signature / parameter / return / error surface. Usage narrative and gotchas live in the prose sections._
+
+| Label | Signature | Summary |
+|---|---|---|
+| `get` | `$$get^VSLCFG(key, default)` | Read parameter `key` at the SYS entity; return `default` when unset. |
+| `set` | `do set^VSLCFG(key, value)` | Set parameter `key` to `value` at the SYS entity. |
+
+### `$$get^VSLCFG(key, default)`
+
+Read parameter `key` at the SYS entity; return `default` when unset.
+
+**Parameters**
+
+- `key` _(string)_ — XPAR parameter name (PARAMETER DEFINITION #8989.51)
+- `default` _(string)_ — value returned when the parameter is unset
+
+**Returns** _string_ — the SYS-level value, or `default` when unset
+
+**Example**
+
+```m
+set greeting=$$get^VSLCFG("VPNG GREETING","hello")
+```
+
+### `do set^VSLCFG(key, value)`
+
+Set parameter `key` to `value` at the SYS entity.
+
+**Parameters**
+
+- `key` _(string)_ — XPAR parameter name (#8989.51)
+- `value` _(string)_ — value to store at the SYS level
+
+**Returns** _void_ — side-effecting; no return value
+
+<!-- END GENERATED API REFERENCE -->

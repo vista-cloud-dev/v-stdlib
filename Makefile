@@ -45,7 +45,7 @@ S3_TESTBED := scripts/s3-testbed.sh
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check
+        docs-check docs-bodies docs-bodies-check
 
 all: check
 
@@ -240,11 +240,24 @@ skill-install: skill
 docs-check:
 	@python3 tools/check-docs.py --check
 
+# docs-bodies (stdlib-docs Phase 4 / AC4): regenerate the delimited
+# `## API reference` block on every docs/modules/<module>.md from the manifest
+# (signatures/params/returns/raises/examples). The generator owns ONLY the text
+# between its markers — hand prose is preserved on every regen (risk R-CLOBBER).
+# `docs-bodies-check` is the drift gate: red when a `.m` signature edit hasn't
+# been propagated to the page (run `make manifest docs-bodies` and commit).
+# Byte-identical sibling of m-stdlib's gen-bodies.py.
+docs-bodies:
+	python3 tools/gen-bodies.py
+
+docs-bodies-check:
+	@python3 tools/gen-bodies.py --check
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
 gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
-       manifest-check manifest-golden skill-check docs-check
+       manifest-check manifest-golden skill-check docs-check docs-bodies-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.
