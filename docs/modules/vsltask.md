@@ -36,6 +36,12 @@ The last VSLTASK error message (the composed malformed-call / fault detail).
 
 **Returns** _string_ — ^TMP($job,"vsltask","err"), or "" if none
 
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","arm an error") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),"task number","$$lastError carries the malformed-call detail after a raise")
+```
+
 ### `$$persist^VSLTASK(ztsk)`
 
 Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
@@ -50,6 +56,12 @@ Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 
 - `U-VSL-TASK-ARG` — the call is malformed (no positive task number)
 
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","$$persist with no task# raises U-VSL-TASK-ARG")
+```
+
 ### `$$queue^VSLTASK(entry, desc, when)`
 
 (private) headless ^%ZTLOAD queue (no device); return the task number, else 0.
@@ -59,6 +71,12 @@ Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 1 iff the TaskMan scheduler is live (its ^%ZTSCH("RUN") heartbeat is fresh).
 
 **Returns** _bool_ — 1 iff TaskMan is running (the self-heal precondition); 0 otherwise
+
+**Example**
+
+```m
+do true^STDASSERT(.pass,.fail,($$running^VSLTASK()=0)!($$running^VSLTASK()=1),"$$running returns a clean boolean (resolves $$TM^%ZTLOAD)")
+```
 
 ### `$$schedule^VSLTASK(entry, desc, when)`
 
@@ -77,10 +95,22 @@ Headless-queue a persistent listener at `entry`; return its task number.
 - `U-VSL-TASK-ARG` — no entry reference supplied
 - `U-VSL-TASK-QUEUE` — the TaskMan queue / persist failed
 
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
+```
+
 ### `$$stop^VSLTASK()`
 
 1 iff a stop has been requested of the currently-running task (cooperative stop).
 
 **Returns** _bool_ — 1 iff the listener loop should stop; 0 when not in a task / no stop pending
+
+**Example**
+
+```m
+do true^STDASSERT(.pass,.fail,$$stop^VSLTASK()=0,"$$stop=0 when not running as a TaskMan task (the cooperative-stop check)")
+```
 
 <!-- END GENERATED API REFERENCE -->

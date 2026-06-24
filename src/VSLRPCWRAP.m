@@ -48,6 +48,7 @@ req()	; Request side-call: emit a dir=req record for EVERY RPC (incl. denied/err
 	; doc: The FU-4 fence (same pattern as capture^VSLRPCTAP): snapshot $TEST + the naked
 	; doc: indicator BEFORE any global reference, re-establish both on EVERY exit. Owning the
 	; doc: fence HERE lets reqWork read the gate + config (globals) safely (see the file note).
+	; doc: @example   new h,hdr,ok,XWB,XWBSEC tstart ():transactionid="batch" set XWB(2,"CAPI")="ORWPT LIST ALL",XWBSEC="",^VSLTAP("cfg","s3station")="500" do arm^VSLTAP(),setConsumer^VSLTAP(1),req^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr("direction"),"req","req emits one dir=req record (rolled back via tstart/trollback)") trollback
 	new t,nref,zz
 	; m-lint: disable-next-line=M-MOD-017
 	set t=$test
@@ -59,6 +60,7 @@ req()	; Request side-call: emit a dir=req record for EVERY RPC (incl. denied/err
 	;
 resp()	; Result side-call: emit a dir=resp record on the dispatch-success path.
 	; doc: @returns void  fenced exactly like req(); correlated to its request by call_id.
+	; doc: @example   new h,hdr,ok,XWB,XWBSEC,XWBP,XWBPTYPE tstart ():transactionid="batch" set XWB(2,"CAPI")="ORWPT LIST ALL",XWBSEC="",XWBP="result",XWBPTYPE=1,^VSLTAP("cfg","s3station")="500" do arm^VSLTAP(),setConsumer^VSLTAP(1),req^VSLRPCWRAP(),resp^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr("direction"),"resp","resp emits a dir=resp record on the success path (rolled back)") trollback
 	new t,nref,zz
 	; m-lint: disable-next-line=M-MOD-017
 	set t=$test
@@ -71,6 +73,7 @@ resp()	; Result side-call: emit a dir=resp record on the dispatch-success path.
 reqWork()	; (private) DO-framed: gate, build the dir=req rec from broker vars, tee it.
 	; doc: MUST stay DO-invoked (never `$$`): the trap's arg-less QUIT raises M17
 	; doc: NOTEXTRINSIC in an extrinsic frame (the append/write1 gotcha).
+	; doc: @example   new h,hdr,ok,XWB,XWBSEC tstart ():transactionid="batch" set XWB(2,"CAPI")="ORWU NEWPERS",XWBSEC="",^VSLTAP("cfg","s3station")="500" do arm^VSLTAP(),setConsumer^VSLTAP(1),reqWork^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr("rpc"),"ORWU NEWPERS","reqWork builds the req rec carrying the XWB CAPI rpc name (rolled back)") trollback
 	new rec,x,$etrap
 	set $etrap="set $ecode="""" quit"
 	if '$$captureOn^VSLTAP() quit
@@ -104,6 +107,7 @@ params()	; (private) join the broker's decoded input params XWB(3,"P",*) verbati
 	; doc: @returns byte-string  the params $C(1)-joined in subscript order (FU-16(c): inputs
 	; doc: land in XWB(3,"P",*); there is no single param array to grab). A LOCAL $ORDER —
 	; doc: it does not touch the naked indicator.
+	; doc: @example   new XWB set XWB(3,"P",1)="ALPHA",XWB(3,"P",2)="9",XWB(3,"P",3)="" do eq^STDASSERT(.pass,.fail,$$params^VSLRPCWRAP(),"ALPHA"_$char(1)_"9"_$char(1)_"","params $C(1)-joined verbatim in subscript order")
 	new i,out
 	set out="",i=""
 	for  do pStep(.i,.out) quit:i=""
@@ -120,6 +124,10 @@ result(rec)	; (private) classify the result by XWBPTYPE (FU-16(c)) — scalar pa
 	; doc: XWBPTYPE 1=single -> scalar (XWBP IS the value); 4=global array -> XWBP is a
 	; doc: closed-root global ref string (gref=its value); 2=table/3=WP -> XWBP is a LOCAL
 	; doc: array tree (gref="XWBP" — write1rec MERGEs @gref). The MERGE is FU-17's one in-path op.
+	; doc: @example   new rec,XWBPTYPE,XWBP set XWBPTYPE=1,XWBP="hello" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("result_kind"),"scalar","XWBPTYPE=1 -> result_kind=scalar")
+	; doc: @example   new rec,XWBPTYPE,XWBP set XWBPTYPE=1,XWBP="hello" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("payload"),"hello","scalar payload = the verbatim XWBP value")
+	; doc: @example   new rec,XWBPTYPE,XWBP set XWBPTYPE=4,XWBP="^TMP($J,""X"")" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("result_kind"),"global","XWBPTYPE=4 -> result_kind=global, gref = the closed-root ref")
+	; doc: @example   new rec,XWBPTYPE set XWBPTYPE=2 do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("gref"),"XWBP","XWBPTYPE=2 (table) -> gref=XWBP (a LOCAL array tree)")
 	new ty
 	set ty=+$get(XWBPTYPE)
 	if ty=4 set rec("result_kind")="global",rec("gref")=$get(XWBP) quit
@@ -131,6 +139,8 @@ ctx(rec)	; (private) FU-18 context read at the wrap depth (process scope; ancest
 	; doc: @param rec  array  by-ref: sets duz/job/client/station
 	; doc: DUZ/$J + the client IP:port (XWBTIP:XWBTSKT, EN^XWBTCPC formal params — OPEN-2,
 	; doc: read the vars directly, not the truncated procname). All LOCAL reads (no global).
+	; doc: @example   new rec,DUZ,XWBTIP,XWBTSKT set DUZ=168,XWBTIP="10.1.2.3",XWBTSKT=51001 do ctx^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("client"),"10.1.2.3:51001","client = XWBTIP:XWBTSKT (FU-18)")
+	; doc: @example   new rec,DUZ,XWBTIP,XWBTSKT set DUZ=168 do ctx^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec("duz"),168,"duz read from DUZ; job = $job")
 	set rec("duz")=$get(DUZ)
 	set rec("job")=$job
 	set rec("client")=$get(XWBTIP)_":"_$get(XWBTSKT)

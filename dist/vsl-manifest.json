@@ -25,7 +25,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$manifest^VSLBLD(.out)'<5,\"the base ships at least the five M1-M4 VSL* modules\")",
+            "set n=$$manifest^VSLBLD(.out) do true^STDASSERT(.pass,.fail,$get(out(\"requiredBuild\"))=\"MSL*0.1*1\",\"manifest declares the Required Build on the m-stdlib base\")",
+            "set n=$$manifest^VSLBLD(.out) do true^STDASSERT(.pass,.fail,$get(out(\"patch\"))=\"VSL*1.0*3\",\"manifest declares the patch identity VSL*1.0*3\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -54,7 +58,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$envCheck^VSLBLD(.facts)=1,\"$$envCheck succeeds on a live VistA\")",
+            "set ok=$$envCheck^VSLBLD(.facts) do true^STDASSERT(.pass,.fail,$get(facts(\"engine\"))'=\"\",\"env-check reports the engine type\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -63,7 +70,7 @@
           "description": "",
           "source": {
             "file": "src/VSLBLD.m",
-            "line": 54
+            "line": 57
           }
         },
         "requireBase": {
@@ -88,7 +95,10 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$requireBase^VSLBLD(\"ZZNOSUCH*9.9*9\")=0,\"an absent base build is a normal 0 (a not-installed result, not a loud failure)\")",
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$requireBase^VSLBLD(\"\"\"\")\",\"U-VSL-BLD-ARG\",\"$$requireBase with no build name raises U-VSL-BLD-...\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -97,7 +107,7 @@
           "description": "@icr 10141 @call $$PATCH^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#verifying-patch-installation",
           "source": {
             "file": "src/VSLBLD.m",
-            "line": 59
+            "line": 64
           }
         },
         "lastError": {
@@ -111,7 +121,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$requireBase^VSLBLD(\"\"\"\")\",\"U-VSL-BLD-ARG\",\"arming the error state\") do true^STDASSERT(.pass,.fail,$$lastError^VSLBLD()'=\"\",\"lastError carries the malformed-call detail after a rejected call\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -120,7 +132,7 @@
           "description": "",
           "source": {
             "file": "src/VSLBLD.m",
-            "line": 67
+            "line": 74
           }
         }
       },
@@ -158,7 +170,8 @@
           "raises": [],
           "raised_in_body": [],
           "examples": [
-            "set greeting=$$get^VSLCFG(\"VPNG GREETING\",\"hello\")"
+            "do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(\"ZZVSLCFGNOSUCH\",\"fallback\"),\"fallback\",\"get: unset parameter returns the default\")",
+            "new k,i,r,d set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT,k=\"\",d=0 for  set k=$order(^XTV(8989.51,\"B\",k)) quit:k=\"\"!d  set i=+$order(^XTV(8989.51,\"B\",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))=\"F\",$$GET^XPAR(\"SYS\",k,1)=\"\" do EN^XPAR(\"SYS\",k,1,\"ZZP\",.r) set r=$$GET^XPAR(\"SYS\",k,1) do EN^XPAR(\"SYS\",k,1,\"@\") if r=\"ZZP\" do set^VSLCFG(k,\"hi\") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,\"MISS\"),\"hi\",\"get: $$set then $$get round-trips a SYS value\") do EN^XPAR(\"SYS\",k,1,\"@\") set d=1"
           ],
           "since": "",
           "stable": "",
@@ -193,7 +206,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new k,i,r,d set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT,k=\"\",d=0 for  set k=$order(^XTV(8989.51,\"B\",k)) quit:k=\"\"!d  set i=+$order(^XTV(8989.51,\"B\",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))=\"F\",$$GET^XPAR(\"SYS\",k,1)=\"\" do EN^XPAR(\"SYS\",k,1,\"ZZP\",.r) set r=$$GET^XPAR(\"SYS\",k,1) do EN^XPAR(\"SYS\",k,1,\"@\") if r=\"ZZP\" do set^VSLCFG(k,\"hi\") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,\"MISS\"),\"hi\",\"set: stores a SYS value that $$get reads back\") do EN^XPAR(\"SYS\",k,1,\"@\") set d=1"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -202,7 +217,7 @@
           "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 26
+            "line": 27
           }
         }
       },
@@ -235,7 +250,8 @@
           "source": {
             "file": "src/VSLENV.m",
             "line": 29
-          }
+          },
+          "illustrative": "only meaningful inside a live KIDS install — MES^XPDUTL needs the KIDS message buffer + it sets the KIDS XPDQUIT install-control flag"
         },
         "check": {
           "form": "extrinsic",
@@ -254,7 +270,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,x,1,\"check returns 1\")",
+            "set x=$$check^VSLENV(.facts) do true^STDASSERT(.pass,.fail,facts(\"engine\")'=\"\",\"check fills a non-empty engine fact\")",
+            "set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,facts(\"version\"),$zversion,\"check reports the running engine version\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -263,7 +283,7 @@
           "description": "",
           "source": {
             "file": "src/VSLENV.m",
-            "line": 37
+            "line": 38
           }
         },
         "kernelVer": {
@@ -274,7 +294,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$kernelVer^VSLENV()'=\"\",\"kernelVer is non-empty on a Kernel-equipped VistA\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -283,7 +305,7 @@
           "description": "@icr 10141 @call $$VERSION^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#versionxpdutl-package-file-current-version",
           "source": {
             "file": "src/VSLENV.m",
-            "line": 46
+            "line": 50
           }
         },
         "tlsConfig": {
@@ -294,7 +316,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$tlsConfig^VSLENV(),$$GET^XPAR(\"SYS\",\"DEFAULT TLS SERVER CONFIG\",1),\"tlsConfig reads the DEFAULT TLS SERVER CONFIG parameter\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -303,7 +327,7 @@
           "description": "@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLENV.m",
-            "line": 54
+            "line": 59
           }
         }
       },
@@ -357,7 +381,9 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set DUZ=1,DUZ(0)=\"\"@\"\",U=\"\"^\"\",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,\"\"+1,\"\",\"\".01\"\",\"\"ZZ\"\")\",\"U-VSL-FS\",\"set: a FileMan DIERR raises U-VSL-FS-DIERR\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -367,7 +393,8 @@
           "source": {
             "file": "src/VSLFS.m",
             "line": 41
-          }
+          },
+          "illustrative": "a successful add files a real FileMan record; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) created+deleted, not a safe read-only one-liner — see tests/VSLFSTST.m tCreateGetRoundtrip"
         },
         "get": {
           "form": "extrinsic",
@@ -401,7 +428,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,\"1,\",\".01\",\"\")'=\"\",\"get: #200 IEN 1 (.01) reads a non-empty name\")",
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,\"999999999,\",\".01\",\"MISS\"),\"MISS\",\"get: an absent record returns the default\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -410,7 +440,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 55
+            "line": 57
           }
         },
         "exists": {
@@ -435,7 +465,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,\"1,\"),1,\"exists: #200 IEN 1 (postmaster) exists\")",
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,\"999999999,\"),0,\"exists: an absent record returns 0\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -444,7 +477,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 67
+            "line": 71
           }
         },
         "kill": {
@@ -478,8 +511,9 @@
           "description": "@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 77
-          }
+            "line": 83
+          },
+          "illustrative": "deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill"
         },
         "lastError": {
           "form": "extrinsic",
@@ -492,7 +526,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new prior,r set prior=$get(^TMP($job,\"vslfs\",\"err\")),^TMP($job,\"vslfs\",\"err\")=\"set: FileMan DIERR\" set r=$$lastError^VSLFS() set ^TMP($job,\"vslfs\",\"err\")=prior do eq^STDASSERT(.pass,.fail,r,\"set: FileMan DIERR\",\"lastError: returns the composed FileMan DIERR detail\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -501,7 +537,7 @@
           "description": "",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 88
+            "line": 95
           }
         }
       },
@@ -527,7 +563,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\"),^HL(772),^HLB,^HLA  do arm^VSLTAP(),setConsumer^VSLTAP(1)  set ^HL(772,10,0)=\"3170627.01^^^O^^L1^^10^D\",^HL(772,10,\"IN\",1,0)=\"MSH|leg\",^HL(772,10,\"IN\",0)=\"^^1^1^3170627^\"  set ^HLB(3,0)=\"H1^200^^O^link\",^HLB(3,1)=\"MSH|^~\\&|\",^HLB(3,2)=\"|ADT\",^HLA(200,1,1,0)=\"EVN|hlo\",^HLA(200,1,0)=\"^^1^1^3170627^\"  do tail^VSLHL7TAP()  do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),2,\"one tail pass drains both the legacy and the HLO store\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\"),^HL(772)  do arm^VSLTAP()  set ^HL(772,10,0)=\"3170627^^^O^^L1^^10^D\",^HL(772,10,\"IN\",1,0)=\"MSH|x\",^HL(772,10,\"IN\",0)=\"^^1^1^3170627^\"  do tail^VSLHL7TAP()  do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,\"no consumer -> zero capture, cursor frozen for catch-up on re-arm\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -539,52 +578,17 @@
             "line": 45
           }
         },
-        "tailStore": {
+        "tailLegacy": {
           "form": "procedure",
-          "signature": "do tailStore^VSLHL7TAP(store)",
-          "synopsis": "(private) forward-only $ORDER over numeric IENs of one store.",
-          "params": [
-            {
-              "name": "store",
-              "type": "string",
-              "doc": "\"772\" (legacy) | \"778\" (HLO)"
-            }
-          ],
+          "signature": "do tailLegacy^VSLHL7TAP()",
+          "synopsis": "Tail #772 forward from its cursor, teeing each new verbatim message.",
+          "params": [],
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "A per-entry read fault is fenced (off-window recorded) and the cursor\nstill advances past the poison entry — progress over a poison record, and\nthe gap is explicit, never silent. Non-numeric (cross-ref) subs end it.",
-          "source": {
-            "file": "src/VSLHL7TAP.m",
-            "line": 61
-          }
-        },
-        "tailOne": {
-          "form": "procedure",
-          "signature": "do tailOne^VSLHL7TAP(store, ien, cur)",
-          "synopsis": "(private) one tail step: advance, read-fenced, tee, persist the cursor.",
-          "params": [
-            {
-              "name": "ien",
-              "type": "numeric",
-              "doc": "by-ref: advanced to the next IEN (\"\" ends the loop)"
-            },
-            {
-              "name": "cur",
-              "type": "numeric",
-              "doc": "by-ref: the persisted high-water cursor"
-            }
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\"),^HL(772)  do arm^VSLTAP(),setConsumer^VSLTAP(1)  set ^HL(772,2230625,0)=\"3170627.01^^^O^^ID1^^2230625^D\",^HL(772,2230625,\"IN\",1,0)=\"MSH|^~\\&|A\",^HL(772,2230625,\"IN\",0)=\"^^1^1^3170627^\"  set ^HL(772,2230648,0)=\"3170627.01^^^I^^ID2^^2230648^D\",^HL(772,2230648,\"IN\",1,0)=\"MSH|^~\\&|B\",^HL(772,2230648,\"IN\",0)=\"^^1^1^3170627^\"  do tailLegacy^VSLHL7TAP()  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"772\"),2230648,\"the #772 cursor advances to the last IEN after tailing both entries\")"
           ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -593,58 +597,29 @@
           "description": "",
           "source": {
             "file": "src/VSLHL7TAP.m",
-            "line": 72
+            "line": 55
           }
         },
-        "nextIen": {
-          "form": "extrinsic",
-          "signature": "$$nextIen^VSLHL7TAP(store, ien)",
-          "synopsis": "(private) the next numeric IEN after `ien`, or \"\" at the first cross-ref.",
+        "tailHLO": {
+          "form": "procedure",
+          "signature": "do tailHLO^VSLHL7TAP()",
+          "synopsis": "Tail #778/#777 forward from its cursor, teeing each new verbatim message.",
           "params": [],
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "numeric subscripts collate before the B/C/AF/AI cross-refs; stop there.",
-          "source": {
-            "file": "src/VSLHL7TAP.m",
-            "line": 85
-          }
-        },
-        "read1": {
-          "form": "procedure",
-          "signature": "do read1^VSLHL7TAP(store, ien, msg, ok)",
-          "synopsis": "(private) fenced reassembly of one entry (DO-framed so the trap QUIT is legal).",
-          "params": [
-            {
-              "name": "msg",
-              "type": "string",
-              "doc": "by-ref OUT: the verbatim message (\"\" on fault/purged)"
-            },
-            {
-              "name": "ok",
-              "type": "bool",
-              "doc": "by-ref OUT: 0 iff a fault was fenced"
-            }
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\"),^HLB,^HLA  do arm^VSLTAP(),setConsumer^VSLTAP(1)  set ^HLB(7,0)=\"MID^400^^O^link\",^HLB(7,1)=\"MSH|^~\\&|X|\",^HLB(7,2)=\"Y||ADT^A01|MID|P|2.4\",^HLA(400,1,1,0)=\"EVN|A01\",^HLA(400,1,0)=\"^^1^1^3170627^\"  do tailHLO^VSLHL7TAP()  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"778\"),7,\"the #778 cursor advances after tailing the HLO entry\")"
           ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "Flag-based $ETRAP (ISO, dual-engine; never zgoto, the M4 resident-harness\ngotcha) — a malformed store entry self-fences instead of aborting the tail.",
+          "description": "",
           "source": {
             "file": "src/VSLHL7TAP.m",
-            "line": 93
+            "line": 60
           }
         },
         "readLegacy": {
@@ -664,7 +639,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set ^HL(772,100,\"IN\",1,0)=\"MSH|^~\\&|ROR SITE\",^HL(772,100,\"IN\",2,0)=\"PID|1||0\",^HL(772,100,\"IN\",3,0)=\"CSR|VA HEPC\"  do eq^STDASSERT(.pass,.fail,$$readLegacy^VSLHL7TAP(100),\"MSH|^~\\&|ROR SITE\"_$char(13)_\"PID|1||0\"_$char(13)_\"CSR|VA HEPC\",\"the three #772 'IN' segments rejoin byte-verbatim, CR-delimited\")",
+            "set ^HL(772,200,0)=\"3170717.234501^^^^^5002230648\"  do eq^STDASSERT(.pass,.fail,$$readLegacy^VSLHL7TAP(200),\"\",\"a purged #772 entry (header only, no 'IN' body) returns the empty string\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -673,7 +651,7 @@
           "description": "in seq order; \"\" when the body was purged (header-only entry).",
           "source": {
             "file": "src/VSLHL7TAP.m",
-            "line": 107
+            "line": 115
           }
         },
         "readHLO": {
@@ -693,7 +671,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set ^HLB(50,0)=\"MSGID123^900^^O^link\",^HLB(50,1)=\"MSH|^~\\&|APP|FAC|\",^HLB(50,2)=\"DEST|FAC2\",^HLA(900,1,1,0)=\"EVN|A01\",^HLA(900,1,2,0)=\"PID|1||12345\"  do eq^STDASSERT(.pass,.fail,$$readHLO^VSLHL7TAP(50),\"MSH|^~\\&|APP|FAC|DEST|FAC2\"_$char(13)_\"EVN|A01\"_$char(13)_\"PID|1||12345\",\"MSH(nodes 1+2) prepended to the #777 body segments, CR-delimited, byte-verbatim\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -702,7 +682,7 @@
           "description": "segments ^HLA(body,1,seq,0), all CR-delimited, in order.",
           "source": {
             "file": "src/VSLHL7TAP.m",
-            "line": 119
+            "line": 129
           }
         },
         "cursor": {
@@ -722,7 +702,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP(\"hl7cur\",\"772\")  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"772\"),0,\"an unset cursor reads as 0\")",
+            "set ^VSLTAP(\"hl7cur\",\"778\")=4242  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"778\"),4242,\"cursor returns the persisted high-water IEN\")  kill ^VSLTAP(\"hl7cur\",\"778\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -731,7 +714,62 @@
           "description": "",
           "source": {
             "file": "src/VSLHL7TAP.m",
-            "line": 131
+            "line": 142
+          }
+        },
+        "setCursor": {
+          "form": "procedure",
+          "signature": "do setCursor^VSLHL7TAP(store, ien)",
+          "synopsis": "Persist the high-water IEN for a store.",
+          "params": [
+            {
+              "name": "store",
+              "type": "string",
+              "doc": "the store key (\"772\" | \"778\")"
+            },
+            {
+              "name": "ien",
+              "type": "numeric",
+              "doc": "the high-water IEN to persist"
+            }
+          ],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "do setCursor^VSLHL7TAP(\"772\",99)  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"772\"),99,\"setCursor persists the high-water IEN, read back by $$cursor\")  kill ^VSLTAP(\"hl7cur\",\"772\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLHL7TAP.m",
+            "line": 149
+          }
+        },
+        "resetCursors": {
+          "form": "procedure",
+          "signature": "do resetCursors^VSLHL7TAP()",
+          "synopsis": "Clear both cursors (re-tail from the beginning of each store).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "set ^VSLTAP(\"hl7cur\",\"772\")=5,^VSLTAP(\"hl7cur\",\"778\")=9  do resetCursors^VSLHL7TAP()  do eq^STDASSERT(.pass,.fail,$$cursor^VSLHL7TAP(\"772\")+$$cursor^VSLHL7TAP(\"778\"),0,\"resetCursors clears both cursors back to 0\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLHL7TAP.m",
+            "line": 156
           }
         }
       },
@@ -775,7 +813,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$connect^VSLIO(\"127.0.0.1\",65000,2)=0,\"connect to a closed port returns 0 (POP positive)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -828,8 +868,9 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 58
-          }
+            "line": 59
+          },
+          "illustrative": "needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server)."
         },
         "write": {
           "form": "extrinsic",
@@ -862,8 +903,9 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 71
-          }
+            "line": 73
+          },
+          "illustrative": "needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho."
         },
         "close": {
           "form": "extrinsic",
@@ -891,8 +933,9 @@
           "description": "@icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 81
-          }
+            "line": 84
+          },
+          "illustrative": "needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho."
         },
         "lastError": {
           "form": "extrinsic",
@@ -905,7 +948,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new had,save set had=$data(^TMP($job,\"vslio\",\"err\")),save=$get(^TMP($job,\"vslio\",\"err\")),^TMP($job,\"vslio\",\"err\")=\"connectTls: x\" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),\"connectTls\",\"lastError returns the stashed message\") if had set ^TMP($job,\"vslio\",\"err\")=save quit:had  kill ^TMP($job,\"vslio\",\"err\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -914,7 +959,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 91
+            "line": 95
           }
         },
         "tlsAvailable": {
@@ -928,7 +973,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$tlsAvailable^VSLIO()  ; 0"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -937,7 +984,7 @@
           "description": "Check before any secure use; $$tlsHelp has remediation.",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 97
+            "line": 102
           }
         },
         "tlsHelp": {
@@ -951,7 +998,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),\"NOTLS\",\"tlsHelp carries the remediation message\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -960,7 +1009,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 102
+            "line": 108
           }
         },
         "connectTls": {
@@ -1000,7 +1049,9 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$connectTls^VSLIO(\"\"h\"\",1,1,\"\"cfg\"\")\",\"U-VSLIO-NOTLS\",\"connectTls raises U-VSLIO-NOTLS\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1009,7 +1060,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 106
+            "line": 113
           }
         }
       },
@@ -1058,7 +1109,10 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,\"ZZVSLLOGEX\",\"X\") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),\"ZZVSLLOGEX\",\"write then read-back contains the event\") set zzok=$$kill^VSLFS(8989.51,ie)",
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,\"set x=$$write^VSLLOG(99999999,\"\"ZZ\"\",\"\"X\"\")\",\"U-VSL-LOG-WRITE\",\"writing into a bogus file raises U-VSL-LOG-WRITE\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1092,7 +1146,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,\"9999999,\"),\"\",\"read of an absent record returns empty string\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1101,7 +1157,7 @@
           "description": "",
           "source": {
             "file": "src/VSLLOG.m",
-            "line": 55
+            "line": 57
           }
         },
         "lastError": {
@@ -1115,7 +1171,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,\"set x=$$write^VSLLOG(99999999,\"\"ZZ\"\",\"\"X\"\")\",\"U-VSL-LOG-WRITE\",\"seed a failure\") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'=\"\",\"lastError carries the FileMan detail after a failed write\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1124,7 +1182,7 @@
           "description": "",
           "source": {
             "file": "src/VSLLOG.m",
-            "line": 61
+            "line": 64
           }
         }
       },
@@ -1156,7 +1214,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec do off^VSLTAP(),arm^VSLTAP() kill ^XTMP(\"VSLTAP\") set rec(\"dir\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"rpc\")=\"ORWU DT\",rec(\"payload\")=\"DUZ=10^NOW\" do capture^VSLRPCTAP(.rec) do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,\"capture tees one record into the always-on ring\") do off^VSLTAP() kill ^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1190,7 +1250,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$callId^VSLRPCTAP(\"500\",7),\"500-\"_$job_\"-7\",\"callId builds station-$J-counter\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1199,7 +1261,7 @@
           "description": "A process-local counter (not a global hot node, spec §4.1.3) keeps event_id\n(call_id \":\" direction) deterministic without cross-process contention.",
           "source": {
             "file": "src/VSLRPCTAP.m",
-            "line": 61
+            "line": 62
           }
         },
         "work": {
@@ -1216,7 +1278,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec do off^VSLTAP(),arm^VSLTAP() kill ^XTMP(\"VSLTAP\") set rec(\"dir\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"rpc\")=\"X\",rec(\"payload\")=\"P\" do work^VSLRPCTAP(.rec) do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,\"work appends the record (the global-touching side)\") do off^VSLTAP() kill ^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1225,7 +1289,7 @@
           "description": "$$teeRec^VSLTAP is already self-fenced (it swallows + self-disables); this frame's\nflag-based $ETRAP is the backstop so that even a residual escape returns here\nvia an arg-less QUIT, letting capture's finally restore the naked indicator.\nMUST stay DO-invoked (never `$$`): the trap's arg-less QUIT raises M17\nNOTEXTRINSIC in an extrinsic frame (same gotcha as append/write1).",
           "source": {
             "file": "src/VSLRPCTAP.m",
-            "line": 69
+            "line": 71
           }
         },
         "nakedRef": {
@@ -1239,7 +1303,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new zz set zz=$data(^VSLTAP(\"cfg\")) do eq^STDASSERT(.pass,.fail,$$nakedRef^VSLRPCTAP(),\"^VSLTAP(\"\"cfg\"\")\",\"nakedRef returns the caller's last global reference\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1248,7 +1314,7 @@
           "description": "The SVN name differs by engine and neither engine compiles the other's token,\nso it is read via XECUTE of an engine-selected assignment — no literal SVN in\nthe compiled routine. XECUTE keeps the current naked-reference context, and a\nfunction call does not reset it, so this returns the CALLER's last reference.\n(Engine-neutral — a candidate to promote to an m-stdlib STD* primitive later.)",
           "source": {
             "file": "src/VSLRPCTAP.m",
-            "line": 81
+            "line": 84
           }
         }
       },
@@ -1274,7 +1340,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new h,hdr,ok,XWB,XWBSEC tstart ():transactionid=\"batch\" set XWB(2,\"CAPI\")=\"ORWPT LIST ALL\",XWBSEC=\"\",^VSLTAP(\"cfg\",\"s3station\")=\"500\" do arm^VSLTAP(),setConsumer^VSLTAP(1),req^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr(\"direction\"),\"req\",\"req emits one dir=req record (rolled back via tstart/trollback)\") trollback"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1297,7 +1365,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new h,hdr,ok,XWB,XWBSEC,XWBP,XWBPTYPE tstart ():transactionid=\"batch\" set XWB(2,\"CAPI\")=\"ORWPT LIST ALL\",XWBSEC=\"\",XWBP=\"result\",XWBPTYPE=1,^VSLTAP(\"cfg\",\"s3station\")=\"500\" do arm^VSLTAP(),setConsumer^VSLTAP(1),req^VSLRPCWRAP(),resp^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr(\"direction\"),\"resp\",\"resp emits a dir=resp record on the success path (rolled back)\") trollback"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1306,7 +1376,7 @@
           "description": "",
           "source": {
             "file": "src/VSLRPCWRAP.m",
-            "line": 60
+            "line": 61
           }
         },
         "reqWork": {
@@ -1317,7 +1387,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new h,hdr,ok,XWB,XWBSEC tstart ():transactionid=\"batch\" set XWB(2,\"CAPI\")=\"ORWU NEWPERS\",XWBSEC=\"\",^VSLTAP(\"cfg\",\"s3station\")=\"500\" do arm^VSLTAP(),setConsumer^VSLTAP(1),reqWork^VSLRPCWRAP() set h=$$head^VSLTAP(),ok=$$hdr^VSLTAP(h,.hdr) do eq^STDASSERT(.pass,.fail,hdr(\"rpc\"),\"ORWU NEWPERS\",\"reqWork builds the req rec carrying the XWB CAPI rpc name (rolled back)\") trollback"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1326,7 +1398,7 @@
           "description": "MUST stay DO-invoked (never `$$`): the trap's arg-less QUIT raises M17\nNOTEXTRINSIC in an extrinsic frame (the append/write1 gotcha).",
           "source": {
             "file": "src/VSLRPCWRAP.m",
-            "line": 71
+            "line": 73
           }
         },
         "params": {
@@ -1340,7 +1412,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new XWB set XWB(3,\"P\",1)=\"ALPHA\",XWB(3,\"P\",2)=\"9\",XWB(3,\"P\",3)=\"\" do eq^STDASSERT(.pass,.fail,$$params^VSLRPCWRAP(),\"ALPHA\"_$char(1)_\"9\"_$char(1)_\"\",\"params $C(1)-joined verbatim in subscript order\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1349,7 +1423,7 @@
           "description": "land in XWB(3,\"P\",*); there is no single param array to grab). A LOCAL $ORDER —\nit does not touch the naked indicator.",
           "source": {
             "file": "src/VSLRPCWRAP.m",
-            "line": 103
+            "line": 106
           }
         },
         "result": {
@@ -1366,7 +1440,12 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,XWBPTYPE,XWBP set XWBPTYPE=1,XWBP=\"hello\" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"result_kind\"),\"scalar\",\"XWBPTYPE=1 -> result_kind=scalar\")",
+            "new rec,XWBPTYPE,XWBP set XWBPTYPE=1,XWBP=\"hello\" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"payload\"),\"hello\",\"scalar payload = the verbatim XWBP value\")",
+            "new rec,XWBPTYPE,XWBP set XWBPTYPE=4,XWBP=\"^TMP($J,\"\"X\"\")\" do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"result_kind\"),\"global\",\"XWBPTYPE=4 -> result_kind=global, gref = the closed-root ref\")",
+            "new rec,XWBPTYPE set XWBPTYPE=2 do result^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"gref\"),\"XWBP\",\"XWBPTYPE=2 (table) -> gref=XWBP (a LOCAL array tree)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1375,7 +1454,7 @@
           "description": "XWBPTYPE 1=single -> scalar (XWBP IS the value); 4=global array -> XWBP is a\nclosed-root global ref string (gref=its value); 2=table/3=WP -> XWBP is a LOCAL\narray tree (gref=\"XWBP\" — write1rec MERGEs @gref). The MERGE is FU-17's one in-path op.",
           "source": {
             "file": "src/VSLRPCWRAP.m",
-            "line": 118
+            "line": 122
           }
         },
         "ctx": {
@@ -1392,7 +1471,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,DUZ,XWBTIP,XWBTSKT set DUZ=168,XWBTIP=\"10.1.2.3\",XWBTSKT=51001 do ctx^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"client\"),\"10.1.2.3:51001\",\"client = XWBTIP:XWBTSKT (FU-18)\")",
+            "new rec,DUZ,XWBTIP,XWBTSKT set DUZ=168 do ctx^VSLRPCWRAP(.rec) do eq^STDASSERT(.pass,.fail,rec(\"duz\"),168,\"duz read from DUZ; job = $job\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1401,7 +1483,7 @@
           "description": "DUZ/$J + the client IP:port (XWBTIP:XWBTSKT, EN^XWBTCPC formal params — OPEN-2,\nread the vars directly, not the truncated procname). All LOCAL reads (no global).",
           "source": {
             "file": "src/VSLRPCWRAP.m",
-            "line": 130
+            "line": 138
           }
         }
       },
@@ -1438,7 +1520,16 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"the line is well-formed JSON\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"payload\")),\"hello world\",\"payload round-trips byte-exact\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"x\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"event_id\")),\"500-1-7:resp\",\"event_id = call_id ':' direction\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"wire_len\")),11,\"wire_len = byte length of the RAW payload\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"req\",rec(\"call_id\")=\"500-1-8\",rec(\"seq\")=8,rec(\"denied\")=1,rec(\"payload\")=\"p\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"denied\")),1,\"a req carries denied, not result_kind\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-9\",rec(\"seq\")=9,rec(\"payload\")=\"v\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"result_kind\")),\"scalar\",\"a resp carries result_kind, not denied\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=(\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\") set opt(\"base64\")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$decode^STDB64($$valueOf^STDJSON(t(\"payload\"))),\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\",\"base64 switch decodes byte-exact\")",
+            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hi\" set opt(\"base64\")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"payload_sha256\")),$$sha256^STDCRYPTO(\"hi\"),\"payload_sha256 anchors the RAW bytes, even under base64\")",
+            "new rec,opt,a,b set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,\"deterministic: same fixture frames byte-identical (M-collation key order)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1467,7 +1558,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new save,b merge save=^XTMP(\"VSLTAP\",\"data\",991,\"g\") kill ^XTMP(\"VSLTAP\",\"data\",991,\"g\") set ^XTMP(\"VSLTAP\",\"data\",991,\"g\",\"DPT\",1)=\"ONE\",^XTMP(\"VSLTAP\",\"data\",991,\"g\",\"DPT\",2)=\"TWO\" set b=$$gSerialize^VSLS3(991) kill ^XTMP(\"VSLTAP\",\"data\",991,\"g\") merge ^XTMP(\"VSLTAP\",\"data\",991,\"g\")=save do eq^STDASSERT(.pass,.fail,$length(b,$char(10)),2,\"one JSON node line per descendant of the g MERGE snapshot\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1476,7 +1569,7 @@
           "description": "FU-17 defers ALL of a global result's serialize/chunk/hash to the drain (off the\nin-path; capture did one MERGE). The $QUERY walk is in M-collation order so the\nblob is deterministic across engines, and STDJSON escaping makes each node lossless\nfor arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form\n(vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a\ndeterministic, byte-faithful representation the §15.2 round-trip can prove.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 103
+            "line": 111
           }
         },
         "key": {
@@ -1511,7 +1604,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$key^VSLS3(\"500\",\"rpc\",42,\"20260619\")  ; \"traffic/500/rpc/2026/06/19/42.ndjson\"",
+            "write $$key^VSLS3(\"442\",\"hl7\",1,\"20260101\")  ; \"traffic/442/hl7/2026/01/01/1.ndjson\""
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1520,7 +1616,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 145
+            "line": 154
           }
         },
         "offWindowsKey": {
@@ -1545,7 +1641,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$offWindowsKey^VSLS3(\"500\",\"20260619\")  ; \"traffic/500/_offwindows/2026/06/19.json\""
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1554,7 +1652,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 155
+            "line": 166
           }
         },
         "fidelityKey": {
@@ -1579,7 +1677,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$fidelityKey^VSLS3(\"500\",\"20260619\")  ; \"traffic/500/_fidelity/2026/06/19.json\""
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1588,7 +1688,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 163
+            "line": 175
           }
         },
         "ctx": {
@@ -1613,7 +1713,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new ctx,opt,b,save merge save=^VSLTAP(\"cfg\") kill ^VSLTAP(\"cfg\") set ^VSLTAP(\"cfg\",\"s3bucket\")=\"vista-traffic\",^VSLTAP(\"cfg\",\"s3endpoint\")=\"http://m-s3-minio:9000\" set b=$$ctx^VSLS3(.ctx,.opt) kill ^VSLTAP(\"cfg\") merge ^VSLTAP(\"cfg\")=save do eq^STDASSERT(.pass,.fail,b,\"vista-traffic\",\"bucket + endpoint read from the ^VSLTAP config seam (set-then-restore)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1622,7 +1724,7 @@
           "description": "The same control state the Phase-2 core uses (^VSLTAP(\"cfg\",…)). An\nempty endpoint -> virtual-hosted real S3; a set endpoint -> path-style\nS3-equivalent (the no-code-change testbed hook, §15.1).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 182
+            "line": 195
           }
         },
         "ship": {
@@ -1676,8 +1778,9 @@
           "description": "The ONLY way to reach S3 (waterline rule 3: the m S3 client is the\ntransport monopoly). Runs in the SEPARATE flush process, never the\nRPC path (§4.1.3). 0 on a bare engine with no HTTP egress (G-HTTP-*).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 202
-          }
+            "line": 216
+          },
+          "illustrative": "live S3/MinIO PUT over engine HTTP egress (STDS3); no side-effect-safe bare-engine example — proven in the §15.2 MinIO integration harness."
         },
         "readback": {
           "form": "extrinsic",
@@ -1725,8 +1828,9 @@
           "description": "The fidelity-harness read leg (spec §15.2 step 4): read the shipped\nobject back and compare byte-for-byte (VSLTAPFC). `opt` carries the\nendpoint override (from $$ctx) so the GET reaches the same endpoint the\nPUT used — without it the read op signs+sends to real AWS, not MinIO.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 216
-          }
+            "line": 231
+          },
+          "illustrative": "live S3/MinIO GET over engine HTTP egress (STDS3); the read leg of the §15.2 round-trip, not runnable on a bare engine."
         },
         "list": {
           "form": "extrinsic",
@@ -1774,8 +1878,9 @@
           "description": "The discovery leg for the periodic fidelity sampler (VSLTAPRUN\n$$fidelityNow): enumerate recently-shipped objects under the per-station\nprefix so they can be read back and integrity-verified. Same `opt`\nendpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 229
-          }
+            "line": 245
+          },
+          "illustrative": "live S3/MinIO LIST over engine HTTP egress (STDS3 listObjectsV2); proven in STDS3MINIOTST, not on a bare engine."
         },
         "drain": {
           "form": "extrinsic",
@@ -1794,7 +1899,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new res,save,csave merge save=^XTMP(\"VSLTAP\") merge csave=^VSLTAP(\"cfg\") kill ^XTMP(\"VSLTAP\"),^VSLTAP(\"cfg\") set ^VSLTAP(\"cfg\",\"s3sink\")=\"capture\",^VSLTAP(\"cfg\",\"mode\")=\"armed\",^VSLTAP(\"cfg\",\"consumer\")=1,^VSLTAP(\"cfg\",\"s3station\")=\"500\" set ^XTMP(\"VSLTAP\",\"head\")=1,^XTMP(\"VSLTAP\",\"tail\")=0,^XTMP(\"VSLTAP\",\"data\",1)=\"ONELINE\" set n=$$drain^VSLS3(.res) kill ^XTMP(\"VSLTAP\"),^VSLTAP(\"cfg\") merge ^XTMP(\"VSLTAP\")=save merge ^VSLTAP(\"cfg\")=csave do eq^STDASSERT(.pass,.fail,n,1,\"capture-sink seam drains the 1-record ring without a live PUT (status 200)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1803,7 +1910,7 @@
           "description": "The whole egress path runs in the SEPARATE flush process (VSLTASK calls\nthis) — never the RPC CPU (§4.1.3). It is consumer-gated AND auto-\nfailover-aware: it ships ONLY while the Phase-2 gate is enabled, so a\ndead/slow sink or any interference signal turns it off cleanly (the gate\nrecords the off-window). On a 200 it self-drains the shipped seqs\n(drainTo^VSLTAP); on any other status it leaves the ring for retry.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 244
+            "line": 261
           }
         },
         "resolveRec": {
@@ -1835,7 +1942,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new erec,save merge save=^XTMP(\"VSLTAP\") kill ^XTMP(\"VSLTAP\") set ^XTMP(\"VSLTAP\",\"data\",993)=\"RAWBYTES\" do resolveRec^VSLS3(993,\"500\",\"rpc\",.erec) kill ^XTMP(\"VSLTAP\") merge ^XTMP(\"VSLTAP\")=save do eq^STDASSERT(.pass,.fail,erec(\"payload\"),\"RAWBYTES\",\"a legacy v1 record resolves to a plain payload under the station/proto key (set-then-restore)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1844,27 +1953,7 @@
           "description": "A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY\nresult is serialized from the \"g\" MERGE snapshot (FU-17) and base64'd; a scalar\nfrom its \"p\",1 chunk. A legacy v1 string record ($$append — the synthetic\ndemonstrator path) ships as a plain payload under the configured direction. The\nheader's schema_version keeps both readable from one ring (schema-lock §4).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 286
-          }
-        },
-        "shipBatch": {
-          "form": "extrinsic",
-          "signature": "$$shipBatch^VSLS3(ctx, bucket, key, body, opt, resp)",
-          "synopsis": "(private) ship one batch object; honour the capture-sink test seam.",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The §6.2-style injected seam: with ^VSLTAP(\"cfg\",\"s3sink\")=\"capture\"\nthe batch is returned in `res` (no real PUT) so the drain logic is\nprovable on a bare engine; otherwise it PUTs via the STDS3 monopoly.",
-          "source": {
-            "file": "src/VSLS3.m",
-            "line": 314
+            "line": 304
           }
         }
       },
@@ -1908,7 +1997,11 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(\"ZZ NO SUCH KEY\",1),0,\"hasKey is 0 (a normal DENY) for an unheld key\")",
+            "new k,d set k=$order(^XUSEC(\"\")),d=$select(k'=\"\":$order(^XUSEC(k,0)),1:\"\") do:k'=\"\"&(d'=\"\") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,\"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)\") do:k=\"\"!(d=\"\") true^STDASSERT(.pass,.fail,1,\"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia\")",
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$hasKey^VSLSEC(\"\"\"\",1)\",\"U-VSL-SEC-ARG\",\"$$hasKey with an empty key raises U-VSL-SEC-...\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1931,7 +2024,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new DUZ set DUZ=1 do eq^STDASSERT(.pass,.fail,$$duz^VSLSEC(),1,\"$$duz returns the ambient DUZ (NEWed, no side effect)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1940,12 +2035,12 @@
           "description": "",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 55
+            "line": 58
           }
         },
         "user": {
-          "form": "extrinsic",
-          "signature": "$$user^VSLSEC(duz)",
+          "form": "procedure",
+          "signature": "do user^VSLSEC(duz)",
           "synopsis": "The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.",
           "params": [
             {
@@ -1969,8 +2064,9 @@
           "description": "Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without\nre-binding the DBS (v->v composition; waterline §9 no-duplication).",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 59
-          }
+            "line": 63
+          },
+          "illustrative": "resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)"
         },
         "bySecid": {
           "form": "extrinsic",
@@ -1994,7 +2090,10 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$bySecid^VSLSEC(\"\"\"\")\",\"U-VSL-SEC-ARG\",\"$$bySecid(\"\"\"\") raises U-VSL-SEC-...\")",
+            "do:$text(EN1^XUPSQRY)'=\"\" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC(\"ZZNO-SUCH-SECID-99999\"),\"\",\"an unprovisioned SecID resolves to no #200 IEN\") do:$text(EN1^XUPSQRY)=\"\" true^STDASSERT(.pass,.fail,1,\"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2003,7 +2102,7 @@
           "description": "@icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file\nThe SSOi/2FA identity binding: a federated subject (the SecID claim of a\nvalidated token) -> the local #200 IEN, the way Kernel's own XUSAML/\nXUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID\n(param 2; null last name in param 3) and stuffs a by-ref result array\n(result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare\nengine (EN1^XUPSQRY absent) this returns \"\" — the caller $text-gates the\nlive path. No direct ^VA(200 read: the lookup is the Controlled-\nSubscription API and the IEN is read from the returned array (waterline).",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 66
+            "line": 70
           }
         },
         "lastError": {
@@ -2017,7 +2116,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new $etrap set $etrap=\"set $ecode=\"\"\"\"\" do hasKey^VSLSEC(\"\") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'=\"\",\"lastError carries the malformed-call detail after a loud failure\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2026,7 +2127,7 @@
           "description": "",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 93
+            "line": 99
           }
         }
       },
@@ -2063,7 +2164,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP(\"nosuchkey\",\"fallback\"),\"fallback\",\"unset key returns the default\")",
+            "set ^VSLTAP(\"cfg\",\"cap\")=750 do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP(\"cap\",1000),750,\"a set cfg knob reads back\") kill ^VSLTAP(\"cfg\",\"cap\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2075,6 +2179,75 @@
             "line": 58
           }
         },
+        "arm": {
+          "form": "procedure",
+          "signature": "do arm^VSLTAP()",
+          "synopsis": "Operator: arm the tap (kill-switch ON) and clear any prior auto-disable.",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP(\"mode\",\"off\"),\"armed\",\"arm sets mode=armed\") kill ^VSLTAP",
+            "kill ^VSLTAP set ^VSLTAP(\"disabled\")=\"fault\" do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"\",\"arm clears a prior auto-disable\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 66
+          }
+        },
+        "off": {
+          "form": "procedure",
+          "signature": "do off^VSLTAP()",
+          "synopsis": "Operator: kill-switch OFF (state OFF; capture cannot run).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$state^VSLTAP(),\"OFF\",\"kill-switch -> state OFF\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$captureOn^VSLTAP(),0,\"OFF -> capture gate cannot run\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 73
+          }
+        },
+        "setConsumer": {
+          "form": "procedure",
+          "signature": "do setConsumer^VSLTAP(present)",
+          "synopsis": "Set the consumer-presence flag (D-5): no consumer -> egress/capture OFF.",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),setConsumer^VSLTAP(1) do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),1,\"consumer present -> egress enabled\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),setConsumer^VSLTAP(0) do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),0,\"no consumer -> egress gated off\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 79
+          }
+        },
         "setAlwaysOn": {
           "form": "procedure",
           "signature": "do setAlwaysOn^VSLTAP(flag)",
@@ -2083,7 +2256,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do setAlwaysOn^VSLTAP(1) do eq^STDASSERT(.pass,.fail,$$cfg^VSLTAP(\"alwayson\",0),1,\"the legacy flag is still written/readable\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),setAlwaysOn^VSLTAP(0) do eq^STDASSERT(.pass,.fail,$$captureOn^VSLTAP(),1,\"SUBSUMED: alwayson=0 no longer gates the always-on ring\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2092,7 +2268,7 @@
           "description": "The ring is ALWAYS-ON by default now ($$captureOn), so this opt-in is a no-op\nfor gating. The cfg key is still written/readable so existing callers (e.g. the\nv-web console display) keep resolving; remove once consumers migrate.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 77
+            "line": 85
           }
         },
         "seed": {
@@ -2112,8 +2288,9 @@
           "description": "The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path\ngate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP(\"cfg\",…), NOT XPAR (no\nXPAR/FileMan read on the capture path). seed bridges the two: it copies\neach set param into its cfg key once, at install/configure time. The\nfidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not\nmirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 86
-          }
+            "line": 96
+          },
+          "illustrative": "reads the installed XPAR #8989.51 tap params via $$GET^XPAR (live Kernel); on a bare engine $text(GET^XPAR)=\"\" makes it a clean no-op, so a meaningful example needs an installed VistA with the params set."
         },
         "seedMap": {
           "form": "extrinsic",
@@ -2132,7 +2309,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new m do eq^STDASSERT(.pass,.fail,$$seedMap^VSLTAP(.m),9,\"nine param->cfg mappings\")",
+            "new m,n set n=$$seedMap^VSLTAP(.m) do eq^STDASSERT(.pass,.fail,m(1,\"param\")_\"=\"_m(1,\"cfg\"),\"VSL TAP CAP=cap\",\"first row maps the CAP param to the cap key\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2141,7 +2321,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 107
+            "line": 118
           }
         },
         "captureOn": {
@@ -2155,7 +2335,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$captureOn^VSLTAP(),1,\"armed + clean -> capture ON regardless of consumer\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"fault\") do eq^STDASSERT(.pass,.fail,$$captureOn^VSLTAP(),0,\"auto-failover -> capture OFF (fail-safe)\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2164,7 +2347,7 @@
           "description": "is armed and not auto-failed-over, INDEPENDENT of any consumer/sink — a down or\nabsent sink pauses only EGRESS ($$enabled), never capture (the flight-recorder\nkeeps a window of traffic ready for whenever a consumer attaches; it laps to\ndrop_oldest only under sustained pressure). The ONLY things that stop the ring\nare the operator kill-switch ($$off) and auto-failover ($$disable) — fail-safe-OFF.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 131
+            "line": 144
           }
         },
         "enabled": {
@@ -2178,7 +2361,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),setConsumer^VSLTAP(1) do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),1,\"capture-on + consumer -> egress enabled\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$enabled^VSLTAP(),0,\"capture-on but no consumer -> egress gated off\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2187,7 +2373,7 @@
           "description": "when this holds; with no consumer the ring still captures ($$captureOn) but the\nPUT pauses (the off-window is recorded, never silent). [FU-9 split the former\nsingle gate into capture (always-on) vs egress (consumer-gated).] The legacy\n`alwayson` flag is SUBSUMED — the ring is always-on by default now — and no\nlonger gates anything (the setter/cfg are kept for backward compatibility).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 142
+            "line": 157
           }
         },
         "append": {
@@ -2207,7 +2393,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$append^VSLTAP(\"rpc-record\"),1,\"captures with no consumer (always-on ring)\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"TST^DUZ=1\") do eq^STDASSERT(.pass,.fail,$$read^VSLTAP($$head^VSLTAP()),\"TST^DUZ=1\",\"the stored record is verbatim (no transform)\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$append^VSLTAP(\"x\"),0,\"OFF -> gated, no append\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2216,41 +2406,7 @@
           "description": "The ONLY in-path op (besides the $G gate): one global SET + bounded trim.\nNo LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:\nANY fault inside the write self-disables and returns 0 — never the caller.\nFlag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness\ngotcha). The write runs in a DO-invoked frame (write1) so the trap's\nargument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic\n($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 153
-          }
-        },
-        "write1": {
-          "form": "procedure",
-          "signature": "do write1^VSLTAP(rec, wrote)",
-          "synopsis": "(private) the ring write, DO-invoked so the append fence's QUIT is legal.",
-          "params": [
-            {
-              "name": "rec",
-              "type": "string",
-              "doc": "the verbatim payload"
-            },
-            {
-              "name": "wrote",
-              "type": "bool",
-              "doc": "by-ref; set 1 iff the record was appended"
-            }
-          ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [
-            "U-VSLTAP-INJECT",
-            "U-VSLTAP-INJECTPOST"
-          ],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLTAP.m",
-            "line": 173
+            "line": 170
           }
         },
         "tee": {
@@ -2270,7 +2426,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$tee^VSLTAP(\"rec\"),1,\"tee adapts to $$append -> 1 when armed\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$tee^VSLTAP(\"rec\"),0,\"tee returns 0 when gated off\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2279,7 +2438,7 @@
           "description": "$$append is already self-fenced (a DO-framed $ETRAP that self-disables on\nany fault); tee is the stable adapter entry. Either leaves the caller's\nresult / $ECODE / $T untouched.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 213
+            "line": 234
           }
         },
         "appendRec": {
@@ -2299,7 +2458,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set rec(\"dir\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"rpc\")=\"ORWPT INFO\",rec(\"payload\")=\"body\",rec(\"result_kind\")=\"scalar\" do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$appendRec^VSLTAP(.rec),1,\"a rich v2 record is captured when armed\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set rec(\"payload\")=\"body\" do off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$appendRec^VSLTAP(.rec),0,\"OFF -> gated, no v2 append\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2308,7 +2470,7 @@
           "description": "The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write\n(write1rec) so the trap's arg-less QUIT is legal. The caller-state fence\n(naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 237
+            "line": 260
           }
         },
         "teeRec": {
@@ -2328,7 +2490,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set rec(\"payload\")=\"b\",rec(\"result_kind\")=\"scalar\" do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$teeRec^VSLTAP(.rec),1,\"teeRec adapts to $$appendRec -> 1 when armed\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set rec(\"payload\")=\"b\" do off^VSLTAP() do eq^STDASSERT(.pass,.fail,$$teeRec^VSLTAP(.rec),0,\"teeRec returns 0 when gated off\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2337,61 +2502,99 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 253
+            "line": 278
           }
         },
-        "write1rec": {
-          "form": "procedure",
-          "signature": "do write1rec^VSLTAP(rec, wrote)",
-          "synopsis": "(private) write one cache-layout-v2 record, DO-invoked so the fence's QUIT is legal.",
-          "params": [
-            {
-              "name": "rec",
-              "type": "array",
-              "doc": "by-ref record descriptor (read-only)"
-            },
-            {
-              "name": "wrote",
-              "type": "bool",
-              "doc": "by-ref; set 1 iff the record was appended"
-            }
-          ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [
-            "U-VSLTAP-INJECT",
-            "U-VSLTAP-INJECTPOST"
-          ],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLTAP.m",
-            "line": 258
-          }
-        },
-        "hdrLine": {
+        "size": {
           "form": "extrinsic",
-          "signature": "$$hdrLine^VSLTAP(seq, rec, kind, wl, cc, enc, hash)",
-          "synopsis": "(private) assemble the cache-layout-v2 ^-delimited header.",
+          "signature": "$$size^VSLTAP()",
+          "synopsis": "Current ring entry count (head - tail).",
           "params": [],
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"a\") do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,\"one record -> size 1\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,\"empty ring -> size 0\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The frozen 18-piece header (schema-lock §4); NO field may contain \"^\" (the\npayload — which can — lives in the \"p\"/\"g\" subtree, never the header).",
+          "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 301
+            "line": 348
+          }
+        },
+        "head": {
+          "form": "extrinsic",
+          "signature": "$$head^VSLTAP()",
+          "synopsis": "Highest written seq (0 if empty).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$head^VSLTAP(),0,\"empty ring -> head 0\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"a\"),zz=$$append^VSLTAP(\"b\") do eq^STDASSERT(.pass,.fail,$$head^VSLTAP(),2,\"two appends -> head 2\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 353
+          }
+        },
+        "tail": {
+          "form": "extrinsic",
+          "signature": "$$tail^VSLTAP()",
+          "synopsis": "(lowest-retained seq) - 1 (0 if empty).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$tail^VSLTAP(),0,\"empty ring -> tail 0\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set ^VSLTAP(\"cfg\",\"cap\")=2,zz=$$append^VSLTAP(\"r1\"),zz=$$append^VSLTAP(\"r2\"),zz=$$append^VSLTAP(\"r3\"),zz=$$append^VSLTAP(\"r4\") do eq^STDASSERT(.pass,.fail,$$tail^VSLTAP(),2,\"cap=2 after 4 appends -> tail advanced to 2 (oldest 2 dropped)\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 358
+          }
+        },
+        "read": {
+          "form": "extrinsic",
+          "signature": "$$read^VSLTAP(seq)",
+          "synopsis": "The verbatim record at `seq`, or \"\" if absent/overwritten.",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"hello\") do eq^STDASSERT(.pass,.fail,$$read^VSLTAP(1),\"hello\",\"reads back the verbatim record at seq 1\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$read^VSLTAP(99),\"\",\"absent seq -> empty string\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 363
           }
         },
         "present": {
@@ -2405,7 +2608,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"x\") do eq^STDASSERT(.pass,.fail,$$present^VSLTAP(1),1,\"a committed slot is present\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$present^VSLTAP(99),0,\"an absent slot is not present\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2414,7 +2620,7 @@
           "description": "FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a\nconcurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight\nslot; stopping at the first absent node leaves that slot for the next tick rather\nthan shipping \"\" and trimming a record that is about to land. `$$read` can't tell\nan absent slot from a legitimately-empty record ($get-> \"\" for both); this can.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 331
+            "line": 368
           }
         },
         "isV2": {
@@ -2425,7 +2631,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"flat\") do eq^STDASSERT(.pass,.fail,$$isV2^VSLTAP(1),0,\"a legacy v1 string record is not v2\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set zr=$name(^TMP($job,\"V2\")),@zr@(\"a\")=\"x\",rec(\"dir\")=\"resp\",rec(\"gref\")=zr,rec(\"result_kind\")=\"global\" do arm^VSLTAP() set zz=$$appendRec^VSLTAP(.rec) do true^STDASSERT(.pass,.fail,$$isV2^VSLTAP($$head^VSLTAP()),\"a record with a g child is v2\") kill ^VSLTAP,^XTMP(\"VSLTAP\"),@zr"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2434,7 +2643,7 @@
           "description": "A legacy v1 string record ($$append) has only the scalar data node — no child.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 340
+            "line": 379
           }
         },
         "hdr": {
@@ -2459,7 +2668,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"flat\") do eq^STDASSERT(.pass,.fail,$$hdr^VSLTAP(1,.zo),0,\"a v1 record has no v2 header -> 0\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set zr=$name(^TMP($job,\"V2\")),@zr@(\"a\")=\"x\",rec(\"dir\")=\"resp\",rec(\"rpc\")=\"ORWU GLOBAL\",rec(\"gref\")=zr,rec(\"result_kind\")=\"global\" do arm^VSLTAP() set zz=$$appendRec^VSLTAP(.rec) set zz=$$hdr^VSLTAP($$head^VSLTAP(),.zo) do eq^STDASSERT(.pass,.fail,zo(\"rpc\")_\"/\"_zo(\"direction\")_\"/\"_zo(\"schema_version\"),\"ORWU GLOBAL/resp/1\",\"header parses rpc, direction and schema_version\") kill ^VSLTAP,^XTMP(\"VSLTAP\"),@zr"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2468,7 +2680,30 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 346
+            "line": 387
+          }
+        },
+        "chunk": {
+          "form": "extrinsic",
+          "signature": "$$chunk^VSLTAP(seq, i)",
+          "synopsis": "The i-th RAW payload chunk of a v2 record (\"\" if absent).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set rec(\"dir\")=\"resp\",rec(\"payload\")=\"chunkbody\",rec(\"result_kind\")=\"scalar\" do arm^VSLTAP() set zz=$$appendRec^VSLTAP(.rec) do eq^STDASSERT(.pass,.fail,$$chunk^VSLTAP($$head^VSLTAP(),1),\"chunkbody\",\"the first RAW payload chunk reads back verbatim\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^XTMP(\"VSLTAP\") do eq^STDASSERT(.pass,.fail,$$chunk^VSLTAP(99,1),\"\",\"absent chunk -> empty string\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 417
           }
         },
         "drainTo": {
@@ -2488,7 +2723,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"r1\"),zz=$$append^VSLTAP(\"r2\"),zz=$$append^VSLTAP(\"r3\"),zz=$$append^VSLTAP(\"r4\"),zz=$$append^VSLTAP(\"r5\") do drainTo^VSLTAP(3) do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),2,\"after draining through seq 3, 2 of 5 remain\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP() set zz=$$append^VSLTAP(\"a\") do drainTo^VSLTAP(99) do eq^STDASSERT(.pass,.fail,$$tail^VSLTAP(),$$head^VSLTAP(),\"drainTo is bounded to head (never advances past it)\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2497,7 +2735,7 @@
           "description": "Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships\n200 — never from the RPC path. Idempotent; never advances past head.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 377
+            "line": 422
           }
         },
         "disable": {
@@ -2514,7 +2752,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"pressure\") do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"pressure\",\"disable records the reason\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"latency\") do true^STDASSERT(.pass,.fail,$$offWindows^VSLTAP(.zo)'<1,\"disable opens an off-window (explicit, never silent)\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2523,7 +2764,53 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 392
+            "line": 439
+          }
+        },
+        "disabled": {
+          "form": "extrinsic",
+          "signature": "$$disabled^VSLTAP()",
+          "synopsis": "The auto-failover reason, or \"\" if armed/clean.",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"\",\"armed/clean -> empty reason\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"fault\") do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"fault\",\"reports the auto-failover reason\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 451
+          }
+        },
+        "rearm": {
+          "form": "procedure",
+          "signature": "do rearm^VSLTAP()",
+          "synopsis": "Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"pressure\"),rearm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"\",\"re-arm clears the disable reason\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"pressure\"),rearm^VSLTAP() set zz=$$offWindows^VSLTAP(.zo) do true^STDASSERT(.pass,.fail,$piece(zo(1),\"^\",3)'=\"\",\"re-arm closes the off-window (sets the close stamp)\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 456
           }
         },
         "offWindows": {
@@ -2540,7 +2827,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP() do eq^STDASSERT(.pass,.fail,$$offWindows^VSLTAP(.zo),0,\"no failover yet -> zero off-windows\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),disable^VSLTAP(\"pressure\") set zz=$$offWindows^VSLTAP(.zo) do eq^STDASSERT(.pass,.fail,$piece(zo(1),\"^\",2),\"pressure\",\"the recorded off-window carries its reason\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2549,7 +2839,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 412
+            "line": 465
           }
         },
         "state": {
@@ -2563,7 +2853,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do eq^STDASSERT(.pass,.fail,$$state^VSLTAP(),\"OFF\",\"unconfigured -> OFF\")",
+            "kill ^VSLTAP do arm^VSLTAP(),heartbeat^VSLTAP(),setConsumer^VSLTAP(1) do eq^STDASSERT(.pass,.fail,$$state^VSLTAP(),\"ACTIVE\",\"armed + healthy + consumer -> ACTIVE\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP(),heartbeat^VSLTAP(),disable^VSLTAP(\"latency\") do eq^STDASSERT(.pass,.fail,$$state^VSLTAP(),\"AUTO-DISABLED\",\"failover -> AUTO-DISABLED\") kill ^VSLTAP"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2572,7 +2866,29 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 420
+            "line": 475
+          }
+        },
+        "heartbeat": {
+          "form": "procedure",
+          "signature": "do heartbeat^VSLTAP()",
+          "synopsis": "Stamp the liveness heartbeat (the watchdog beats this every N seconds).",
+          "params": [],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),heartbeat^VSLTAP() do true^STDASSERT(.pass,.fail,$$healthy^VSLTAP()=1,\"a fresh heartbeat -> healthy\") kill ^VSLTAP"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAP.m",
+            "line": 488
           }
         },
         "healthy": {
@@ -2586,7 +2902,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP do arm^VSLTAP(),heartbeat^VSLTAP() do eq^STDASSERT(.pass,.fail,$$healthy^VSLTAP(),1,\"fresh heartbeat -> healthy\") kill ^VSLTAP",
+            "kill ^VSLTAP do arm^VSLTAP() set ^VSLTAP(\"hb\")=0 do eq^STDASSERT(.pass,.fail,$$healthy^VSLTAP(),0,\"stale heartbeat -> not healthy\") kill ^VSLTAP",
+            "kill ^VSLTAP do eq^STDASSERT(.pass,.fail,$$healthy^VSLTAP(),0,\"absent heartbeat -> not healthy\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2595,7 +2915,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 434
+            "line": 493
           }
         },
         "purgeNode": {
@@ -2606,7 +2926,10 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do purgeNode^VSLTAP() do eq^STDASSERT(.pass,.fail,$length($get(^XTMP(\"VSLTAP\",0)),\"^\"),3,\"purge node is purgedate^createdate^description\") kill ^VSLTAP,^XTMP(\"VSLTAP\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do purgeNode^VSLTAP() do true^STDASSERT(.pass,.fail,+$piece(^XTMP(\"VSLTAP\",0),\"^\",1)'<+$piece(^XTMP(\"VSLTAP\",0),\"^\",2),\"purgedate >= createdate (FileMan internal dates)\") kill ^VSLTAP,^XTMP(\"VSLTAP\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2615,7 +2938,7 @@
           "description": "The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of\nFileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No\nFileMan file (§4.1.1). Scheduling the option is an install-time seam.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 445
+            "line": 507
           }
         }
       },
@@ -2647,7 +2970,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)>0,\"params: the tap ships at least one XPAR param\")",
+            "new out do eq^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)_\"|\"_out(7),\"10|VSL S3 ENDPOINT\",\"params: 10 knobs, the 7th is the S3 endpoint\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2667,7 +2993,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set ^XTMP(\"VSLTAP\",\"data\",1)=\"rec\",^VSLTAP(\"hb\")=$horolog do backout^VSLTAPBO() do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),\"backout: a seeded footprint verifies clean afterward\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2676,7 +3004,7 @@
           "description": "Each leg is independently fault-fenced, so a missing TaskMan/XPAR/FileMan\n(a bare engine, or a partial install) never blocks the state cleanup. Tasks\nfirst — their numbers live in ^VSLTAP, which the state kill then removes.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 59
+            "line": 61
           }
         },
         "cleanState": {
@@ -2687,7 +3015,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "set ^VSLTAP(\"cfg\",\"mode\")=\"armed\",^XTMP(\"VSLTAP\",\"data\",1)=\"x\" do cleanState^VSLTAPBO() do eq^STDASSERT(.pass,.fail,$data(^VSLTAP)+$data(^XTMP(\"VSLTAP\")),0,\"cleanState: both the cache and the control state are gone\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2696,7 +3026,7 @@
           "description": "The whole tap footprint that lives in globals: ^XTMP(\"VSLTAP\",…) (the\nSAC auto-purge scratch cache) and ^VSLTAP (cfg/disabled/hb/_offwindows/\nhl/fc/task). Pure M — no VistA needed; this is what the bare suite proves.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 70
+            "line": 73
           }
         },
         "cleanParams": {
@@ -2707,7 +3037,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do cleanParams^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,\"cleanParams: the fenced XPAR leg returns without raising on a bare engine\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2716,7 +3048,7 @@
           "description": "Fault-fenced as a whole (a bare engine has no XPAR/FileMan), and per-param\ninside delParam, so one missing param does not strand the rest.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 80
+            "line": 84
           }
         },
         "delParam": {
@@ -2733,7 +3065,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do delParam^VSLTAPBO(\"VSL TAP CAP\") do true^STDASSERT(.pass,.fail,1,\"delParam: a not-present param is a clean no-op (fenced) on a bare engine\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2742,7 +3076,7 @@
           "description": "EN^XPAR(...,\"@\") removes the SYS instance value; the definition record is\ndeleted via FileMan DBS FILE^DIE with .01=\"@\" (no DELETE^DIE exists — the\nVSLFS pattern). Per-param fenced so a not-present param is a clean no-op.\n@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters\n@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer\n$text-guarded: a bare engine has no XPAR/FileMan, so each leg is a clean\nskip (there is nothing to remove); the $etrap still fences a genuine fault.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 89
+            "line": 94
           }
         },
         "cleanTasks": {
@@ -2753,7 +3087,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do cleanTasks^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,\"cleanTasks: the fenced TaskMan leg returns without raising on a bare engine\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2762,7 +3098,7 @@
           "description": "The scheduled-task numbers live in ^VSLTAP(\"task\",label)=ztsk. The\nfidelity/flush jobs are periodic re-queues (NOT persistent listeners),\nso they dequeue cleanly. Fenced — no TaskMan on a bare engine.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 111
+            "line": 117
           }
         },
         "dequeue": {
@@ -2779,7 +3115,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do dequeue^VSLTAPBO(0) do true^STDASSERT(.pass,.fail,1,\"dequeue: a non-positive task number is a clean no-op\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2788,7 +3126,7 @@
           "description": "@icr 10063 @call KILL^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#killztload-delete-a-task",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 127
+            "line": 134
           }
         },
         "verifyClean": {
@@ -2808,7 +3146,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^XTMP(\"VSLTAP\"),^VSLTAP do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),\"verifyClean: an empty system verifies clean\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2817,7 +3157,7 @@
           "description": "Globals (cache + control state) are checked on any engine; the XPAR-param\nand task legs are fenced VistA seams — a bare engine reports them clean.",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 140
+            "line": 148
           }
         },
         "paramsResidue": {
@@ -2828,7 +3168,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$paramsResidue^VSLTAPBO(.detail),0,\"paramsResidue: a bare engine (no FileMan) reports no surviving XPAR definitions\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2837,7 +3179,7 @@
           "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
           "source": {
             "file": "src/VSLTAPBO.m",
-            "line": 153
+            "line": 162
           }
         }
       },
@@ -2869,7 +3211,11 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"seq\")=1,rec(\"payload\")=(\"a\"_$char(9)_\"b\\c\"_\"\"\"\"_\"q\") set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$payloadOf^VSLTAPFC(line),\"a\"_$char(9)_\"b\\c\"_\"\"\"\"_\"q\",\"inline payload decodes byte-exact\")",
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"seq\")=1,rec(\"payload\")=(\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\") set opt(\"base64\")=1 set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$payloadOf^VSLTAPFC(line),\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\",\"base64 payload decodes byte-exact\")",
+            "write $$payloadOf^VSLTAPFC(\"not json at all\")  ; \"\""
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2898,7 +3244,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),\"a faithfully shipped payload re-hashes to its own sha256 anchor\")",
+            "write $$verify^VSLTAPFC(\"not a json envelope\")  ; 0"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2907,7 +3256,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 49
+            "line": 52
           }
         },
         "matches": {
@@ -2932,7 +3281,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-5\",rec(\"seq\")=5,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,\"hello world\"),\"decoded payload byte-equals the source AND the hash is intact\")",
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-5\",rec(\"seq\")=5,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,\"hello WORLD\"),0,\"any drift from the source fails byte-equality\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2941,7 +3293,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 57
+            "line": 62
           }
         },
         "reconcile": {
@@ -2971,7 +3323,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new corpus,envs,res,r1,r2,o1,o2 set corpus(1)=\"record-1\",corpus(2)=\"record-2\" set r1(\"direction\")=\"resp\",r1(\"call_id\")=\"c1\",r1(\"seq\")=1,r1(\"payload\")=\"record-1\" set envs(1)=$$envelope^VSLS3(.r1,.o1) set r2(\"direction\")=\"resp\",r2(\"call_id\")=\"c2\",r2(\"seq\")=2,r2(\"payload\")=\"record-2\" set envs(2)=$$envelope^VSLS3(.r2,.o2) do true^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res),\"a faithful round-trip reconciles fully\")",
+            "new corpus,envs,res,r1,o1 set corpus(1)=\"record-1\",corpus(2)=\"record-2\" set r1(\"direction\")=\"resp\",r1(\"call_id\")=\"c1\",r1(\"seq\")=1,r1(\"payload\")=\"record-1\" set envs(1)=$$envelope^VSLS3(.r1,.o1) do eq^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res)_\"|\"_res(\"matched\")_\"|\"_res(\"missing\"),\"0|1|1\",\"a dropped record (seq 2) is flagged missing, reconcile fails\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -2980,7 +3335,7 @@
           "description": "A drift (payload differs or hash stale) is a mismatch; a dropped record\nis missing; a record shipped under a seq not in the corpus is extra.\nDrops are only acceptable if accounted for in _offwindows (out of band).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 65
+            "line": 72
           }
         },
         "drops": {
@@ -3005,7 +3360,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new envs,res,rq,rs,oq,os,rd,od,re,oe set rq(\"direction\")=\"req\",rq(\"call_id\")=\"A\",rq(\"seq\")=1,rq(\"denied\")=0,rq(\"payload\")=\"p\" set envs(1)=$$envelope^VSLS3(.rq,.oq) set rs(\"direction\")=\"resp\",rs(\"call_id\")=\"A\",rs(\"seq\")=2,rs(\"payload\")=\"r\" set envs(2)=$$envelope^VSLS3(.rs,.os) set rd(\"direction\")=\"req\",rd(\"call_id\")=\"B\",rd(\"seq\")=3,rd(\"denied\")=1,rd(\"payload\")=\"p\" set envs(3)=$$envelope^VSLS3(.rd,.od) set re(\"direction\")=\"req\",re(\"call_id\")=\"C\",re(\"seq\")=4,re(\"denied\")=0,re(\"payload\")=\"p\" set envs(4)=$$envelope^VSLS3(.re,.oe) do eq^STDASSERT(.pass,.fail,$$drops^VSLTAPFC(.envs,.res)_\"|\"_res(\"rpc_denied\")_\"|\"_res(\"rpc_error\"),\"2|1|1\",\"a denied req-no-resp is rpc_denied, an errored req-no-resp is rpc_error, the clean pair is not a drop\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3014,7 +3371,7 @@
           "description": "A `call_id` with a req and NO resp is a loss: `rpc_denied` if the req carries\ndenied=1 (CHKPRMIT short-circuit, never dispatched), else `rpc_error` (a runtime\nfault in the dispatch → the broker trap re-dispatches and the resp side-call is\nnever reached — FU-16). Both are EXPECTED, accounted outcomes (high-value for an\nanalysis tap), recorded in the _drops manifest, never a silent gap (schema-lock §5).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 99
+            "line": 108
           }
         },
         "manifest": {
@@ -3039,7 +3396,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new res,t set res(\"matched\")=10,res(\"mismatch\")=0,res(\"missing\")=0,res(\"extra\")=0 do true^STDASSERT(.pass,.fail,$$parse^STDJSON($$manifest^VSLTAPFC(.res,\"65800,43200\"),.t)&($$valueOf^STDJSON(t(\"matched\"))=10)&($$type^STDJSON(t(\"ok\"))=\"true\"),\"a clean run serialises to well-formed JSON with matched=10 and ok=true\")",
+            "new res,t set res(\"matched\")=3,res(\"mismatch\")=2,res(\"missing\")=0,res(\"extra\")=0 do eq^STDASSERT(.pass,.fail,$$parse^STDJSON($$manifest^VSLTAPFC(.res,\"65800,43200\"),.t)_\"|\"_$$type^STDJSON(t(\"ok\")),\"1|false\",\"a run with a mismatch serialises ok=false\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3048,7 +3408,7 @@
           "description": "ok=true iff there were zero mismatches, zero missing and zero extras —\nthe standing byte-equality proof shipped under traffic/<st>/_fidelity/.",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 141
+            "line": 151
           }
         },
         "persist": {
@@ -3073,7 +3433,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new res,t,save,had set had=$data(^VSLTAP(\"fc\",\"last\")),save=$get(^VSLTAP(\"fc\",\"last\")) set res(\"matched\")=8,res(\"mismatch\")=0,res(\"missing\")=0,res(\"extra\")=0 do persist^VSLTAPFC(.res,\"65800,43200\") do eq^STDASSERT(.pass,.fail,$$parse^STDJSON($$lastFidelity^VSLTAPFC(),.t)_\"|\"_$$valueOf^STDJSON(t(\"matched\")),\"1|8\",\"persist stores a readable manifest carrying the matched count\") if had set ^VSLTAP(\"fc\",\"last\")=save"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3082,7 +3444,7 @@
           "description": "$$verify/$$reconcile/$$manifest compute fidelity ON CALL against a corpus;\nVWEBT (the console) needs a passive getter, so the periodic comparator (and\nthe make test-s3 round-trip) call persist after a run. Single \"last\" slot:\na newer run replaces the prior one (the console shows the latest result).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 163
+            "line": 175
           }
         },
         "lastFidelity": {
@@ -3096,7 +3458,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new res,save,had set had=$data(^VSLTAP(\"fc\",\"last\")),save=$get(^VSLTAP(\"fc\",\"last\")) set res(\"matched\")=5,res(\"mismatch\")=0,res(\"missing\")=0,res(\"extra\")=0 do persist^VSLTAPFC(.res,\"65800,1\") do true^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC()'=\"\",\"after a persisted run lastFidelity returns the stored manifest line\") if had set ^VSLTAP(\"fc\",\"last\")=save"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3105,8 +3469,9 @@
           "description": "A pure read of the VSL control state — the snapshot reader (VWEBT) parses it.",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 174
-          }
+            "line": 187
+          },
+          "illustrative": "the empty-state contract (\"\" when no run has run) needs a clean slot with no prior persisted run; shown read-only as a self-restoring round-trip in the example above"
         }
       },
       "source": {
@@ -3144,7 +3509,11 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do record^VSLTAPHL(120,50,0),record^VSLTAPHL(80,40,0),record^VSLTAPHL(0,0,1) do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),2,\"two capture writes counted (the denied sample is not a write)\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do record^VSLTAPHL(120,50,0),record^VSLTAPHL(80,40,0) do eq^STDASSERT(.pass,.fail,$$bytes^VSLTAPHL(),90,\"bytes-to-buffer summed across writes\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do record^VSLTAPHL(0,0,1) do eq^STDASSERT(.pass,.fail,$$denied^VSLTAPHL(),1,\"one consumer-gate denial counted\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3173,7 +3542,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new i kill ^VSLTAP,^XTMP(\"VSLTAP\") for i=1:1:100 do record^VSLTAPHL(i,1,0)  do true^STDASSERT(.pass,.fail,($$pctl^VSLTAPHL(50)'<1)&($$pctl^VSLTAPHL(50)'>100),\"p50 of 1..100 falls within [1,100]\")",
+            "new i kill ^VSLTAP,^XTMP(\"VSLTAP\") for i=1:1:100 do record^VSLTAPHL(i,1,0)  do true^STDASSERT(.pass,.fail,$$pctl^VSLTAPHL(95)'<$$pctl^VSLTAPHL(50),\"p95 >= p50 (percentiles are monotonic)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3182,7 +3554,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPHL.m",
-            "line": 64
+            "line": 67
           }
         },
         "abcheck": {
@@ -3207,7 +3579,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set ^VSLTAP(\"cfg\",\"latbound\")=100 do eq^STDASSERT(.pass,.fail,$$abcheck^VSLTAPHL(10,60),0,\"tapped-base=50 <= 100 bound -> clean\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") set ^VSLTAP(\"cfg\",\"latbound\")=100 do eq^STDASSERT(.pass,.fail,$$abcheck^VSLTAPHL(10,510),1,\"tapped-base=500 > 100 bound -> trip\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3216,7 +3591,41 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPHL.m",
-            "line": 95
+            "line": 100
+          }
+        },
+        "watchLatency": {
+          "form": "procedure",
+          "signature": "do watchLatency^VSLTAPHL(base, tapped)",
+          "synopsis": "Trip auto-failover OFF when the tapped-vs-baseline delta breaches the bound.",
+          "params": [
+            {
+              "name": "base",
+              "type": "numeric",
+              "doc": "baseline (tap OFF) latency"
+            },
+            {
+              "name": "tapped",
+              "type": "numeric",
+              "doc": "tapped (tap ON) latency"
+            }
+          ],
+          "returns": null,
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),setConsumer^VSLTAP(1) set ^VSLTAP(\"cfg\",\"latbound\")=100 do watchLatency^VSLTAPHL(10,10) do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"\",\"a within-bound sample does not disable the tap\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),setConsumer^VSLTAP(1) set ^VSLTAP(\"cfg\",\"latbound\")=100 do watchLatency^VSLTAPHL(10,500) do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),\"latency\",\"an over-bound sample self-disables with reason latency\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLTAPHL.m",
+            "line": 108
           }
         },
         "ready": {
@@ -3230,7 +3639,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),beat^VSLTAPHL() do true^STDASSERT(.pass,.fail,$$ready^VSLTAPHL()=1,\"readiness probe green while idle (substrate writable, fence armed, heartbeat fresh)\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),beat^VSLTAPHL() set ^VSLTAP(\"hb\")=0 do true^STDASSERT(.pass,.fail,$$ready^VSLTAPHL()=0,\"a stale heartbeat flips readiness red even with zero traffic\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3239,7 +3651,7 @@
           "description": "(4) the ^XTMP capture substrate is writable. Egress HEAD ping is Phase 3.",
           "source": {
             "file": "src/VSLTAPHL.m",
-            "line": 111
+            "line": 122
           }
         },
         "canary": {
@@ -3253,7 +3665,10 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),beat^VSLTAPHL() do true^STDASSERT(.pass,.fail,$$canary^VSLTAPHL()=1,\"canary proves capture-substrate works on standby (byte-exact round-trip)\")",
+            "kill ^VSLTAP,^XTMP(\"VSLTAP\") do arm^VSLTAP(),beat^VSLTAPHL() set %=$$canary^VSLTAPHL() do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,\"the canary leaves the real ring empty (no clinical-traffic perturbation)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3262,7 +3677,7 @@
           "description": "Proves capture works while idle without perturbing the ring (the §8.1\nsynthetic monitor; the §15 harness run with a one-record corpus).",
           "source": {
             "file": "src/VSLTAPHL.m",
-            "line": 129
+            "line": 142
           }
         }
       },
@@ -3299,7 +3714,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new corpus,envs,rec,opt,save set save=$get(^VSLTAP(\"fc\",\"last\")) set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"seq\")=1,rec(\"payload\")=\"hello world\",corpus(1)=\"hello world\",envs(1)=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$reconcilePersist^VSLTAPRUN(.corpus,.envs),1,\"a byte-perfect 1-record sample reconciles ok=true\") set ^VSLTAP(\"fc\",\"last\")=save"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3322,7 +3739,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$cadence^VSLTAPRUN()  ; 3600"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3331,7 +3750,7 @@
           "description": "$text-guarded — a bare engine has no XPAR, so the default (1h) applies.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 41
+            "line": 42
           }
         },
         "schedule": {
@@ -3345,7 +3764,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$schedule^VSLTAPRUN()  ; 0"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3354,7 +3775,7 @@
           "description": "A NON-persistent periodic task (each run re-queues the next) — NOT a\nPSET self-restarting listener (so it is cleanly dequeueable by VSLTAPBO,\nunlike a persistent listener). Records ^VSLTAP(\"task\",\"fidelity\")=task#.\n$text-guarded so a bare engine is a clean no-op.\n@icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 54
+            "line": 56
           }
         },
         "run": {
@@ -3365,7 +3786,9 @@
           "returns": null,
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "new save set save=$get(^VSLTAP(\"fc\",\"last\")) do off^VSLTAP() set ^VSLTAP(\"fc\",\"last\")=\"{\"\"sentinel\"\":1}\" do run^VSLTAPRUN() do eq^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC(),\"{\"\"sentinel\"\":1}\",\"a disabled tap skips the live work and leaves the last result untouched\") set ^VSLTAP(\"fc\",\"last\")=save"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3374,7 +3797,7 @@
           "description": "Respects the Phase-2 gate — when the tap is OFF / auto-disabled / has no\nconsumer it skips the live work entirely (no false fidelity result). The\nwhole body is fault-fenced so a sampling/egress fault self-clears and the\nnext tick is still re-queued.",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 79
+            "line": 82
           }
         },
         "fidelityNow": {
@@ -3388,7 +3811,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "write $$fidelityNow^VSLTAPRUN()  ; -1"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3397,7 +3822,7 @@
           "description": "The PRODUCTION fidelity signal that lights the VWEBT console — it needs no\ngenerated corpus and no separate process. It LISTs the per-station shipped\nobjects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,\nand runs `$$verify^VSLTAPFC` on every envelope (the shipped payload re-hashes\nto the sha256 anchor captured at ship time) -> matched/mismatch. This proves\nthe ship->store->readback path is BYTE-FAITHFUL to what the tap captured —\nit catches storage / transport / encoding corruption (exactly the egress\nbugs the build hit). [The deeper capture==wire leg — shipped vs an independent\nmirror/#772 source — remains a documented future enhancement; the ring is\ntrimmed post-drain so it cannot be that source.] Fenced; persists\n^VSLTAP(\"fc\",\"last\"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 98
+            "line": 102
           }
         },
         "nextKey": {
@@ -3417,8 +3842,9 @@
           "description": "The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 127
-          }
+            "line": 132
+          },
+          "illustrative": "private iterator over a $$list^VSLS3 listing array — needs a live S3 ctx + bucket + shipped objects to step; exercised end-to-end via $$fidelityNow."
         }
       },
       "source": {
@@ -3446,7 +3872,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,($$running^VSLTASK()=0)!($$running^VSLTASK()=1),\"$$running returns a clean boolean (resolves $$TM^%ZTLOAD)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3469,7 +3897,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do true^STDASSERT(.pass,.fail,$$stop^VSLTASK()=0,\"$$stop=0 when not running as a TaskMan task (the cooperative-stop check)\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3478,7 +3908,7 @@
           "description": "@icr 10063 @call $$S^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#sztload-check-for-task-stop-request",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 42
+            "line": 43
           }
         },
         "persist": {
@@ -3503,7 +3933,9 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$persist^VSLTASK(\"\"\"\")\",\"U-VSL-TASK-ARG\",\"$$persist with no task# raises U-VSL-TASK-ARG\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3512,8 +3944,9 @@
           "description": "@icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 47
-          }
+            "line": 49
+          },
+          "illustrative": "the success path marks a queued task persistent (un-KILLable) on a shared live TaskMan; only the malformed-call contract is safely shown"
         },
         "schedule": {
           "form": "extrinsic",
@@ -3551,7 +3984,9 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$schedule^VSLTASK(\"\"\"\",\"\"ZZ\"\")\",\"U-VSL-TASK-ARG\",\"$$schedule with no entry raises U-VSL-TASK-ARG\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3560,8 +3995,9 @@
           "description": "",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 55
-          }
+            "line": 59
+          },
+          "illustrative": "the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown"
         },
         "lastError": {
           "form": "extrinsic",
@@ -3574,7 +4010,9 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [],
+          "examples": [
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$persist^VSLTASK(\"\"\"\")\",\"U-VSL-TASK-ARG\",\"arm an error\") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),\"task number\",\"$$lastError carries the malformed-call detail after a raise\")"
+          ],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -3583,7 +4021,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 72
+            "line": 78
           }
         },
         "queue": {
@@ -3603,8 +4041,9 @@
           "description": "@icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 78
-          }
+            "line": 85
+          },
+          "illustrative": "private; runs ^%ZTLOAD which queues a real TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone in a unit test"
         }
       },
       "source": {

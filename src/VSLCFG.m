@@ -17,7 +17,8 @@ get(key,default)	; Read parameter `key` at the SYS entity; return `default` when
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
 	; doc: @param default  string  value returned when the parameter is unset
 	; doc: @returns        string  the SYS-level value, or `default` when unset
-	; doc: @example        set greeting=$$get^VSLCFG("VPNG GREETING","hello")
+	; doc: @example        do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH","fallback"),"fallback","get: unset parameter returns the default")
+	; doc: @example        new k,i,r,d set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,k="",d=0 for  set k=$order(^XTV(8989.51,"B",k)) quit:k=""!d  set i=+$order(^XTV(8989.51,"B",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))="F",$$GET^XPAR("SYS",k,1)="" do EN^XPAR("SYS",k,1,"ZZP",.r) set r=$$GET^XPAR("SYS",k,1) do EN^XPAR("SYS",k,1,"@") if r="ZZP" do set^VSLCFG(k,"hi") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,"MISS"),"hi","get: $$set then $$get round-trips a SYS value") do EN^XPAR("SYS",k,1,"@") set d=1
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 	new v
 	set v=$$GET^XPAR("SYS",key,1)
@@ -27,6 +28,7 @@ set(key,value)	; Set parameter `key` to `value` at the SYS entity.
 	; doc: @param key    string  XPAR parameter name (#8989.51)
 	; doc: @param value  string  value to store at the SYS level
 	; doc: @returns      void    side-effecting; no return value
+	; doc: @example      new k,i,r,d set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,k="",d=0 for  set k=$order(^XTV(8989.51,"B",k)) quit:k=""!d  set i=+$order(^XTV(8989.51,"B",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))="F",$$GET^XPAR("SYS",k,1)="" do EN^XPAR("SYS",k,1,"ZZP",.r) set r=$$GET^XPAR("SYS",k,1) do EN^XPAR("SYS",k,1,"@") if r="ZZP" do set^VSLCFG(k,"hi") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,"MISS"),"hi","set: stores a SYS value that $$get reads back") do EN^XPAR("SYS",k,1,"@") set d=1
 	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
 	do EN^XPAR("SYS",key,1,value)
 	quit

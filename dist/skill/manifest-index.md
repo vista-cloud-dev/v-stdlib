@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 17 modules; 117 public labels.
+v-stdlib unversioned; 17 modules; 125 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -51,13 +51,13 @@ _raises: `U-VSL-FS-DIERR`_
 HL7 store-tail adapter (decoupled, zero in-line).
 
 - `$$cursor^VSLHL7TAP(store)` — The persisted high-water IEN for a store ("772" | "778"); 0 if unset.
-- `$$nextIen^VSLHL7TAP(store, ien)` — (private) the next numeric IEN after `ien`, or "" at the first cross-ref.
-- `do read1^VSLHL7TAP(store, ien, msg, ok)` — (private) fenced reassembly of one entry (DO-framed so the trap QUIT is legal).
 - `$$readHLO^VSLHL7TAP(ien)` — Reassemble the verbatim message for HLO #778 entry `ien` (MSH + body).
 - `$$readLegacy^VSLHL7TAP(ien)` — Reassemble the verbatim CR-delimited message for #772 entry `ien`.
+- `do resetCursors^VSLHL7TAP()` — Clear both cursors (re-tail from the beginning of each store).
+- `do setCursor^VSLHL7TAP(store, ien)` — Persist the high-water IEN for a store.
 - `do tail^VSLHL7TAP()` — Tail both HL7 stores once: ship every newly-persisted message into the ring.
-- `do tailOne^VSLHL7TAP(store, ien, cur)` — (private) one tail step: advance, read-fenced, tee, persist the cursor.
-- `do tailStore^VSLHL7TAP(store)` — (private) forward-only $ORDER over numeric IENs of one store.
+- `do tailHLO^VSLHL7TAP()` — Tail #778/#777 forward from its cursor, teeing each new verbatim message.
+- `do tailLegacy^VSLHL7TAP()` — Tail #772 forward from its cursor, teeing each new verbatim message.
 
 ## `VSLIO`
 
@@ -119,7 +119,6 @@ S3 egress sink: LDJSON envelope + the §11 bucket layout.
 - `$$readback^VSLS3(ctx, bucket, key, opt, resp)` — GET one object back from S3 / the S3-equivalent via STDS3.
 - `do resolveRec^VSLS3(seq, station, proto, erec)` — Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / v1 legacy).
 - `$$ship^VSLS3(ctx, bucket, key, body, opt, resp)` — PUT one object to S3 / the S3-equivalent via STDS3.
-- `$$shipBatch^VSLS3(ctx, bucket, key, body, opt, resp)` — (private) ship one batch object; honour the capture-sink test seam.
 
 ## `VSLSEC`
 
@@ -129,7 +128,7 @@ VistA identity/authorization adapter (Kernel).
 - `$$duz^VSLSEC()` — The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 - `$$hasKey^VSLSEC(key, duz)` — 1 iff `duz` (default: the ambient DUZ) holds security key `key`.
 - `$$lastError^VSLSEC()` — The last VSLSEC error message (the composed malformed-call detail).
-- `$$user^VSLSEC(duz)` — The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
+- `do user^VSLSEC(duz)` — The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
 
 _raises: `U-VSL-SEC-ARG`_
 
@@ -139,26 +138,34 @@ non-interference traffic-tap core (the safety gate).
 
 - `$$append^VSLTAP(rec)` — Gated, fault-fenced, bounded memory-copy append of a verbatim record.
 - `$$appendRec^VSLTAP(rec)` — FU-5: gated, fault-fenced, bounded append of a RICH (cache layout v2) record.
+- `do arm^VSLTAP()` — Operator: arm the tap (kill-switch ON) and clear any prior auto-disable.
 - `$$captureOn^VSLTAP()` — FU-9 (D-6): 1 iff the RING should capture now — armed AND not auto-disabled.
 - `$$cfg^VSLTAP(key, default)` — Read a config knob from ^VSLTAP("cfg",key), else `default`.
+- `$$chunk^VSLTAP(seq, i)` — The i-th RAW payload chunk of a v2 record ("" if absent).
 - `do disable^VSLTAP(reason)` — Auto-failover: disable the tap, record an off-window (explicit, never silent).
+- `$$disabled^VSLTAP()` — The auto-failover reason, or "" if armed/clean.
 - `do drainTo^VSLTAP(seq)` — Post-ship trim: drop retained entries up to and including `seq`, advance tail.
 - `$$enabled^VSLTAP()` — 1 iff EGRESS should run now: capture-on AND a consumer/sink is present (D-5).
 - `$$hdr^VSLTAP(seq, out)` — Parse the v2 header at `seq` into out("schema_version"/...); return 1 iff a v2 record.
-- `$$hdrLine^VSLTAP(seq, rec, kind, wl, cc, enc, hash)` — (private) assemble the cache-layout-v2 ^-delimited header.
+- `$$head^VSLTAP()` — Highest written seq (0 if empty).
 - `$$healthy^VSLTAP()` — 1 iff the heartbeat is fresh within the staleness bound (k8s-style liveness).
+- `do heartbeat^VSLTAP()` — Stamp the liveness heartbeat (the watchdog beats this every N seconds).
 - `$$isV2^VSLTAP(seq)` — 1 iff the record at `seq` is a cache-layout-v2 record (a "p" or "g" child present).
+- `do off^VSLTAP()` — Operator: kill-switch OFF (state OFF; capture cannot run).
 - `$$offWindows^VSLTAP(out)` — Populate out(1..N) with the recorded off-windows; return the count.
 - `$$present^VSLTAP(seq)` — 1 iff a data node exists at `seq` ($DATA'=0) — distinguishes an empty-string record from an absent/uncommitted slot.
 - `do purgeNode^VSLTAP()` — Write ^XTMP("VSLTAP",0)=purgedate^createdate^description so Kernel XQ82 reaps it.
+- `$$read^VSLTAP(seq)` — The verbatim record at `seq`, or "" if absent/overwritten.
+- `do rearm^VSLTAP()` — Re-arm after a clean cool-down (D-4): clear the disable + close the off-window.
 - `do seed^VSLTAP()` — Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (self-configuring install).
 - `$$seedMap^VSLTAP(map)` — Map each installed XPAR param name to the ^VSLTAP("cfg") key the tap reads; return the count.
 - `do setAlwaysOn^VSLTAP(flag)` — LEGACY/SUBSUMED (D-8 -> FU-9): kept for backward compatibility; no longer gates capture.
+- `do setConsumer^VSLTAP(present)` — Set the consumer-presence flag (D-5): no consumer -> egress/capture OFF.
+- `$$size^VSLTAP()` — Current ring entry count (head - tail).
 - `$$state^VSLTAP()` — The standby state-machine label (spec §8.1).
+- `$$tail^VSLTAP()` — (lowest-retained seq) - 1 (0 if empty).
 - `$$tee^VSLTAP(rec)` — The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
 - `$$teeRec^VSLTAP(rec)` — The named rich-record capture seam the FU-5 wrap calls (via VSLRPCTAP) — fenced.
-- `do write1^VSLTAP(rec, wrote)` — (private) the ring write, DO-invoked so the append fence's QUIT is legal.
-- `do write1rec^VSLTAP(rec, wrote)` — (private) write one cache-layout-v2 record, DO-invoked so the fence's QUIT is legal.
 
 ## `VSLTAPBO`
 
@@ -196,6 +203,7 @@ tap health instrument + standby readiness (the watchdog).
 - `$$pctl^VSLTAPHL(p)` — The p-th percentile (nearest-rank) of the latency-sample window; 0 if none.
 - `$$ready^VSLTAPHL()` — Standby readiness probe: 1 iff a gated/idle tap COULD capture if a consumer appeared.
 - `do record^VSLTAPHL(us, bytes, denied)` — Record one capture sample: a denial, or a write (+bytes, +optional latency).
+- `do watchLatency^VSLTAPHL(base, tapped)` — Trip auto-failover OFF when the tapped-vs-baseline delta breaches the bound.
 
 ## `VSLTAPRUN`
 

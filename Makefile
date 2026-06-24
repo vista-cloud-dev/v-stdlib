@@ -56,8 +56,11 @@ fmt:
 fmt-check:
 	$(M) fmt --check $(SRC) $(TESTS)
 
+# House lint gate: zero ERROR-severity findings (style/warning advisory), via
+# scripts/m-lint-gate.sh — the Go `m` has no `--error-on=<severity>` flag and
+# `--check` reds on ANY finding. Matches m-stdlib's gate (the global house rule).
 lint:
-	$(M) lint --check $(SRC) $(TESTS)
+	M=$(M) scripts/m-lint-gate.sh $(SRC) $(TESTS)
 
 # m/v waterline gates. v-stdlib is layer v (root repo.meta.json); it passes
 # G1/G2 trivially (v -> m, and VistA above the line, are allowed) but must

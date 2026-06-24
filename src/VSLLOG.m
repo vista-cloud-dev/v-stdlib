@@ -37,6 +37,8 @@ write(file,event,detail)	; File one audit record into `file`; return the resolve
 	; doc: @param   detail   string   free-text detail for the record
 	; doc: @returns          string   the resolved IENS of the new audit record
 	; doc: @raises  U-VSL-LOG-WRITE  the FileMan write failed (detail in $$lastError)
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,"ZZVSLLOGEX","X") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),"ZZVSLLOGEX","write then read-back contains the event") set zzok=$$kill^VSLFS(8989.51,ie)
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","writing into a bogus file raises U-VSL-LOG-WRITE")
 	new $etrap,iens,line,ok
 	set ok=1
 	set $etrap="set ok=0,$ecode="""" quit"
@@ -56,8 +58,10 @@ read(file,iens)	; Read the audit line stored at (file,iens) .01, else "".
 	; doc: @param   file     numeric  FileMan audit-file number
 	; doc: @param   iens     string   IENS of the audit record
 	; doc: @returns          string   the stored audit line, or "" if absent
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,"9999999,"),"","read of an absent record returns empty string")
 	quit $$get^VSLFS(file,iens,".01","")
 	;
 lastError()	; The last VSLLOG error message (the composed FileMan detail).
 	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","seed a failure") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the FileMan detail after a failed write")
 	quit $get(^TMP($job,"vsllog","err"))

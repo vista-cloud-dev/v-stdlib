@@ -46,6 +46,8 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 	; doc: @returns          string   the resolved IENS on success (the new IENS for an add)
 	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
+	; doc: @illustrative  a successful add files a real FileMan record; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) created+deleted, not a safe read-only one-liner — see tests/VSLFSTST.m tCreateGetRoundtrip
+	; doc: @example   do raises^STDASSERT(.pass,.fail,"set DUZ=1,DUZ(0)=""@"",U=""^"",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","set: a FileMan DIERR raises U-VSL-FS-DIERR")
 	new FDA,IEN,ERR
 	set FDA(file,iens,field)=value
 	do UPDATE^DIE("","FDA","IEN","ERR")
@@ -59,6 +61,8 @@ get(file,iens,field,default)	; Read (file,iens,field) via $$GET1^DIQ; return val
 	; doc: @param   default  string   value returned when the field/record is unset
 	; doc: @returns          string   the external field value, or `default`
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
 	new val,ERR
 	set val=$$GET1^DIQ(file,iens,field,"","","ERR")
 	if $data(ERR("DIERR")) quit default
@@ -69,6 +73,8 @@ exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads withou
 	; doc: @param   iens     string   IENS of the record
 	; doc: @returns          bool     1 iff the record exists; 0 otherwise
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"1,"),1,"exists: #200 IEN 1 (postmaster) exists")
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"999999999,"),0,"exists: an absent record returns 0")
 	new val,ERR
 	set val=$$GET1^DIQ(file,iens,".01","","","ERR")
 	if $data(ERR("DIERR")) quit 0
@@ -79,6 +85,7 @@ kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE;
 	; doc: @param   iens     string   IENS of the record to delete
 	; doc: @returns          bool     1 (idempotent — a DIERR is recorded, not raised)
 	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
 	new FDA,ERR
 	set FDA(file,iens,".01")="@"
 	do FILE^DIE("","FDA","ERR")
@@ -87,6 +94,7 @@ kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE;
 	;
 lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
 	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+	; doc: @example   new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
 	quit $get(^TMP($job,"vslfs","err"))
 	;
 	; ---------- internals ----------

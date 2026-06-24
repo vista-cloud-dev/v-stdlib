@@ -52,7 +52,7 @@ PAT_WRITE_EXPECT_NUM = re.compile(r'^\s*(?:write|w)\s+(.+?)\s+;\s*(-?\d+(?:\.\d+
 # label whose example needs set-up locals, a by-reference array, a procedure
 # call, or an error trigger (@raises, via `do raises^STDASSERT(…)`) is made
 # executable. The body runs under the routine's own .pass/.fail counters.
-PAT_STDASSERT_STMT = re.compile(r"\b(?:do|d)\s+[A-Za-z%][A-Za-z0-9]*\^STDASSERT\(", re.IGNORECASE)
+PAT_STDASSERT_STMT = re.compile(r"\b(?:do|d)(?::\S+)?\s+[A-Za-z%][A-Za-z0-9]*\^STDASSERT\(", re.IGNORECASE)
 
 
 def manifest_path() -> Path | None:

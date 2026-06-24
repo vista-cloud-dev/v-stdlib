@@ -66,6 +66,14 @@ envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
 	; doc: under byte mode (1 M char == 1 byte); set opt("base64") (the §9 per-stream switch,
 	; doc: FU-1 default) for guaranteed-conformant UTF-8 output on binary streams.
 	; doc: Full contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the line is well-formed JSON") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload")),"hello world","payload round-trips byte-exact")
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="x" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("event_id")),"500-1-7:resp","event_id = call_id ':' direction")
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("wire_len")),11,"wire_len = byte length of the RAW payload")
+	; doc: @example   new rec,opt,line,t set rec("direction")="req",rec("call_id")="500-1-8",rec("seq")=8,rec("denied")=1,rec("payload")="p" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("denied")),1,"a req carries denied, not result_kind")
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-9",rec("seq")=9,rec("payload")="v" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("result_kind")),"scalar","a resp carries result_kind, not denied")
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")=("a"_$char(9)_"b"_""""_"q") set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$decode^STDB64($$valueOf^STDJSON(t("payload"))),"a"_$char(9)_"b"_""""_"q","base64 switch decodes byte-exact")
+	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hi" set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_sha256")),$$sha256^STDCRYPTO("hi"),"payload_sha256 anchors the RAW bytes, even under base64")
+	; doc: @example   new rec,opt,a,b set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,"deterministic: same fixture frames byte-identical (M-collation key order)")
 	new env,enc,pl,raw,dir,wl,cc
 	set raw=$get(rec("payload"))
 	set dir=$get(rec("direction"))
@@ -109,6 +117,7 @@ gSerialize(seq)	; Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a det
 	; doc: for arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form
 	; doc: (vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a
 	; doc: deterministic, byte-faithful representation the §15.2 round-trip can prove.
+	; doc: @example   new save,b merge save=^XTMP("VSLTAP","data",991,"g") kill ^XTMP("VSLTAP","data",991,"g") set ^XTMP("VSLTAP","data",991,"g","DPT",1)="ONE",^XTMP("VSLTAP","data",991,"g","DPT",2)="TWO" set b=$$gSerialize^VSLS3(991) kill ^XTMP("VSLTAP","data",991,"g") merge ^XTMP("VSLTAP","data",991,"g")=save do eq^STDASSERT(.pass,.fail,$length(b,$char(10)),2,"one JSON node line per descendant of the g MERGE snapshot")
 	new root,pfx,nref,out,sub
 	set root=$name(^XTMP("VSLTAP","data",+$get(seq),"g"))
 	; the descendant prefix is the root WITHOUT its trailing ")": "^...,""g""" — so a
@@ -148,6 +157,8 @@ key(station,proto,seq,ymd)	; The object key for one traffic stream: traffic/<st>
 	; doc: @param seq      numeric the capture sequence number
 	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
 	; doc: @returns        string  the S3 object key
+	; doc: @example   write $$key^VSLS3("500","rpc",42,"20260619")  ; "traffic/500/rpc/2026/06/19/42.ndjson"
+	; doc: @example   write $$key^VSLS3("442","hl7",1,"20260101")  ; "traffic/442/hl7/2026/01/01/1.ndjson"
 	new d
 	set d=$get(ymd) if d="" set d=$$today()
 	quit "traffic/"_station_"/"_proto_"/"_$$ymdPath(d)_"/"_(+seq)_".ndjson"
@@ -156,6 +167,7 @@ offWindowsKey(station,ymd)	; The per-day _offwindows manifest key (explicit tap-
 	; doc: @param station  string  the station partition
 	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
 	; doc: @returns        string  the S3 object key
+	; doc: @example   write $$offWindowsKey^VSLS3("500","20260619")  ; "traffic/500/_offwindows/2026/06/19.json"
 	new d
 	set d=$get(ymd) if d="" set d=$$today()
 	quit "traffic/"_station_"/_offwindows/"_$$ymdPath(d)_".json"
@@ -164,6 +176,7 @@ fidelityKey(station,ymd)	; The per-day _fidelity manifest key (periodic VSLTAPFC
 	; doc: @param station  string  the station partition
 	; doc: @param ymd      string  YYYYMMDD day partition (default: today)
 	; doc: @returns        string  the S3 object key
+	; doc: @example   write $$fidelityKey^VSLS3("500","20260619")  ; "traffic/500/_fidelity/2026/06/19.json"
 	new d
 	set d=$get(ymd) if d="" set d=$$today()
 	quit "traffic/"_station_"/_fidelity/"_$$ymdPath(d)_".json"
@@ -186,6 +199,7 @@ ctx(ctx,opt)	; Build the S3 credential ctx + opt(endpoint) from the ^VSLTAP conf
 	; doc: The same control state the Phase-2 core uses (^VSLTAP("cfg",…)). An
 	; doc: empty endpoint -> virtual-hosted real S3; a set endpoint -> path-style
 	; doc: S3-equivalent (the no-code-change testbed hook, §15.1).
+	; doc: @example   new ctx,opt,b,save merge save=^VSLTAP("cfg") kill ^VSLTAP("cfg") set ^VSLTAP("cfg","s3bucket")="vista-traffic",^VSLTAP("cfg","s3endpoint")="http://m-s3-minio:9000" set b=$$ctx^VSLS3(.ctx,.opt) kill ^VSLTAP("cfg") merge ^VSLTAP("cfg")=save do eq^STDASSERT(.pass,.fail,b,"vista-traffic","bucket + endpoint read from the ^VSLTAP config seam (set-then-restore)")
 	new ep,tok
 	set ctx("accessKey")=$$cfg^VSLTAP("s3accesskey","")
 	set ctx("secretKey")=$$cfg^VSLTAP("s3secretkey","")
@@ -210,6 +224,7 @@ ship(ctx,bucket,key,body,opt,resp)	; PUT one object to S3 / the S3-equivalent vi
 	; doc: The ONLY way to reach S3 (waterline rule 3: the m S3 client is the
 	; doc: transport monopoly). Runs in the SEPARATE flush process, never the
 	; doc: RPC path (§4.1.3). 0 on a bare engine with no HTTP egress (G-HTTP-*).
+	; doc: @illustrative  live S3/MinIO PUT over engine HTTP egress (STDS3); no side-effect-safe bare-engine example — proven in the §15.2 MinIO integration harness.
 	set opt("contentType")=$get(opt("contentType"),"application/x-ndjson")
 	quit $$putObject^STDS3(.ctx,bucket,key,$get(body),.opt,.resp)
 	;
@@ -224,6 +239,7 @@ readback(ctx,bucket,key,opt,resp)	; GET one object back from S3 / the S3-equival
 	; doc: object back and compare byte-for-byte (VSLTAPFC). `opt` carries the
 	; doc: endpoint override (from $$ctx) so the GET reaches the same endpoint the
 	; doc: PUT used — without it the read op signs+sends to real AWS, not MinIO.
+	; doc: @illustrative  live S3/MinIO GET over engine HTTP egress (STDS3); the read leg of the §15.2 round-trip, not runnable on a bare engine.
 	quit $$getObject^STDS3(.ctx,bucket,key,.opt,.resp)
 	;
 list(ctx,bucket,prefix,opt,listing)	; LIST object keys under `prefix` via STDS3 listObjectsV2.
@@ -237,6 +253,7 @@ list(ctx,bucket,prefix,opt,listing)	; LIST object keys under `prefix` via STDS3 
 	; doc: $$fidelityNow): enumerate recently-shipped objects under the per-station
 	; doc: prefix so they can be read back and integrity-verified. Same `opt`
 	; doc: endpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).
+	; doc: @illustrative  live S3/MinIO LIST over engine HTTP egress (STDS3 listObjectsV2); proven in STDS3MINIOTST, not on a bare engine.
 	quit $$listObjectsV2^STDS3(.ctx,bucket,$get(prefix),.opt,.listing)
 	;
 	; ---------- the drain loop (VSLTASK-driven flush; spec §4.1.3) ----------
@@ -250,6 +267,7 @@ drain(res)	; Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipp
 	; doc: dead/slow sink or any interference signal turns it off cleanly (the gate
 	; doc: records the off-window). On a 200 it self-drains the shipped seqs
 	; doc: (drainTo^VSLTAP); on any other status it leaves the ring for retry.
+	; doc: @example   new res,save,csave merge save=^XTMP("VSLTAP") merge csave=^VSLTAP("cfg") kill ^XTMP("VSLTAP"),^VSLTAP("cfg") set ^VSLTAP("cfg","s3sink")="capture",^VSLTAP("cfg","mode")="armed",^VSLTAP("cfg","consumer")=1,^VSLTAP("cfg","s3station")="500" set ^XTMP("VSLTAP","head")=1,^XTMP("VSLTAP","tail")=0,^XTMP("VSLTAP","data",1)="ONELINE" set n=$$drain^VSLS3(.res) kill ^XTMP("VSLTAP"),^VSLTAP("cfg") merge ^XTMP("VSLTAP")=save merge ^VSLTAP("cfg")=csave do eq^STDASSERT(.pass,.fail,n,1,"capture-sink seam drains the 1-record ring without a live PUT (status 200)")
 	new ctx,opt,bucket,station,proto,h,t,seq,erec,body,line,n,last,key,sc
 	kill res
 	set res("shipped")=0
@@ -293,6 +311,7 @@ resolveRec(seq,station,proto,erec)	; Build the schema-v1 field array for the rec
 	; doc: from its "p",1 chunk. A legacy v1 string record ($$append — the synthetic
 	; doc: demonstrator path) ships as a plain payload under the configured direction. The
 	; doc: header's schema_version keeps both readable from one ring (schema-lock §4).
+	; doc: @example   new erec,save merge save=^XTMP("VSLTAP") kill ^XTMP("VSLTAP") set ^XTMP("VSLTAP","data",993)="RAWBYTES" do resolveRec^VSLS3(993,"500","rpc",.erec) kill ^XTMP("VSLTAP") merge ^XTMP("VSLTAP")=save do eq^STDASSERT(.pass,.fail,erec("payload"),"RAWBYTES","a legacy v1 record resolves to a plain payload under the station/proto key (set-then-restore)")
 	new hdr
 	kill erec
 	if $$hdr^VSLTAP(seq,.hdr) do  quit
@@ -312,6 +331,7 @@ resolveRec(seq,station,proto,erec)	; Build the schema-v1 field array for the rec
 	quit
 	;
 shipBatch(ctx,bucket,key,body,opt,resp)	; (private) ship one batch object; honour the capture-sink test seam.
+	; doc: @internal
 	; doc: The §6.2-style injected seam: with ^VSLTAP("cfg","s3sink")="capture"
 	; doc: the batch is returned in `res` (no real PUT) so the drain logic is
 	; doc: provable on a bare engine; otherwise it PUTs via the STDS3 monopoly.

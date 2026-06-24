@@ -31,6 +31,7 @@ reconcilePersist(corpus,envs)	; Reconcile the corpus vs the read-back envelopes,
 	; doc: The one call that writes ^VSLTAP("fc","last") in production — the live
 	; doc: sampler and the make-test-s3 round-trip both funnel through here so the
 	; doc: console (VWEBT $$lastFidelity^VSLTAPFC) stops showing `pending`.
+	; doc: @example   new corpus,envs,rec,opt,save set save=$get(^VSLTAP("fc","last")) set rec("direction")="resp",rec("call_id")="500-1-1",rec("seq")=1,rec("payload")="hello world",corpus(1)="hello world",envs(1)=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$reconcilePersist^VSLTAPRUN(.corpus,.envs),1,"a byte-perfect 1-record sample reconciles ok=true") set ^VSLTAP("fc","last")=save
 	new res,ok
 	set ok=$$reconcile^VSLTAPFC(.corpus,.envs,.res)
 	do persist^VSLTAPFC(.res)
@@ -41,6 +42,7 @@ reconcilePersist(corpus,envs)	; Reconcile the corpus vs the read-back envelopes,
 cadence()	; The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
 	; doc: @returns numeric  a positive number of seconds between fidelity runs
 	; doc: $text-guarded — a bare engine has no XPAR, so the default (1h) applies.
+	; doc: @example   write $$cadence^VSLTAPRUN()  ; 3600
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 	new $etrap,v
 	set $etrap="set $ecode="""" quit"
@@ -57,6 +59,7 @@ schedule()	; Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out c
 	; doc: PSET self-restarting listener (so it is cleanly dequeueable by VSLTAPBO,
 	; doc: unlike a persistent listener). Records ^VSLTAP("task","fidelity")=task#.
 	; doc: $text-guarded so a bare engine is a clean no-op.
+	; doc: @example   write $$schedule^VSLTAPRUN()  ; 0
 	; doc: @icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points
 	new $etrap,ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSK,ztsk
 	set $etrap="set $ecode="""" quit"
@@ -81,6 +84,7 @@ run()	; The scheduled task body: gate -> sample+persist -> re-queue. Fenced (nev
 	; doc: consumer it skips the live work entirely (no false fidelity result). The
 	; doc: whole body is fault-fenced so a sampling/egress fault self-clears and the
 	; doc: next tick is still re-queued.
+	; doc: @example   new save set save=$get(^VSLTAP("fc","last")) do off^VSLTAP() set ^VSLTAP("fc","last")="{""sentinel"":1}" do run^VSLTAPRUN() do eq^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC(),"{""sentinel"":1}","a disabled tap skips the live work and leaves the last result untouched") set ^VSLTAP("fc","last")=save
 	new $etrap,x
 	set $etrap="set $ecode="""" quit"
 	if '$$enabled^VSLTAP() quit
@@ -109,6 +113,7 @@ fidelityNow()	; Sample recently-shipped objects, integrity-verify each, persist 
 	; doc: mirror/#772 source — remains a documented future enhancement; the ring is
 	; doc: trimmed post-drain so it cannot be that source.] Fenced; persists
 	; doc: ^VSLTAP("fc","last"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.
+	; doc: @example   write $$fidelityNow^VSLTAPRUN()  ; -1
 	new $etrap,ctx,opt,bucket,station,proto,prefix,listing,sc,res,k,cap,seen
 	set $etrap="set $ecode="""" quit -1"
 	set bucket=$$ctx^VSLS3(.ctx,.opt)
@@ -126,6 +131,7 @@ fidelityNow()	; Sample recently-shipped objects, integrity-verify each, persist 
 	;
 nextKey(k,seen,listing,ctx,bucket,opt,res)	; (private) step to the previous listed subscript; verify its object if it's a real key.
 	; doc: The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.
+	; doc: @illustrative  private iterator over a $$list^VSLS3 listing array — needs a live S3 ctx + bucket + shipped objects to step; exercised end-to-end via $$fidelityNow.
 	set k=$order(listing(k),-1)
 	if k="" quit
 	if $get(listing(k,"key"))="" quit

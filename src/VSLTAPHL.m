@@ -32,6 +32,9 @@ record(us,bytes,denied)	; Record one capture sample: a denial, or a write (+byte
 	; doc: @param us      numeric  capture latency in microseconds (0 -> no latency sample)
 	; doc: @param bytes   numeric  bytes copied into the buffer
 	; doc: @param denied  bool     1 iff the consumer-gate denied this capture (no write)
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do record^VSLTAPHL(120,50,0),record^VSLTAPHL(80,40,0),record^VSLTAPHL(0,0,1) do eq^STDASSERT(.pass,.fail,$$writes^VSLTAPHL(),2,"two capture writes counted (the denied sample is not a write)")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do record^VSLTAPHL(120,50,0),record^VSLTAPHL(80,40,0) do eq^STDASSERT(.pass,.fail,$$bytes^VSLTAPHL(),90,"bytes-to-buffer summed across writes")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do record^VSLTAPHL(0,0,1) do eq^STDASSERT(.pass,.fail,$$denied^VSLTAPHL(),1,"one consumer-gate denial counted")
 	new b
 	if +$get(denied) do incr("denied") quit
 	do incr("writes")
@@ -64,6 +67,8 @@ denied()	; Consumer-gate denial count.
 pctl(p)	; The p-th percentile (nearest-rank) of the latency-sample window; 0 if none.
 	; doc: @param p   numeric  percentile 0..100
 	; doc: @returns   numeric  the nearest-rank sample value
+	; doc: @example   new i kill ^VSLTAP,^XTMP("VSLTAP") for i=1:1:100 do record^VSLTAPHL(i,1,0)  do true^STDASSERT(.pass,.fail,($$pctl^VSLTAPHL(50)'<1)&($$pctl^VSLTAPHL(50)'>100),"p50 of 1..100 falls within [1,100]")
+	; doc: @example   new i kill ^VSLTAP,^XTMP("VSLTAP") for i=1:1:100 do record^VSLTAPHL(i,1,0)  do true^STDASSERT(.pass,.fail,$$pctl^VSLTAPHL(95)'<$$pctl^VSLTAPHL(50),"p95 >= p50 (percentiles are monotonic)")
 	new j,cnt,tmp,idx,acc,res,v,done,cap,sc
 	set cap=200
 	set sc=+$get(^VSLTAP("hl","scount"))
@@ -96,9 +101,15 @@ abcheck(base,tapped)	; 1 iff (tapped - base) exceeds the pre-registered D-7 late
 	; doc: @param base    numeric  baseline (tap OFF) latency
 	; doc: @param tapped  numeric  tapped (tap ON) latency
 	; doc: @returns bool   the exact signal the §6.2 watchdog trips on
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") set ^VSLTAP("cfg","latbound")=100 do eq^STDASSERT(.pass,.fail,$$abcheck^VSLTAPHL(10,60),0,"tapped-base=50 <= 100 bound -> clean")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") set ^VSLTAP("cfg","latbound")=100 do eq^STDASSERT(.pass,.fail,$$abcheck^VSLTAPHL(10,510),1,"tapped-base=500 > 100 bound -> trip")
 	quit ((+tapped-+base)>+$$cfg^VSLTAP("latbound",250))
 	;
 watchLatency(base,tapped)	; Trip auto-failover OFF when the tapped-vs-baseline delta breaches the bound.
+	; doc: @param base    numeric  baseline (tap OFF) latency
+	; doc: @param tapped  numeric  tapped (tap ON) latency
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),setConsumer^VSLTAP(1) set ^VSLTAP("cfg","latbound")=100 do watchLatency^VSLTAPHL(10,10) do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),"","a within-bound sample does not disable the tap")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),setConsumer^VSLTAP(1) set ^VSLTAP("cfg","latbound")=100 do watchLatency^VSLTAPHL(10,500) do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),"latency","an over-bound sample self-disables with reason latency")
 	if $$abcheck(.base,.tapped) do disable^VSLTAP("latency")
 	quit
 	;
@@ -111,6 +122,8 @@ beat()	; Update the liveness heartbeat (the watchdog's k8s-style liveness beat).
 ready()	; Standby readiness probe: 1 iff a gated/idle tap COULD capture if a consumer appeared.
 	; doc: @returns bool  checks (1) armed (2) not auto-disabled (3) heartbeat fresh
 	; doc: (4) the ^XTMP capture substrate is writable. Egress HEAD ping is Phase 3.
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),beat^VSLTAPHL() do true^STDASSERT(.pass,.fail,$$ready^VSLTAPHL()=1,"readiness probe green while idle (substrate writable, fence armed, heartbeat fresh)")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),beat^VSLTAPHL() set ^VSLTAP("hb")=0 do true^STDASSERT(.pass,.fail,$$ready^VSLTAPHL()=0,"a stale heartbeat flips readiness red even with zero traffic")
 	if $$cfg^VSLTAP("mode","off")'="armed" quit 0
 	if $$disabled^VSLTAP()'="" quit 0
 	if '$$healthy^VSLTAP() quit 0
@@ -130,6 +143,8 @@ canary()	; Synthetic byte-exact round-trip of a tagged record through ^XTMP — 
 	; doc: @returns bool  1 iff the capture substrate round-trips byte-exact on standby
 	; doc: Proves capture works while idle without perturbing the ring (the §8.1
 	; doc: synthetic monitor; the §15 harness run with a one-record corpus).
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),beat^VSLTAPHL() do true^STDASSERT(.pass,.fail,$$canary^VSLTAPHL()=1,"canary proves capture-substrate works on standby (byte-exact round-trip)")
+	; doc: @example   kill ^VSLTAP,^XTMP("VSLTAP") do arm^VSLTAP(),beat^VSLTAPHL() set %=$$canary^VSLTAPHL() do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"the canary leaves the real ring empty (no clinical-traffic perturbation)")
 	new tag,rb,ok,$etrap
 	set ok=1
 	set $etrap="set ok=0,$ecode="""" quit"

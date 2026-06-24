@@ -42,12 +42,32 @@ Fill facts(engine,version,kernel,tls) from intrinsics + resident Kernel; return 
 
 **Returns** _bool_ — always 1 (faultable reads are isolated + trapped)
 
+**Example**
+
+```m
+set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,x,1,"check returns 1")
+set x=$$check^VSLENV(.facts) do true^STDASSERT(.pass,.fail,facts("engine")'="","check fills a non-empty engine fact")
+set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,facts("version"),$zversion,"check reports the running engine version")
+```
+
 ### `$$kernelVer^VSLENV()`
 
 (private) the Kernel (#9.4 XU) current version, "" if unavailable.
 
+**Example**
+
+```m
+do true^STDASSERT(.pass,.fail,$$kernelVer^VSLENV()'="","kernelVer is non-empty on a Kernel-equipped VistA")
+```
+
 ### `$$tlsConfig^VSLENV()`
 
 (private) the DEFAULT TLS SERVER CONFIG Kernel System Parameter (presence), "" if unset.
+
+**Example**
+
+```m
+do eq^STDASSERT(.pass,.fail,$$tlsConfig^VSLENV(),$$GET^XPAR("SYS","DEFAULT TLS SERVER CONFIG",1),"tlsConfig reads the DEFAULT TLS SERVER CONFIG parameter")
+```
 
 <!-- END GENERATED API REFERENCE -->

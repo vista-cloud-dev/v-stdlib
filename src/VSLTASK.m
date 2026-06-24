@@ -36,11 +36,13 @@ VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process se
 	;
 running()	; 1 iff the TaskMan scheduler is live (its ^%ZTSCH("RUN") heartbeat is fresh).
 	; doc: @returns          bool     1 iff TaskMan is running (the self-heal precondition); 0 otherwise
+	; doc: @example         do true^STDASSERT(.pass,.fail,($$running^VSLTASK()=0)!($$running^VSLTASK()=1),"$$running returns a clean boolean (resolves $$TM^%ZTLOAD)")
 	; doc: @icr 10063 @call $$TM^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#tmztload-check-if-taskman-is-running
 	quit ''$$TM^%ZTLOAD()
 	;
 stop()	; 1 iff a stop has been requested of the currently-running task (cooperative stop).
 	; doc: @returns          bool     1 iff the listener loop should stop; 0 when not in a task / no stop pending
+	; doc: @example         do true^STDASSERT(.pass,.fail,$$stop^VSLTASK()=0,"$$stop=0 when not running as a TaskMan task (the cooperative-stop check)")
 	; doc: @icr 10063 @call $$S^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#sztload-check-for-task-stop-request
 	quit ''$$S^%ZTLOAD
 	;
@@ -48,6 +50,8 @@ persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it o
 	; doc: @param   ztsk     numeric  the task number (from $$schedule / ^%ZTLOAD)
 	; doc: @returns          bool     1 iff the task was marked persistent, else 0 (task not queued)
 	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
+	; doc: @illustrative   the success path marks a queued task persistent (un-KILLable) on a shared live TaskMan; only the malformed-call contract is safely shown
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","$$persist with no task# raises U-VSL-TASK-ARG")
 	; doc: @icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent
 	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","persist: a positive task number is required") quit ""
 	quit ''$$PSET^%ZTLOAD(ztsk)
@@ -59,6 +63,8 @@ schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; ret
 	; doc: @returns          numeric  the queued task number
 	; doc: @raises  U-VSL-TASK-ARG    no entry reference supplied
 	; doc: @raises  U-VSL-TASK-QUEUE  the TaskMan queue / persist failed
+	; doc: @illustrative   the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
 	new $etrap,ztsk,ok
 	if $get(entry)="" do raise("U-VSL-TASK-ARG","schedule: an entry reference is required") quit ""
 	set ok=1
@@ -71,11 +77,13 @@ schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; ret
 	;
 lastError()	; The last VSLTASK error message (the composed malformed-call / fault detail).
 	; doc: @returns          string   ^TMP($job,"vsltask","err"), or "" if none
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","arm an error") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),"task number","$$lastError carries the malformed-call detail after a raise")
 	quit $get(^TMP($job,"vsltask","err"))
 	;
 	; ---------- internals ----------
 	;
 queue(entry,desc,when)	; (private) headless ^%ZTLOAD queue (no device); return the task number, else 0.
+	; doc: @illustrative   private; runs ^%ZTLOAD which queues a real TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone in a unit test
 	; doc: @icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points
 	new ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSK
 	set ZTRTN=entry,ZTIO=""

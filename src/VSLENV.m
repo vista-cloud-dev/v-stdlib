@@ -28,6 +28,7 @@ VSLENV	; v-stdlib — the VSL KIDS environment-check routine (the XPDENV hook).
 	;
 abort	; (private) a genuine showstopper — Kernel (XU) is not present; abort the install.
 	; doc: @icr 10141 @call MES^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#mesxpdutl-output-a-message
+	; doc: @illustrative  only meaningful inside a live KIDS install — MES^XPDUTL needs the KIDS message buffer + it sets the KIDS XPDQUIT install-control flag
 	do MES^XPDUTL("  ABORT: Kernel (XU) is not present — the VSL base Requires it")
 	set XPDQUIT=2
 	quit
@@ -37,6 +38,9 @@ abort	; (private) a genuine showstopper — Kernel (XU) is not present; abort th
 check(facts)	; Fill facts(engine,version,kernel,tls) from intrinsics + resident Kernel; return 1.
 	; doc: @param   facts    array    (by ref) receives engine/version/kernel/tls facts
 	; doc: @returns          bool     always 1 (faultable reads are isolated + trapped)
+	; doc: @example  set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,x,1,"check returns 1")
+	; doc: @example  set x=$$check^VSLENV(.facts) do true^STDASSERT(.pass,.fail,facts("engine")'="","check fills a non-empty engine fact")
+	; doc: @example  set x=$$check^VSLENV(.facts) do eq^STDASSERT(.pass,.fail,facts("version"),$zversion,"check reports the running engine version")
 	set facts("engine")=$select($zversion["IRIS":"IRIS",$zversion["YottaDB":"YottaDB",1:$piece($zversion," ",1))
 	set facts("version")=$zversion
 	set facts("kernel")=$$kernelVer()
@@ -45,6 +49,7 @@ check(facts)	; Fill facts(engine,version,kernel,tls) from intrinsics + resident 
 	;
 kernelVer()	; (private) the Kernel (#9.4 XU) current version, "" if unavailable.
 	; doc: @icr 10141 @call $$VERSION^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#versionxpdutl-package-file-current-version
+	; doc: @example  do true^STDASSERT(.pass,.fail,$$kernelVer^VSLENV()'="","kernelVer is non-empty on a Kernel-equipped VistA")
 	new $etrap,v
 	set v=""
 	set $etrap="set $ecode="""" quit"
@@ -53,6 +58,7 @@ kernelVer()	; (private) the Kernel (#9.4 XU) current version, "" if unavailable.
 	;
 tlsConfig()	; (private) the DEFAULT TLS SERVER CONFIG Kernel System Parameter (presence), "" if unset.
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+	; doc: @example  do eq^STDASSERT(.pass,.fail,$$tlsConfig^VSLENV(),$$GET^XPAR("SYS","DEFAULT TLS SERVER CONFIG",1),"tlsConfig reads the DEFAULT TLS SERVER CONFIG parameter")
 	new $etrap,v
 	set v=""
 	set $etrap="set $ecode="""" quit"

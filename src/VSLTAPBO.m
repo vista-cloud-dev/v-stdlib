@@ -34,6 +34,8 @@ params(out)	; Fill out(1..N) with the tap's XPAR #8989.51 param names; return N.
 	; doc: @returns    numeric  the count of tap params (the KIDS build + the back-out share this list)
 	; doc: The durable install-time config + the S3 deployment knobs. Operator
 	; doc: RUNTIME state (mode/consumer) stays in ^VSLTAP("cfg"), not XPAR.
+	; doc: @example      do true^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)>0,"params: the tap ships at least one XPAR param")
+	; doc: @example      new out do eq^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)_"|"_out(7),"10|VSL S3 ENDPOINT","params: 10 knobs, the 7th is the S3 endpoint")
 	new n
 	kill out
 	set n=0
@@ -60,6 +62,7 @@ backout()	; Full back-out: dequeue tasks, drop the XPAR params, kill the state. 
 	; doc: Each leg is independently fault-fenced, so a missing TaskMan/XPAR/FileMan
 	; doc: (a bare engine, or a partial install) never blocks the state cleanup. Tasks
 	; doc: first — their numbers live in ^VSLTAP, which the state kill then removes.
+	; doc: @example      set ^XTMP("VSLTAP","data",1)="rec",^VSLTAP("hb")=$horolog do backout^VSLTAPBO() do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),"backout: a seeded footprint verifies clean afterward")
 	do cleanTasks()
 	do cleanParams()
 	do cleanState()
@@ -71,6 +74,7 @@ cleanState()	; Kill the rolling capture cache and ALL VSL control state.
 	; doc: The whole tap footprint that lives in globals: ^XTMP("VSLTAP",…) (the
 	; doc: SAC auto-purge scratch cache) and ^VSLTAP (cfg/disabled/hb/_offwindows/
 	; doc: hl/fc/task). Pure M — no VistA needed; this is what the bare suite proves.
+	; doc: @example      set ^VSLTAP("cfg","mode")="armed",^XTMP("VSLTAP","data",1)="x" do cleanState^VSLTAPBO() do eq^STDASSERT(.pass,.fail,$data(^VSLTAP)+$data(^XTMP("VSLTAP")),0,"cleanState: both the cache and the control state are gone")
 	kill ^XTMP("VSLTAP")
 	kill ^VSLTAP
 	quit
@@ -80,6 +84,7 @@ cleanState()	; Kill the rolling capture cache and ALL VSL control state.
 cleanParams()	; Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition.
 	; doc: Fault-fenced as a whole (a bare engine has no XPAR/FileMan), and per-param
 	; doc: inside delParam, so one missing param does not strand the rest.
+	; doc: @example      do cleanParams^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,"cleanParams: the fenced XPAR leg returns without raising on a bare engine")
 	new $etrap,out,n,i
 	set $etrap="set $ecode="""" quit"
 	set n=$$params(.out)
@@ -96,6 +101,7 @@ delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.5
 	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 	; doc: $text-guarded: a bare engine has no XPAR/FileMan, so each leg is a clean
 	; doc: skip (there is nothing to remove); the $etrap still fences a genuine fault.
+	; doc: @example      do delParam^VSLTAPBO("VSL TAP CAP") do true^STDASSERT(.pass,.fail,1,"delParam: a not-present param is a clean no-op (fenced) on a bare engine")
 	new $etrap,ien,FDA,ERR
 	set $etrap="set $ecode="""" quit"
 	if $text(EN^XPAR)'="" do EN^XPAR("SYS",name,1,"@")
@@ -112,6 +118,7 @@ cleanTasks()	; Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cl
 	; doc: The scheduled-task numbers live in ^VSLTAP("task",label)=ztsk. The
 	; doc: fidelity/flush jobs are periodic re-queues (NOT persistent listeners),
 	; doc: so they dequeue cleanly. Fenced — no TaskMan on a bare engine.
+	; doc: @example      do cleanTasks^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,"cleanTasks: the fenced TaskMan leg returns without raising on a bare engine")
 	new $etrap,k
 	set $etrap="set $ecode="""" quit"
 	set k=""
@@ -127,6 +134,7 @@ dequeueNext(k)	; (private) advance to the next recorded task label and dequeue i
 dequeue(ztsk)	; (private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced.
 	; doc: @param ztsk  numeric  the task number to remove from the schedule
 	; doc: @icr 10063 @call KILL^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#killztload-delete-a-task
+	; doc: @example      do dequeue^VSLTAPBO(0) do true^STDASSERT(.pass,.fail,1,"dequeue: a non-positive task number is a clean no-op")
 	new $etrap,ZTSK
 	set $etrap="set $ecode="""" quit"
 	if +$get(ztsk)'>0 quit
@@ -142,6 +150,7 @@ verifyClean(detail)	; 1 iff no tap residue remains across all layers; detail() n
 	; doc: @returns        bool   1 iff globals, XPAR params and tasks are all clean
 	; doc: Globals (cache + control state) are checked on any engine; the XPAR-param
 	; doc: and task legs are fenced VistA seams — a bare engine reports them clean.
+	; doc: @example      kill ^XTMP("VSLTAP"),^VSLTAP do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),"verifyClean: an empty system verifies clean")
 	new ok
 	kill detail
 	set ok=1
@@ -152,6 +161,7 @@ verifyClean(detail)	; 1 iff no tap residue remains across all layers; detail() n
 	;
 paramsResidue(detail)	; (private) 1 iff any tap #8989.51 definition survives (fenced; bare -> 0).
 	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+	; doc: @example      do eq^STDASSERT(.pass,.fail,$$paramsResidue^VSLTAPBO(.detail),0,"paramsResidue: a bare engine (no FileMan) reports no surviving XPAR definitions")
 	new $etrap,out,n,i,found
 	set $etrap="set $ecode="""" quit"
 	set found=0

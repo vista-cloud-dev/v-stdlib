@@ -27,7 +27,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `duz` | `$$duz^VSLSEC()` | The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN. |
 | `hasKey` | `$$hasKey^VSLSEC(key, duz)` | 1 iff `duz` (default: the ambient DUZ) holds security key `key`. |
 | `lastError` | `$$lastError^VSLSEC()` | The last VSLSEC error message (the composed malformed-call detail). |
-| `user` | `$$user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
+| `user` | `do user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
 
 ### `$$bySecid^VSLSEC(secid)`
 
@@ -43,11 +43,24 @@ The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 
 - `U-VSL-SEC-ARG` — the call is malformed (an empty SecID)
 
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
+do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
+```
+
 ### `$$duz^VSLSEC()`
 
 The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 
 **Returns** _numeric_ — the ambient DUZ (0 when no signon context is set)
+
+**Example**
+
+```m
+new DUZ set DUZ=1 do eq^STDASSERT(.pass,.fail,$$duz^VSLSEC(),1,"$$duz returns the ambient DUZ (NEWed, no side effect)")
+```
 
 ### `$$hasKey^VSLSEC(key, duz)`
 
@@ -64,13 +77,27 @@ The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 
 - `U-VSL-SEC-ARG` — the call is malformed (an empty key name)
 
+**Example**
+
+```m
+do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC("ZZ NO SUCH KEY",1),0,"hasKey is 0 (a normal DENY) for an unheld key")
+new k,d set k=$order(^XUSEC("")),d=$select(k'="":$order(^XUSEC(k,0)),1:"") do:k'=""&(d'="") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)") do:k=""!(d="") true^STDASSERT(.pass,.fail,1,"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia")
+do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
+```
+
 ### `$$lastError^VSLSEC()`
 
 The last VSLSEC error message (the composed malformed-call detail).
 
 **Returns** _string_ — ^TMP($job,"vslsec","err"), or "" if none
 
-### `$$user^VSLSEC(duz)`
+**Example**
+
+```m
+new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
+```
+
+### `do user^VSLSEC(duz)`
 
 The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
 

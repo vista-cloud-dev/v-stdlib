@@ -33,6 +33,12 @@ The last VSLLOG error message (the composed FileMan detail).
 
 **Returns** _string_ — ^TMP($job,"vsllog","err"), or "" if none
 
+**Example**
+
+```m
+set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","seed a failure") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the FileMan detail after a failed write")
+```
+
 ### `$$read^VSLLOG(file, iens)`
 
 Read the audit line stored at (file,iens) .01, else "".
@@ -43,6 +49,12 @@ Read the audit line stored at (file,iens) .01, else "".
 - `iens` _(string)_ — IENS of the audit record
 
 **Returns** _string_ — the stored audit line, or "" if absent
+
+**Example**
+
+```m
+set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,"9999999,"),"","read of an absent record returns empty string")
+```
 
 ### `do write^VSLLOG(file, event, detail)`
 
@@ -59,5 +71,12 @@ File one audit record into `file`; return the resolved IENS, else raise.
 **Raises**
 
 - `U-VSL-LOG-WRITE` — the FileMan write failed (detail in $$lastError)
+
+**Example**
+
+```m
+set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,"ZZVSLLOGEX","X") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),"ZZVSLLOGEX","write then read-back contains the event") set zzok=$$kill^VSLFS(8989.51,ie)
+set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","writing into a bogus file raises U-VSL-LOG-WRITE")
+```
 
 <!-- END GENERATED API REFERENCE -->

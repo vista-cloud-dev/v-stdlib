@@ -47,6 +47,7 @@ connect(host,port,timeout)	; Open an outbound TCP connection; return the device 
 	; doc: @returns string   the opened device (handle) on POP=0, else 0
 	; doc: @icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system
 	; doc: WARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).
+	; doc: @example   do true^STDASSERT(.pass,.fail,$$connect^VSLIO("127.0.0.1",65000,2)=0,"connect to a closed port returns 0 (POP positive)")
 	new IO,POP,pio,dev
 	set pio=$io
 	do CALL^%ZISTCP(host,port,$get(timeout,30))
@@ -61,6 +62,7 @@ read(id,maxlen,timeout,buf)	; Raw-read up to maxlen bytes from a handle.
 	; doc: @param   timeout  numeric  seconds to wait for data
 	; doc: @param   buf      string   by-ref; receives the bytes read
 	; doc: @returns numeric  bytes read (0 on timeout/EOF)
+	; doc: @illustrative  needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server).
 	new x,pio
 	set buf="",pio=$io
 	use id read x#maxlen:timeout
@@ -72,6 +74,7 @@ write(id,buf)	; Raw-write `buf` to a connected handle.
 	; doc: @param   id       string   a handle from $$connect (the device)
 	; doc: @param   buf      string   bytes to write (raw, no delimiter)
 	; doc: @returns bool     1 on success
+	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
 	new pio
 	set pio=$io
 	use id write buf
@@ -82,6 +85,7 @@ close(id)	; Close an outbound connection opened by $$connect.
 	; doc: @param   id       string   a handle from $$connect (the device)
 	; doc: @returns bool     1 (idempotent)
 	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
+	; doc: @illustrative  needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho.
 	new IO,pio
 	set pio=$io,IO=id
 	do CLOSE^%ZISTCP
@@ -90,6 +94,7 @@ close(id)	; Close an outbound connection opened by $$connect.
 	;
 lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
+	; doc: @example   new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
 	quit $get(^TMP($job,"vslio","err"))
 	;
 	; ---------- TLS (known gap — loud, never silent) ----------
@@ -97,10 +102,12 @@ lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
 	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
 	; doc: Check before any secure use; $$tlsHelp has remediation.
+	; doc: @example   write $$tlsAvailable^VSLIO()  ; 0
 	quit 0
 	;
 tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
 	; doc: @returns string  multi-line: why there is no TLS + how to remedy
+	; doc: @example   do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
 	quit $$noTlsMsg()
 	;
 connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
@@ -110,6 +117,7 @@ connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens pla
 	; doc: @param   config   string   named TLS config (ignored — not implemented)
 	; doc: @returns string   never returns a handle; always raises
 	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
+	; doc: @example   do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
 	do raiseNoTls("connectTls")
 	quit 0
 	;

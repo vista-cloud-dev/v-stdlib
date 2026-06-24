@@ -54,6 +54,12 @@ Open an outbound TCP connection; return the device handle, else 0.
 
 **Returns** _string_ — the opened device (handle) on POP=0, else 0
 
+**Example**
+
+```m
+do true^STDASSERT(.pass,.fail,$$connect^VSLIO("127.0.0.1",65000,2)=0,"connect to a closed port returns 0 (POP positive)")
+```
+
 ### `$$connectTls^VSLIO(host, port, timeout, config)`
 
 UNIMPLEMENTED — raises, never opens plaintext.
@@ -71,11 +77,23 @@ UNIMPLEMENTED — raises, never opens plaintext.
 
 - `U-VSLIO-NOTLS` — TLS not wired (known gap; see $$tlsHelp)
 
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
+```
+
 ### `$$lastError^VSLIO()`
 
 The last VSLIO error message (e.g. the TLS-gap remediation).
 
 **Returns** _string_ — ^TMP($job,"vslio","err"), or "" if none
+
+**Example**
+
+```m
+new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
+```
 
 ### `$$read^VSLIO(id, maxlen, timeout, buf)`
 
@@ -96,11 +114,23 @@ Raw-read up to maxlen bytes from a handle.
 
 **Returns** _bool_ — always 0 today: raw plaintext only (a known, tracked gap)
 
+**Example**
+
+```m
+write $$tlsAvailable^VSLIO()  ; 0
+```
+
 ### `$$tlsHelp^VSLIO()`
 
 Human-readable remediation for the TLS gap (diagnostics/logs).
 
 **Returns** _string_ — multi-line: why there is no TLS + how to remedy
+
+**Example**
+
+```m
+do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
+```
 
 ### `$$write^VSLIO(id, buf)`
 

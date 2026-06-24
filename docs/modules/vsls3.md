@@ -34,7 +34,6 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `readback` | `$$readback^VSLS3(ctx, bucket, key, opt, resp)` | GET one object back from S3 / the S3-equivalent via STDS3. |
 | `resolveRec` | `do resolveRec^VSLS3(seq, station, proto, erec)` | Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / v1 legacy). |
 | `ship` | `$$ship^VSLS3(ctx, bucket, key, body, opt, resp)` | PUT one object to S3 / the S3-equivalent via STDS3. |
-| `shipBatch` | `$$shipBatch^VSLS3(ctx, bucket, key, body, opt, resp)` | (private) ship one batch object; honour the capture-sink test seam. |
 
 ### `$$ctx^VSLS3(ctx, opt)`
 
@@ -47,6 +46,12 @@ Build the S3 credential ctx + opt(endpoint) from the ^VSLTAP config seam.
 
 **Returns** _string_ — the bucket name from the seam
 
+**Example**
+
+```m
+new ctx,opt,b,save merge save=^VSLTAP("cfg") kill ^VSLTAP("cfg") set ^VSLTAP("cfg","s3bucket")="vista-traffic",^VSLTAP("cfg","s3endpoint")="http://m-s3-minio:9000" set b=$$ctx^VSLS3(.ctx,.opt) kill ^VSLTAP("cfg") merge ^VSLTAP("cfg")=save do eq^STDASSERT(.pass,.fail,b,"vista-traffic","bucket + endpoint read from the ^VSLTAP config seam (set-then-restore)")
+```
+
 ### `$$drain^VSLS3(res)`
 
 Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipped entries.
@@ -56,6 +61,12 @@ Flush the ^XTMP ring to S3 as one LDJSON batch, then trim the shipped entries.
 - `res` _(array)_ — OUT by-ref: res("shipped")/("key")/("body")/("status")
 
 **Returns** _int_ — the number of records shipped (0 if gated/empty/failed)
+
+**Example**
+
+```m
+new res,save,csave merge save=^XTMP("VSLTAP") merge csave=^VSLTAP("cfg") kill ^XTMP("VSLTAP"),^VSLTAP("cfg") set ^VSLTAP("cfg","s3sink")="capture",^VSLTAP("cfg","mode")="armed",^VSLTAP("cfg","consumer")=1,^VSLTAP("cfg","s3station")="500" set ^XTMP("VSLTAP","head")=1,^XTMP("VSLTAP","tail")=0,^XTMP("VSLTAP","data",1)="ONELINE" set n=$$drain^VSLS3(.res) kill ^XTMP("VSLTAP"),^VSLTAP("cfg") merge ^XTMP("VSLTAP")=save merge ^VSLTAP("cfg")=csave do eq^STDASSERT(.pass,.fail,n,1,"capture-sink seam drains the 1-record ring without a live PUT (status 200)")
+```
 
 ### `$$envelope^VSLS3(rec, opt)`
 
@@ -70,6 +81,19 @@ duz/job/client[/denied|result_kind]/chunk_count/payload_encoding
 
 **Returns** _string_ — one schema-v1 JSON object line, no trailing newline
 
+**Example**
+
+```m
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the line is well-formed JSON") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload")),"hello world","payload round-trips byte-exact")
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="x" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("event_id")),"500-1-7:resp","event_id = call_id ':' direction")
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("wire_len")),11,"wire_len = byte length of the RAW payload")
+new rec,opt,line,t set rec("direction")="req",rec("call_id")="500-1-8",rec("seq")=8,rec("denied")=1,rec("payload")="p" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("denied")),1,"a req carries denied, not result_kind")
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-9",rec("seq")=9,rec("payload")="v" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("result_kind")),"scalar","a resp carries result_kind, not denied")
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")=("a"_$char(9)_"b"_""""_"q") set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$decode^STDB64($$valueOf^STDJSON(t("payload"))),"a"_$char(9)_"b"_""""_"q","base64 switch decodes byte-exact")
+new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hi" set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_sha256")),$$sha256^STDCRYPTO("hi"),"payload_sha256 anchors the RAW bytes, even under base64")
+new rec,opt,a,b set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,"deterministic: same fixture frames byte-identical (M-collation key order)")
+```
+
 ### `$$fidelityKey^VSLS3(station, ymd)`
 
 The per-day _fidelity manifest key (periodic VSLTAPFC results, §11).
@@ -81,6 +105,12 @@ The per-day _fidelity manifest key (periodic VSLTAPFC results, §11).
 
 **Returns** _string_ — the S3 object key
 
+**Example**
+
+```m
+write $$fidelityKey^VSLS3("500","20260619")  ; "traffic/500/_fidelity/2026/06/19.json"
+```
+
 ### `$$gSerialize^VSLS3(seq)`
 
 Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a deterministic, lossless blob.
@@ -90,6 +120,12 @@ Serialize a v2 GLOBAL-ARRAY MERGE snapshot (^...,"g") to a deterministic, lossle
 - `seq` _(numeric)_ — the ring sequence of a v2 record whose result_kind="global"
 
 **Returns** _byte-string_ — one node per line: $$encode^STDJSON of {s:<subscripts>,v:<value>}
+
+**Example**
+
+```m
+new save,b merge save=^XTMP("VSLTAP","data",991,"g") kill ^XTMP("VSLTAP","data",991,"g") set ^XTMP("VSLTAP","data",991,"g","DPT",1)="ONE",^XTMP("VSLTAP","data",991,"g","DPT",2)="TWO" set b=$$gSerialize^VSLS3(991) kill ^XTMP("VSLTAP","data",991,"g") merge ^XTMP("VSLTAP","data",991,"g")=save do eq^STDASSERT(.pass,.fail,$length(b,$char(10)),2,"one JSON node line per descendant of the g MERGE snapshot")
+```
 
 ### `$$key^VSLS3(station, proto, seq, ymd)`
 
@@ -103,6 +139,13 @@ The object key for one traffic stream: traffic/<st>/<proto>/Y/M/D/<seq>.ndjson.
 - `ymd` _(string)_ — YYYYMMDD day partition (default: today)
 
 **Returns** _string_ — the S3 object key
+
+**Example**
+
+```m
+write $$key^VSLS3("500","rpc",42,"20260619")  ; "traffic/500/rpc/2026/06/19/42.ndjson"
+write $$key^VSLS3("442","hl7",1,"20260101")  ; "traffic/442/hl7/2026/01/01/1.ndjson"
+```
 
 ### `$$list^VSLS3(ctx, bucket, prefix, opt, listing)`
 
@@ -129,6 +172,12 @@ The per-day _offwindows manifest key (explicit tap-off windows, §11).
 
 **Returns** _string_ — the S3 object key
 
+**Example**
+
+```m
+write $$offWindowsKey^VSLS3("500","20260619")  ; "traffic/500/_offwindows/2026/06/19.json"
+```
+
 ### `$$readback^VSLS3(ctx, bucket, key, opt, resp)`
 
 GET one object back from S3 / the S3-equivalent via STDS3.
@@ -154,6 +203,12 @@ Build the schema-v1 field array for the record at `seq` (dual-mode: v2 header / 
 - `proto` _(string)_ — default protocol when the record carries none
 - `erec` _(array)_ — OUT by-ref: the schema-v1 fields incl. erec("payload") = RAW bytes
 
+**Example**
+
+```m
+new erec,save merge save=^XTMP("VSLTAP") kill ^XTMP("VSLTAP") set ^XTMP("VSLTAP","data",993)="RAWBYTES" do resolveRec^VSLS3(993,"500","rpc",.erec) kill ^XTMP("VSLTAP") merge ^XTMP("VSLTAP")=save do eq^STDASSERT(.pass,.fail,erec("payload"),"RAWBYTES","a legacy v1 record resolves to a plain payload under the station/proto key (set-then-restore)")
+```
+
 ### `$$ship^VSLS3(ctx, bucket, key, body, opt, resp)`
 
 PUT one object to S3 / the S3-equivalent via STDS3.
@@ -168,9 +223,5 @@ PUT one object to S3 / the S3-equivalent via STDS3.
 - `resp` _(array)_ — OUT by-ref: resp("header",*)/("error",*)
 
 **Returns** _int_ — HTTP status (200 ok); 0 on transport failure
-
-### `$$shipBatch^VSLS3(ctx, bucket, key, body, opt, resp)`
-
-(private) ship one batch object; honour the capture-sink test seam.
 
 <!-- END GENERATED API REFERENCE -->

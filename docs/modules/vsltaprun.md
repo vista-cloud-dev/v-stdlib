@@ -36,12 +36,24 @@ The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
 
 **Returns** _numeric_ — a positive number of seconds between fidelity runs
 
+**Example**
+
+```m
+write $$cadence^VSLTAPRUN()  ; 3600
+```
+
 ### `$$fidelityNow^VSLTAPRUN()`
 
 Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
 
 **Returns** _numeric_ — the count of shipped envelopes whose payload re-hashes to its
 sha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled
+
+**Example**
+
+```m
+write $$fidelityNow^VSLTAPRUN()  ; -1
+```
 
 ### `do nextKey^VSLTAPRUN(k, seen, listing, ctx, bucket, opt, res)`
 
@@ -58,14 +70,32 @@ Reconcile the corpus vs the read-back envelopes, persist the result, return ok.
 
 **Returns** _bool_ — 1 iff the sample reconciles byte-perfect (ok=true persisted)
 
+**Example**
+
+```m
+new corpus,envs,rec,opt,save set save=$get(^VSLTAP("fc","last")) set rec("direction")="resp",rec("call_id")="500-1-1",rec("seq")=1,rec("payload")="hello world",corpus(1)="hello world",envs(1)=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$reconcilePersist^VSLTAPRUN(.corpus,.envs),1,"a byte-perfect 1-record sample reconciles ok=true") set ^VSLTAP("fc","last")=save
+```
+
 ### `do run^VSLTAPRUN()`
 
 The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).
+
+**Example**
+
+```m
+new save set save=$get(^VSLTAP("fc","last")) do off^VSLTAP() set ^VSLTAP("fc","last")="{""sentinel"":1}" do run^VSLTAPRUN() do eq^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC(),"{""sentinel"":1}","a disabled tap skips the live work and leaves the last result untouched") set ^VSLTAP("fc","last")=save
+```
 
 ### `$$schedule^VSLTAPRUN()`
 
 Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out can dequeue it); return it.
 
 **Returns** _numeric_ — the queued task number, or 0 when there is no TaskMan (bare/no-queue)
+
+**Example**
+
+```m
+write $$schedule^VSLTAPRUN()  ; 0
+```
 
 <!-- END GENERATED API REFERENCE -->

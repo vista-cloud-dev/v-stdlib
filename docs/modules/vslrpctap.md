@@ -39,6 +39,12 @@ Build a correlation call_id = station "-" $J "-" ctr (schema-lock §2).
 
 **Returns** _string_ — the call_id shared by that RPC's req + resp records
 
+**Example**
+
+```m
+do eq^STDASSERT(.pass,.fail,$$callId^VSLRPCTAP("500",7),"500-"_$job_"-7","callId builds station-$J-counter")
+```
+
 ### `do capture^VSLRPCTAP(rec)`
 
 Fenced fire-and-forget tee of one RPC record (cache layout v2) into the rolling ring.
@@ -49,11 +55,23 @@ Fenced fire-and-forget tee of one RPC record (cache layout v2) into the rolling 
 
 **Returns** _void_ — fire-and-forget — the result/$ECODE/$T/naked-ref of the RPC worker are untouched
 
+**Example**
+
+```m
+new rec do off^VSLTAP(),arm^VSLTAP() kill ^XTMP("VSLTAP") set rec("dir")="resp",rec("call_id")="500-1-1",rec("rpc")="ORWU DT",rec("payload")="DUZ=10^NOW" do capture^VSLRPCTAP(.rec) do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"capture tees one record into the always-on ring") do off^VSLTAP() kill ^XTMP("VSLTAP")
+```
+
 ### `$$nakedRef^VSLRPCTAP()`
 
 (private) the caller's last global reference, dual-engine. "" at job start.
 
 **Returns** _string_ — $REFERENCE (YDB) / $ZREFERENCE (IRIS) — the naked indicator
+
+**Example**
+
+```m
+new zz set zz=$data(^VSLTAP("cfg")) do eq^STDASSERT(.pass,.fail,$$nakedRef^VSLRPCTAP(),"^VSLTAP(""cfg"")","nakedRef returns the caller's last global reference")
+```
 
 ### `do work^VSLRPCTAP(rec)`
 
@@ -62,5 +80,11 @@ Fenced fire-and-forget tee of one RPC record (cache layout v2) into the rolling 
 **Parameters**
 
 - `rec` _(array)_ — by-ref record descriptor (the caller's array is untouched)
+
+**Example**
+
+```m
+new rec do off^VSLTAP(),arm^VSLTAP() kill ^XTMP("VSLTAP") set rec("dir")="resp",rec("call_id")="500-1-1",rec("rpc")="X",rec("payload")="P" do work^VSLRPCTAP(.rec) do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),1,"work appends the record (the global-touching side)") do off^VSLTAP() kill ^XTMP("VSLTAP")
+```
 
 <!-- END GENERATED API REFERENCE -->
