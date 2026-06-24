@@ -45,7 +45,7 @@ S3_TESTBED := scripts/s3-testbed.sh
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check docs-bodies docs-bodies-check check-frontmatter
+        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check
 
 all: check
 
@@ -261,11 +261,23 @@ docs-bodies-check:
 check-frontmatter:
 	@python3 tools/check-frontmatter.py --check
 
+# examples / examples-check (Living Executable Examples, E1 — docs proposal
+# proposals/living-executable-examples.md): generated, self-verifying runnable
+# example programs (examples/programs/<MOD>EX.m) + the living-doc index
+# (examples/index.md), built from each module's @example tags. Engine-free.
+# v-stdlib executable-example coverage starts at 0/117 — the index surfaces the
+# gap; the backfill (mostly live-VistA, side-effect-safe) is E2-E3.
+examples:
+	python3 tools/gen-examples.py
+
+examples-check:
+	@python3 tools/gen-examples.py --check
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
 gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
-       manifest-check manifest-golden skill-check docs-check docs-bodies-check check-frontmatter
+       manifest-check manifest-golden skill-check docs-check docs-bodies-check check-frontmatter examples-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.

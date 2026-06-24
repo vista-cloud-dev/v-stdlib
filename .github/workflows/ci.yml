@@ -20,7 +20,7 @@ jobs:
   ci:
     uses: vista-cloud-dev/.github/.github/workflows/m-ci.yml@main
     with:
-      engine-free-targets: "check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access manifest-check manifest-golden skill-check docs-bodies-check check-frontmatter"
+      engine-free-targets: "check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access manifest-check manifest-golden skill-check docs-bodies-check check-frontmatter examples-check"
       engine-targets: ""
 
   # ── Engine-bound HARD gate (YDB) ────────────────────────────────────────────
