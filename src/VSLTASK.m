@@ -63,6 +63,7 @@ schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; ret
 	; doc: @returns          numeric  the queued task number
 	; doc: @raises  U-VSL-TASK-ARG    no entry reference supplied
 	; doc: @raises  U-VSL-TASK-QUEUE  the TaskMan queue / persist failed
+	; doc: @raisesnodemo U-VSL-TASK-QUEUE  reachable only via a genuinely-failed live TaskMan queue (side-effecting, non-deterministic); not safely triggerable in an example
 	; doc: @illustrative   the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown
 	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
 	new $etrap,ztsk,ok

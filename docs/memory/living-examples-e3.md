@@ -70,8 +70,11 @@ live MinIO) are honestly `@illustrative`, NOT forced.
 now allows an optional `:postcond` between `do` and the assert call. No m-stdlib
 output change (it has no such examples).
 
-**Remaining (E3b, advisory):** 1 undemonstrated raise — VSLTASK.schedule
-`U-VSL-TASK-QUEUE` (only reachable via a genuinely-failed live TaskMan queue, a
-side-effecting/non-deterministic path). Same not-demonstrable class as m-stdlib's
-infra raises → needs the `@raises`-not-demonstrable exemption tag. NEXT: E4 (wire
-EX programs into engine execution by tier + the live `vehu`/`foia` cadence).
+**E3b DONE 2026-06-24:** the `@raisesnodemo` tag (the foundation, see m-stdlib's
+[[living-examples-e3b]]) landed; VSLTASK.schedule `U-VSL-TASK-QUEUE` is now
+exempted (`@raisesnodemo` — reachable only via a genuinely-failed live TaskMan
+queue, side-effecting/non-deterministic). **v-stdlib `@raises` axis is 9/9
+accounted (8 demonstrated, 1 exempt) → "100% — every @raises demonstrated".**
+mdoc_tags.py + gen-examples.py are the byte-identical sibling generators (carry
+the tag); gen-manifest.py got the extraction delta. **NEXT: E4** (wire EX
+programs into engine execution by tier + the live `vehu`/`foia` cadence).

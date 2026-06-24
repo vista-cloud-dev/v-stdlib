@@ -35,7 +35,7 @@ class Tag:
     status: str = "stable"
 
 
-# The eleven doc-manifest tags. Order = the grammar's §5 order.
+# The fourteen doc-manifest tags. Order = the grammar's §5 order.
 TAGS: list[Tag] = [
     Tag("@param", "label", "0..N", "NAME [TYPE] BODY", "params",
         "Parameter declaration.",
@@ -78,6 +78,13 @@ TAGS: list[Tag] = [
         "Marks a label whose example is illustrative-only — exempt from the "
         "executable-example coverage requirement; the reason is required.",
         '@illustrative needs a configured live S3 sink to run'),
+    Tag("@raisesnodemo", "label", "0..N", "CODE REASON", "raises_nodemo",
+        "Marks a documented @raises CODE as not demonstrable by an executable "
+        "error-example — an infrastructure/environment failure that cannot be "
+        "triggered on a healthy engine (e.g. a missing call-out library, or a "
+        "live-only side-effecting failure). Exempts that code from the "
+        "@raises-demonstration coverage requirement; the reason is required.",
+        '@raisesnodemo U-STDCRYPTO-CALLOUT-MISSING  cannot fire when the callout is loaded'),
 ]
 
 

@@ -350,6 +350,7 @@ class Coverage:
     illustrative: list[tuple[str, str, str]]
     uncovered: list[tuple[str, str]]
     raises_total: int
+    raises_exempt: int
     raises_undemonstrated: list[tuple[str, str, str]]
     fixtures_referenced: int
     fixtures_missing: list[tuple[str, str, str]]
@@ -369,6 +370,7 @@ def gather_coverage(manifest: dict, by_module: dict[str, list[Example]]) -> Cove
     illustrative: list[tuple[str, str, str]] = []
     uncovered: list[tuple[str, str]] = []
     raises_total = 0
+    raises_exempt = 0
     raises_undemonstrated: list[tuple[str, str, str]] = []
     referenced: set[str] = set()
     fixtures_missing: list[tuple[str, str, str]] = []
@@ -384,10 +386,15 @@ def gather_coverage(manifest: dict, by_module: dict[str, list[Example]]) -> Cove
                 illustrative.append((name, label, obj["illustrative"]))
             else:
                 uncovered.append((name, label))
+            exempt = {n["code"] for n in obj.get("raises_nodemo", [])}
             for r in obj.get("raises", []):
                 raises_total += 1
-                if not raises_demonstrated(obj, r["code"]):
-                    raises_undemonstrated.append((name, label, r["code"]))
+                if raises_demonstrated(obj, r["code"]):
+                    continue
+                if r["code"] in exempt:        # @raisesnodemo — not triggerable; accounted, not a gap
+                    raises_exempt += 1
+                    continue
+                raises_undemonstrated.append((name, label, r["code"]))
             for fx in obj.get("fixtures", []):
                 path = fx["path"]
                 referenced.add(path)
@@ -405,7 +412,8 @@ def gather_coverage(manifest: dict, by_module: dict[str, list[Example]]) -> Cove
 
     return Coverage(
         total=total, executable=executable, illustrative=illustrative, uncovered=uncovered,
-        raises_total=raises_total, raises_undemonstrated=raises_undemonstrated,
+        raises_total=raises_total, raises_exempt=raises_exempt,
+        raises_undemonstrated=raises_undemonstrated,
         fixtures_referenced=len(referenced), fixtures_missing=fixtures_missing,
         fixtures_orphan=orphan,
     )
@@ -424,13 +432,15 @@ def coverage(strict: bool, verbose: bool) -> int:
     n_exec, n_illus = len(cov.executable), len(cov.illustrative)
     n_covered = n_exec + n_illus
     pct = (100 * n_covered // cov.total) if cov.total else 0
-    n_demo = cov.raises_total - len(cov.raises_undemonstrated)
+    n_undemo = len(cov.raises_undemonstrated)
+    n_demo = cov.raises_total - n_undemo - cov.raises_exempt
+    n_accounted = n_demo + cov.raises_exempt
 
     print(f"examples coverage — {lib}")
     print(f"  labels:   {n_covered}/{cov.total} covered ({pct}%)"
           f" — {n_exec} executable, {n_illus} illustrative, {len(cov.uncovered)} uncovered")
-    print(f"  @raises:  {n_demo}/{cov.raises_total} demonstrated"
-          f" — {len(cov.raises_undemonstrated)} undemonstrated")
+    print(f"  @raises:  {n_accounted}/{cov.raises_total} accounted"
+          f" — {n_demo} demonstrated, {cov.raises_exempt} exempt (@raisesnodemo), {n_undemo} undemonstrated")
     print(f"  @fixture: {cov.fixtures_referenced} referenced"
           f" — {len(cov.fixtures_missing)} missing, {len(cov.fixtures_orphan)} orphan")
 
@@ -497,13 +507,15 @@ def self_test() -> int:
         "a": {"examples": ['write $$a^STDFOO()  ; "1"'], "raises": []},
         "b": {"examples": [], "raises": [], "illustrative": "needs a live sink"},
         "c": {"examples": [], "raises": [{"code": "U-STDFOO-X", "doc": "x"}]},
+        "d": {"examples": [], "raises": [{"code": "U-STDFOO-INFRA", "doc": "callout missing"}],
+              "raises_nodemo": [{"code": "U-STDFOO-INFRA", "reason": "not triggerable on a healthy engine"}]},
     }}}}
     cov = gather_coverage(synth, collect(synth))
-    expect(cov.total == 3, "coverage counts all labels")
-    expect(len(cov.executable) == 1 and len(cov.illustrative) == 1 and len(cov.uncovered) == 1,
+    expect(cov.total == 4, "coverage counts all labels")
+    expect(len(cov.executable) == 1 and len(cov.illustrative) == 1 and len(cov.uncovered) == 2,
            "coverage buckets labels into executable / illustrative / uncovered")
-    expect(cov.raises_total == 1 and len(cov.raises_undemonstrated) == 1,
-           "coverage flags the undemonstrated raise")
+    expect(cov.raises_total == 2 and len(cov.raises_undemonstrated) == 1 and cov.raises_exempt == 1,
+           "coverage flags the undemonstrated raise and exempts the @raisesnodemo one")
     expect(not cov.clean, "synthetic coverage with gaps is not clean")
     if failures:
         for f in failures:

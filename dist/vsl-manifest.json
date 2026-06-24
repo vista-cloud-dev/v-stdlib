@@ -3997,7 +3997,13 @@
             "file": "src/VSLTASK.m",
             "line": 59
           },
-          "illustrative": "the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown"
+          "illustrative": "the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown",
+          "raises_nodemo": [
+            {
+              "code": "U-VSL-TASK-QUEUE",
+              "reason": "reachable only via a genuinely-failed live TaskMan queue (side-effecting, non-deterministic); not safely triggerable in an example"
+            }
+          ]
         },
         "lastError": {
           "form": "extrinsic",
@@ -4021,7 +4027,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 78
+            "line": 79
           }
         },
         "queue": {
@@ -4041,7 +4047,7 @@
           "description": "@icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 85
+            "line": 86
           },
           "illustrative": "private; runs ^%ZTLOAD which queues a real TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone in a unit test"
         }

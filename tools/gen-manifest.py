@@ -431,6 +431,14 @@ def build_label_entry(
             fixtures.append({"path": parts[0], "doc": parts[1].strip() if len(parts) > 1 else ""})
     # @illustrative: the coverage-exemption reason (label has no executable example).
     illustrative = tags["@illustrative"][0].strip() if tags.get("@illustrative") else ""
+    # @raisesnodemo: "CODE REASON" → a @raises code exempted from the
+    # demonstration requirement (an infra/environment failure not triggerable on
+    # a healthy engine). Aggregated as {code, reason}.
+    raises_nodemo: list[dict] = []
+    for body in tags.get("@raisesnodemo", []):
+        parts = body.strip().split(None, 1)
+        if parts:
+            raises_nodemo.append({"code": parts[0], "reason": parts[1].strip() if len(parts) > 1 else ""})
 
     entry = {
         "form": sig_form,
@@ -455,6 +463,8 @@ def build_label_entry(
         entry["fixtures"] = fixtures
     if illustrative:
         entry["illustrative"] = illustrative
+    if raises_nodemo:
+        entry["raises_nodemo"] = raises_nodemo
     return entry
 
 
