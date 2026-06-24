@@ -21,7 +21,7 @@ proven byte-for-byte on a live VistA.
 
 - **New here?** [`docs/guides/quick-start.md`](docs/guides/quick-start.md) (5 min).
 - **The tap, explained:** [`docs/guides/tap-architecture.md`](docs/guides/tap-architecture.md);
-  deploy / back-out runbook: [`docs/traffic-tap-dibrg.md`](docs/traffic-tap-dibrg.md).
+  deploy / back-out runbook: [`docs/guides/traffic-tap-dibrg.md`](docs/guides/traffic-tap-dibrg.md).
 - **Per-module API:** [`docs/modules/index.md`](docs/modules/index.md) (generated from source).
 - **Effort tracker:** [`docs/vsl-msl/vsl-implementation-tracker.md`](https://github.com/vista-cloud-dev/docs/blob/main/vsl-msl/vsl-implementation-tracker.md).
 

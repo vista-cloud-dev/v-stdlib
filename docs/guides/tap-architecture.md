@@ -12,7 +12,7 @@ doc_type: [GUIDE, ARCHITECTURE]
 An end-user / developer's map of the VSL traffic tap: what it captures, how the
 data flows, and **why it cannot perturb the VistA it observes**. For the
 step-by-step deploy / install / back-out procedure see the operations runbook
-[`../traffic-tap-dibrg.md`](../traffic-tap-dibrg.md) (DIBRG); for the full design
+[`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) (DIBRG); for the full design
 see the spec + plan in the `docs` repo
 (`proposals/implemented/rpc-traffic-s3-streaming*.md`).
 
@@ -114,6 +114,6 @@ VistA binding of an engine-neutral `STD*` seam, consumed one-way `v → m`.
 
 ## Where next
 
-- **Deploy / back-out:** [`../traffic-tap-dibrg.md`](../traffic-tap-dibrg.md).
+- **Deploy / back-out:** [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md).
 - **Per-module API:** [`../modules/index.md`](../modules/index.md).
 - **Quick start:** [`quick-start.md`](quick-start.md).

@@ -13,7 +13,7 @@ doc_type: [GUIDE]
 FileMan / XPAR / Broker to the engine-neutral [`m-stdlib`](https://github.com/vista-cloud-dev/m-stdlib)
 (`STD*`) base, one-way `v → m`. The headline feature is the **RPC + HL7 → S3
 traffic tap**; see [`tap-architecture.md`](tap-architecture.md) for the design
-and [`../traffic-tap-dibrg.md`](../traffic-tap-dibrg.md) for deploy / back-out.
+and [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) for deploy / back-out.
 
 ## 1. Two tiers — what needs VistA, what doesn't
 
@@ -65,7 +65,7 @@ back-out.
 
 - **Understand it:** [`tap-architecture.md`](tap-architecture.md) — data flow +
   the safety model.
-- **Deploy / back out:** [`../traffic-tap-dibrg.md`](../traffic-tap-dibrg.md).
+- **Deploy / back out:** [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md).
 
 ## 5. Where next
 
