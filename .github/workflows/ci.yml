@@ -94,7 +94,7 @@ jobs:
   # local m-test-iris, so a red run here is informative, not a gate. The full
   # both-engine matrix is the local `make ci` gate.
   engine-iris:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
