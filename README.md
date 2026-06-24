@@ -13,16 +13,24 @@ below.
 - **Dual-engine:** YottaDB + IRIS, like m-stdlib.
 - **Consumes:** `m-stdlib` (`STD*`) upward; never the reverse.
 
-This is the **T0b.1 scaffold** — toolchain + gates wired, an empty (smoke-only)
-suite green. The first real module, `VSLCFG` (XPAR-backed config), lands at M1.
-See the VSL effort tracker in
-[`docs/vsl-msl/vsl-implementation-tracker.md`](https://github.com/vista-cloud-dev/docs/blob/main/vsl-msl/vsl-implementation-tracker.md).
+**17 `VSL*` modules** ship today — config (`VSLCFG`), security (`VSLSEC`),
+FileMan storage (`VSLFS`), TaskMan (`VSLTASK`), and the headline feature: the
+**RPC + HL7 → S3 traffic tap** (`VSLTAP` / `VSLRPCTAP` / `VSLRPCWRAP` / `VSLS3` /
+`VSLHL7TAP` / `VSLTAPFC` / …), a non-interfering, reversibly-installable capture
+proven byte-for-byte on a live VistA.
+
+- **New here?** [`docs/guides/quick-start.md`](docs/guides/quick-start.md) (5 min).
+- **The tap, explained:** [`docs/guides/tap-architecture.md`](docs/guides/tap-architecture.md);
+  deploy / back-out runbook: [`docs/traffic-tap-dibrg.md`](docs/traffic-tap-dibrg.md).
+- **Per-module API:** [`docs/modules/index.md`](docs/modules/index.md) (generated from source).
+- **Effort tracker:** [`docs/vsl-msl/vsl-implementation-tracker.md`](https://github.com/vista-cloud-dev/docs/blob/main/vsl-msl/vsl-implementation-tracker.md).
 
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `src/` | `VSL*` M routines (empty at scaffold) |
+| `src/` | `VSL*` M routines (17 modules) |
+| `examples/` | runnable demos (e.g. `vslcfg-demo.m`) |
 | `tests/` | hand-written `VSL*TST.m` suites (`^STDASSERT`) |
 | `dist/repo.meta.json` | the committed meta artifact — carries `"layer": "v"` |
 
