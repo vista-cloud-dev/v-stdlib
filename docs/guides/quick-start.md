@@ -69,6 +69,11 @@ back-out.
 
 ## 5. Where next
 
+- **Living, executable examples:** [`../../examples/index.md`](../../examples/index.md)
+  — a runnable, self-verifying example for every public `VSL*` label (generated
+  from the `@example` tags). The last live run, [`../../examples/REPORT.md`](../../examples/REPORT.md),
+  shows them passing on real VistA engines (`vehu` + `foia`) with a byte-identical
+  residue check.
 - **Per-module API:** [`../modules/index.md`](../modules/index.md) (every `VSL*`
   module, generated from source).
 - **The engine-neutral base:** [m-stdlib](https://github.com/vista-cloud-dev/m-stdlib)
