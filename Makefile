@@ -45,7 +45,7 @@ S3_TESTBED := scripts/s3-testbed.sh
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check
+        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check examples-coverage
 
 all: check
 
@@ -272,6 +272,15 @@ examples:
 
 examples-check:
 	@python3 tools/gen-examples.py --check
+
+# examples-coverage (Living Executable Examples, E2 — the comprehensiveness
+# report): executable-example coverage = (executable @example OR @illustrative)/
+# total labels, every @raises demonstrated by an error-example, every @fixture
+# present + referenced. ADVISORY (exit 0); v-stdlib starts at 0/117 — the E3
+# backfill (mostly live-VistA, side-effect-safe) is the long pole. Flip to red
+# per-repo with --strict at 100% (proposal L5).
+examples-coverage:
+	@python3 tools/gen-examples.py --coverage
 
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +

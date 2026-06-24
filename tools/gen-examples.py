@@ -22,8 +22,10 @@ manifest name (auto-discovered).
 Usage:
   python3 tools/gen-examples.py            # regenerate examples/programs/ + index.md
   python3 tools/gen-examples.py --check    # drift gate
+  python3 tools/gen-examples.py --coverage # E2 comprehensiveness report (advisory)
+  python3 tools/gen-examples.py --coverage --strict  # exit 1 if <100% (flip-to-red, L5)
   python3 tools/gen-examples.py --self-test
-  python3 tools/gen-examples.py --verbose  # trace classify decisions
+  python3 tools/gen-examples.py --verbose  # trace classify decisions / list gaps
 """
 
 from __future__ import annotations
@@ -250,6 +252,135 @@ def run(check: bool, verbose: bool) -> int:
     return 0
 
 
+def raises_demonstrated(label_obj: dict, code: str) -> bool:
+    """True if some @example in this label asserts `code` via raises^STDASSERT.
+
+    The error-example contract (proposal §4): a `@raises CODE` is demonstrated by
+    an example that triggers the path and asserts the code, e.g.
+    `do raises^STDASSERT(.pass,.fail,"<trigger>","<CODE>","...")`. We detect it
+    structurally: an example body that both calls raises^STDASSERT and names the
+    code. Honest by construction — undemonstrated raises stay visible until E3
+    authors the error-examples.
+    """
+    for body in label_obj.get("examples", []):
+        if "raises^STDASSERT" in body and code in body:
+            return True
+    return False
+
+
+@dataclass(frozen=True)
+class Coverage:
+    total: int
+    executable: list[tuple[str, str]]
+    illustrative: list[tuple[str, str, str]]
+    uncovered: list[tuple[str, str]]
+    raises_total: int
+    raises_undemonstrated: list[tuple[str, str, str]]
+    fixtures_referenced: int
+    fixtures_missing: list[tuple[str, str, str]]
+    fixtures_orphan: list[str]
+
+    @property
+    def clean(self) -> bool:
+        return not (self.uncovered or self.raises_undemonstrated
+                    or self.fixtures_missing or self.fixtures_orphan)
+
+
+def gather_coverage(manifest: dict, by_module: dict[str, list[Example]]) -> Coverage:
+    modules = manifest.get("modules", {})
+    exec_labels = {name: {e.label for e in by_module.get(name, [])} for name in modules}
+    total = 0
+    executable: list[tuple[str, str]] = []
+    illustrative: list[tuple[str, str, str]] = []
+    uncovered: list[tuple[str, str]] = []
+    raises_total = 0
+    raises_undemonstrated: list[tuple[str, str, str]] = []
+    referenced: set[str] = set()
+    fixtures_missing: list[tuple[str, str, str]] = []
+
+    for name in sorted(modules):
+        labels = modules[name].get("labels", {})
+        for label in sorted(labels):
+            total += 1
+            obj = labels[label]
+            if label in exec_labels[name]:
+                executable.append((name, label))
+            elif obj.get("illustrative"):
+                illustrative.append((name, label, obj["illustrative"]))
+            else:
+                uncovered.append((name, label))
+            for r in obj.get("raises", []):
+                raises_total += 1
+                if not raises_demonstrated(obj, r["code"]):
+                    raises_undemonstrated.append((name, label, r["code"]))
+            for fx in obj.get("fixtures", []):
+                path = fx["path"]
+                referenced.add(path)
+                if not (REPO_ROOT / path).is_file():
+                    fixtures_missing.append((name, label, path))
+
+    orphan: list[str] = []
+    data_dir = EXAMPLES_DIR / "data"
+    if data_dir.is_dir():
+        for f in sorted(data_dir.rglob("*")):
+            if f.is_file() and f.name != "README.md":
+                rel = f.relative_to(REPO_ROOT).as_posix()
+                if rel not in referenced:
+                    orphan.append(rel)
+
+    return Coverage(
+        total=total, executable=executable, illustrative=illustrative, uncovered=uncovered,
+        raises_total=raises_total, raises_undemonstrated=raises_undemonstrated,
+        fixtures_referenced=len(referenced), fixtures_missing=fixtures_missing,
+        fixtures_orphan=orphan,
+    )
+
+
+def coverage(strict: bool, verbose: bool) -> int:
+    mpath = manifest_path()
+    if mpath is None:
+        print("gen-examples: no dist/*-manifest.json — run `make manifest` first.", file=sys.stderr)
+        return 2
+    manifest = json.loads(mpath.read_text(encoding="utf-8"))
+    lib = "vsl" if mpath.name.startswith("vsl") else "stdlib"
+    by_module = collect(manifest)
+    cov = gather_coverage(manifest, by_module)
+
+    n_exec, n_illus = len(cov.executable), len(cov.illustrative)
+    n_covered = n_exec + n_illus
+    pct = (100 * n_covered // cov.total) if cov.total else 0
+    n_demo = cov.raises_total - len(cov.raises_undemonstrated)
+
+    print(f"examples coverage — {lib}")
+    print(f"  labels:   {n_covered}/{cov.total} covered ({pct}%)"
+          f" — {n_exec} executable, {n_illus} illustrative, {len(cov.uncovered)} uncovered")
+    print(f"  @raises:  {n_demo}/{cov.raises_total} demonstrated"
+          f" — {len(cov.raises_undemonstrated)} undemonstrated")
+    print(f"  @fixture: {cov.fixtures_referenced} referenced"
+          f" — {len(cov.fixtures_missing)} missing, {len(cov.fixtures_orphan)} orphan")
+
+    if verbose:
+        for mod, lab in cov.uncovered:
+            print(f"    uncovered: {mod}.{lab}", file=sys.stderr)
+        for mod, lab, code in cov.raises_undemonstrated:
+            print(f"    raises-undemonstrated: {mod}.{lab} → {code}", file=sys.stderr)
+        for mod, lab, path in cov.fixtures_missing:
+            print(f"    fixture-missing: {mod}.{lab} → {path}", file=sys.stderr)
+        for path in cov.fixtures_orphan:
+            print(f"    fixture-orphan: {path}", file=sys.stderr)
+
+    if cov.clean:
+        print("examples coverage: 100% — every label exampled, every @raises demonstrated, no orphan fixtures")
+        return 0
+    sys.stdout.flush()
+    if strict:
+        print("examples coverage: INCOMPLETE (strict) — see gaps above"
+              " (re-run with --verbose to list them)", file=sys.stderr)
+        return 1
+    print("examples coverage: advisory — gaps above are the E3 backfill (not yet gating)")
+    return 0
+
+
 def self_test() -> int:
     failures: list[str] = []
 
@@ -264,6 +395,27 @@ def self_test() -> int:
     prog = render_program("STDFOO", [Example("STDFOO", "greet", '$$greet^STDFOO("x")', "hi, x", False)])
     expect(prog.startswith("STDFOOEX"), "program routine name")
     expect("eq^STDASSERT" in prog and "tExampleGreet" in prog, "program assertion shape")
+
+    # coverage classification
+    demo = {"examples": ['do raises^STDASSERT(.pass,.fail,"set x=$$f^STDFOO()","U-STDFOO-BAD","bad")'],
+            "raises": [{"code": "U-STDFOO-BAD", "doc": "x"}]}
+    expect(raises_demonstrated(demo, "U-STDFOO-BAD"), "@raises with matching error-example is demonstrated")
+    expect(not raises_demonstrated(demo, "U-STDFOO-OTHER"), "@raises with no matching example is undemonstrated")
+    expect(not raises_demonstrated({"examples": ['write $$f^STDFOO()  ; "1"'],
+                                    "raises": []}, "U-STDFOO-BAD"),
+           "a non-raises example does not demonstrate a raise")
+    synth = {"modules": {"STDFOO": {"labels": {
+        "a": {"examples": ['write $$a^STDFOO()  ; "1"'], "raises": []},
+        "b": {"examples": [], "raises": [], "illustrative": "needs a live sink"},
+        "c": {"examples": [], "raises": [{"code": "U-STDFOO-X", "doc": "x"}]},
+    }}}}
+    cov = gather_coverage(synth, collect(synth))
+    expect(cov.total == 3, "coverage counts all labels")
+    expect(len(cov.executable) == 1 and len(cov.illustrative) == 1 and len(cov.uncovered) == 1,
+           "coverage buckets labels into executable / illustrative / uncovered")
+    expect(cov.raises_total == 1 and len(cov.raises_undemonstrated) == 1,
+           "coverage flags the undemonstrated raise")
+    expect(not cov.clean, "synthetic coverage with gaps is not clean")
     if failures:
         for f in failures:
             print(f"FAIL: {f}", file=sys.stderr)
@@ -275,11 +427,15 @@ def self_test() -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--coverage", action="store_true")
+    ap.add_argument("--strict", action="store_true", help="with --coverage: exit 1 if <100%")
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.coverage:
+        return coverage(args.strict, args.verbose)
     return run(args.check, args.verbose)
 
 

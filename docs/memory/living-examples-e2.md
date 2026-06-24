@@ -1,13 +1,13 @@
 ---
 name: living-examples-e2
-description: Living Examples E2 (v-stdlib) — the @fixture/@illustrative grammar tags + dormant manifest extraction (byte-identical sibling of m-stdlib's); coverage gate is the E2 remainder.
+description: Living Examples E2 (v-stdlib, DONE) — @fixture/@illustrative grammar tags + dormant manifest extraction, plus the gen-examples --coverage advisory report (make/CI). Coverage baseline 0/117 labels, 0/9 raises — the E3 backfill made visible.
 metadata:
   type: project
 ---
 
-# Living Executable Examples — E2 (v-stdlib slice, IN PROGRESS)
+# Living Executable Examples — E2 (v-stdlib slice, DONE)
 
-**Part 1 DONE 2026-06-24**, v-stdlib `main`. Full design in m-stdlib's
+**Part 1 + Part 2 DONE 2026-06-24**, v-stdlib `main`. Full design in m-stdlib's
 `docs/memory/living-examples-e2.md`. Proposal: docs
 `proposals/living-executable-examples.md`.
 
@@ -19,7 +19,10 @@ metadata:
   (no VSL source uses the tags yet).
 - Gates: manifest-check + manifest-golden clean; manifest byte-unchanged.
 
-**E2 remainder:** `gen-examples.py --coverage` advisory gate + Makefile/ci wiring
-(both repos) + the proposal E2 row. v-stdlib's executable coverage is 0/117 — the
-coverage gate will surface the full backfill (E3, mostly live-VistA + side-effect-safe).
-Builds on [[living-examples-e1]].
+**Part 2 (this increment):** `gen-examples.py` updated with `--coverage`
+(advisory) + `--strict` — a **byte-identical sibling port** from m-stdlib (`\cp -f`;
+the lib name auto-discovers, so no VSL delta — unlike `gen-manifest.py`). `make
+examples-coverage` added + appended to the CI `engine-free-targets`. Coverage
+baseline: **0/117 labels, 0/9 `@raises`, 0 fixtures** — the full E3 backfill
+(mostly live-VistA + side-effect-safe) now surfaced and accountable. Self-test
+green; examples-check clean. **NEXT: E3.** Builds on [[living-examples-e1]].
