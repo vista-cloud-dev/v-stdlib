@@ -47,6 +47,12 @@ INDEX_PATH = EXAMPLES_DIR / "index.md"
 PAT_WRITE_EXPECT_STR = re.compile(r'^\s*(?:write|w)\s+(.+?)\s+;\s*"((?:[^"\\]|\\.)*)"\s*$')
 # Pattern A-num: write <expr>  ; <number>
 PAT_WRITE_EXPECT_NUM = re.compile(r'^\s*(?:write|w)\s+(.+?)\s+;\s*(-?\d+(?:\.\d+)?)\s*$')
+# Pattern B (self-asserting statement): a complete `do …^STDASSERT(…)` line that
+# asserts its own result. Emitted VERBATIM into the EX routine — this is how a
+# label whose example needs set-up locals, a by-reference array, a procedure
+# call, or an error trigger (@raises, via `do raises^STDASSERT(…)`) is made
+# executable. The body runs under the routine's own .pass/.fail counters.
+PAT_STDASSERT_STMT = re.compile(r"\b(?:do|d)\s+[A-Za-z%][A-Za-z0-9]*\^STDASSERT\(", re.IGNORECASE)
 
 
 def manifest_path() -> Path | None:
@@ -68,26 +74,82 @@ def expression_is_self_contained(expr: str) -> bool:
     return re.search(r"[A-Za-z]", s) is None
 
 
+# M command words that are not data references (ignored in the free-var scan).
+# FULL words only — house style is modern/pythonic-lower (`set`, `do`, `write`),
+# never the VistA-compact single-letter abbreviations, so we must NOT treat
+# `s`/`d`/`f`/… as keywords (they are common local names, e.g. `$length(s)`).
+# `pass`/`fail` are the by-reference assertion counters, always present.
+_M_KEYWORD_SET = {
+    "set", "do", "new", "if", "else", "for", "quit", "write", "read", "kill",
+    "merge", "goto", "xecute", "tstart", "tcommit", "trollback", "halt", "hang",
+    "lock", "close", "open", "use", "view", "job", "break", "pass", "fail",
+}
+
+
+def statement_is_self_contained(stmt: str) -> bool:
+    """True if a Pattern-B `do …^STDASSERT(…)` statement references no free var.
+
+    A statement may set up its own locals (`set x=… do eq^STDASSERT(…,$$f^M(x),…)`);
+    those LHS names are not free. After removing strings, label^ROUTINE / $$f^R
+    calls, $intrinsics, ^globals, numbers, M command words, the by-ref counters,
+    and every locally-assigned name, any remaining bareword identifier is a free
+    var → not executable. Rejects illustrative usage demos that read undefined
+    placeholders (e.g. STDASSERT's own `do eq^STDASSERT(.pass,.fail,result,…)`).
+    """
+    nostr = re.sub(r'"(?:[^"]|"")*"', "", stmt)
+    # A name is "local" (not free) if it is: the LHS of an assignment (incl.
+    # comma-lists `set a=1,b=2` and subscripted `set a(1)=…`), passed by
+    # reference (`.name` — an output array the example owns), or NEWed.
+    assigned: set[str] = set(re.findall(r"([A-Za-z%][A-Za-z0-9]*)\s*(?:\([^()]*\))?\s*=", nostr))
+    assigned |= set(re.findall(r"\.([A-Za-z%][A-Za-z0-9]*)", nostr))
+    for mm in re.finditer(r"(?:^|\s)new\s+([A-Za-z%][A-Za-z0-9,]*)", nostr, re.IGNORECASE):
+        assigned.update(re.findall(r"[A-Za-z%][A-Za-z0-9]*", mm.group(1)))
+    t = nostr
+    t = re.sub(r"[A-Za-z%][A-Za-z0-9]*\^[A-Za-z%][A-Za-z0-9]*", "", t)  # label^R and $$f^R
+    t = re.sub(r"\$[A-Za-z]+", "", t)                                   # $intrinsics / SVNs
+    t = re.sub(r"\^[A-Za-z%][A-Za-z0-9]*", "", t)                       # bare ^globals
+    # Tokenize the residual into identifiers (NOT a \b/regex-strip: M's
+    # concatenation operator `_` is a regex word char, so `\bcrlf\b` would miss
+    # `crlf` inside `"a"_crlf_"b"`). Any identifier left that is neither an M
+    # command word nor a local the statement assigns is a free var.
+    for ident in re.findall(r"[A-Za-z%][A-Za-z0-9]*", t):
+        if ident.lower() in _M_KEYWORD_SET or ident in assigned:
+            continue
+        return False
+    return True
+
+
 @dataclass(frozen=True)
 class Example:
     module: str
     label: str
-    expr: str
-    expected: str
-    is_prefix: bool
+    kind: str            # "expr" (Pattern A) | "stmt" (Pattern B, verbatim)
+    index: int = 0       # disambiguates multiple examples on one label
+    expr: str = ""       # kind == "expr"
+    expected: str = ""   # kind == "expr"
+    is_prefix: bool = False
     is_numeric: bool = False
+    stmt: str = ""       # kind == "stmt" (emitted verbatim)
 
     @property
     def routine_name(self) -> str:
         safe = re.sub(r"[^A-Za-z0-9]", "", self.label) or "x"
-        return "tExample" + safe[:1].upper() + safe[1:]
+        suffix = str(self.index + 1) if self.index else ""
+        return "tExample" + safe[:1].upper() + safe[1:] + suffix
 
     @property
     def description(self) -> str:
         return f"example: {self.module}.{self.label}"
 
 
-def classify(example: str) -> tuple[str, str, bool, bool] | None:
+def classify(example: str) -> tuple | None:
+    """Classify an @example body into an executable shape, or None.
+
+    Returns ("expr", expr, expected, is_prefix, is_numeric) for Pattern A
+    (a self-contained `write <expr> ; "<expected>"`), or ("stmt", body) for
+    Pattern B (a complete self-asserting `do …^STDASSERT(…)` line, emitted
+    verbatim). Anything else (free-var snippet, prose, multi-line) → None.
+    """
     s = example.strip()
     m = PAT_WRITE_EXPECT_STR.match(s)
     if m:
@@ -98,13 +160,15 @@ def classify(example: str) -> tuple[str, str, bool, bool] | None:
         is_prefix = expected.endswith("...")
         if is_prefix:
             expected = expected[:-3]
-        return expr, expected, is_prefix, False
+        return "expr", expr, expected, is_prefix, False
     m = PAT_WRITE_EXPECT_NUM.match(s)
     if m:
         expr = m.group(1).strip()
         if not expression_is_self_contained(expr):
             return None
-        return expr, m.group(2), False, True
+        return "expr", expr, m.group(2), False, True
+    if PAT_STDASSERT_STMT.search(s) and statement_is_self_contained(s):
+        return "stmt", s
     return None
 
 
@@ -113,15 +177,22 @@ def collect(manifest: dict, *, verbose: bool = False) -> dict[str, list[Example]
     for module_name in sorted(manifest.get("modules", {})):
         labels = manifest["modules"][module_name].get("labels", {})
         for label_name in sorted(labels):
+            seq = 0
             for ex in labels[label_name].get("examples", []):
                 cls = classify(ex)
                 if cls is None:
                     if verbose:
                         print(f"  skip [{module_name}.{label_name}] {ex.strip()}", file=sys.stderr)
                     continue
-                expr, expected, is_prefix, is_numeric = cls
-                by_module.setdefault(module_name, []).append(
-                    Example(module_name, label_name, expr, expected, is_prefix, is_numeric))
+                if cls[0] == "expr":
+                    _, expr, expected, is_prefix, is_numeric = cls
+                    item = Example(module_name, label_name, "expr", seq,
+                                   expr=expr, expected=expected,
+                                   is_prefix=is_prefix, is_numeric=is_numeric)
+                else:
+                    item = Example(module_name, label_name, "stmt", seq, stmt=cls[1])
+                by_module.setdefault(module_name, []).append(item)
+                seq += 1
     return by_module
 
 
@@ -154,9 +225,13 @@ def render_program(module: str, examples: list[Example]) -> str:
         desc = m_string_literal(ex.description)
         hdr = f"{ex.routine_name}(pass,fail)"
         lines.append(f"{hdr}{' ' * max(1, 32 - len(hdr))};@TEST {desc}")
-        helper = "contains" if ex.is_prefix else "eq"
-        expected_arg = ex.expected if ex.is_numeric else m_string_literal(ex.expected)
-        lines.append(f"{indent}do {helper}^STDASSERT(.pass,.fail,{ex.expr},{expected_arg},{desc})")
+        if ex.kind == "stmt":
+            # Pattern B: the example IS a self-asserting statement — emit verbatim.
+            lines.append(f"{indent}{ex.stmt}")
+        else:
+            helper = "contains" if ex.is_prefix else "eq"
+            expected_arg = ex.expected if ex.is_numeric else m_string_literal(ex.expected)
+            lines.append(f"{indent}do {helper}^STDASSERT(.pass,.fail,{ex.expr},{expected_arg},{desc})")
         lines.append(f"{indent}quit")
         lines.append(f"{indent};")
     return "\n".join(lines) + "\n"
@@ -388,13 +463,27 @@ def self_test() -> int:
         if not c:
             failures.append(m)
 
-    expect(classify('write $$enc^STDB64("hi")  ; "aGk="') is not None, "Pattern-A string not classified")
-    expect(classify("write $$n^STDX()  ; 42") is not None, "Pattern-A num not classified")
-    expect(classify("write $$size^STDFS(path)  ; 5") is None, "free-var example must be skipped")
-    expect(classify("do something") is None, "non-write example must be skipped")
-    prog = render_program("STDFOO", [Example("STDFOO", "greet", '$$greet^STDFOO("x")', "hi, x", False)])
+    expect(classify('write $$enc^STDB64("hi")  ; "aGk="')[0] == "expr", "Pattern-A string not classified")
+    expect(classify("write $$n^STDX()  ; 42")[0] == "expr", "Pattern-A num not classified")
+    expect(classify("write $$size^STDFS(path)  ; 5") is None, "free-var Pattern-A must be skipped")
+    expect(classify("do something") is None, "non-assert do must be skipped")
+    expect(classify('do eq^STDASSERT(.pass,.fail,$$f^STDFOO(1),"y","d")')[0] == "stmt",
+           "Pattern-B self-asserting statement classified")
+    expect(classify('set x=5 do eq^STDASSERT(.pass,.fail,$$f^STDFOO(x),"y","d")')[0] == "stmt",
+           "Pattern-B with leading set-up (locals assigned in-line) is self-contained")
+    expect(classify('do eq^STDASSERT(.pass,.fail,result,"hi","d")') is None,
+           "Pattern-B reading an undefined free var (result) is rejected")
+    expect(classify('do raises^STDASSERT(.pass,.fail,"set x=1/0","Z150373058","divzero")')[0] == "stmt",
+           "a raises^STDASSERT error-case is Pattern-B")
+    prog = render_program("STDFOO", [
+        Example("STDFOO", "greet", "expr", expr='$$greet^STDFOO("x")', expected="hi, x"),
+        Example("STDFOO", "greet", "stmt", index=1,
+                stmt='do true^STDASSERT(.pass,.fail,$$ok^STDFOO(),"ok")'),
+    ])
     expect(prog.startswith("STDFOOEX"), "program routine name")
-    expect("eq^STDASSERT" in prog and "tExampleGreet" in prog, "program assertion shape")
+    expect("eq^STDASSERT" in prog and "tExampleGreet" in prog, "Pattern-A assertion shape")
+    expect("tExampleGreet2" in prog and "true^STDASSERT" in prog,
+           "Pattern-B verbatim emission + unique routine name")
 
     # coverage classification
     demo = {"examples": ['do raises^STDASSERT(.pass,.fail,"set x=$$f^STDFOO()","U-STDFOO-BAD","bad")'],
