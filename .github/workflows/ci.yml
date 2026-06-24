@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   # m/v waterline G1 gate — v-stdlib is layer v (passes trivially: v -> m is
