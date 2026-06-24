@@ -71,6 +71,13 @@ TAGS: list[Tag] = [
     Tag("@tier", "module", "0..1", "core|optional", "tier",
         "Classifies the whole module (routine-header tag).",
         '@tier optional'),
+    Tag("@fixture", "label", "0..N", "PATH [BODY]", "fixtures",
+        "Declares an example's sample-data fixture dependency (Living Examples).",
+        '@fixture examples/data/stdcsv/people.csv  the input rows'),
+    Tag("@illustrative", "label", "0..1", "REASON", "illustrative",
+        "Marks a label whose example is illustrative-only — exempt from the "
+        "executable-example coverage requirement; the reason is required.",
+        '@illustrative needs a configured live S3 sink to run'),
 ]
 
 

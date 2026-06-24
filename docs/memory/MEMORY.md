@@ -2,6 +2,8 @@
 
 One line per memory file. Content lives in the files, not here.
 
+- [living-examples-e2](living-examples-e2.md) — **Living Examples E2 IN PROGRESS (v-stdlib) — part 1 DONE 2026-06-24**: `mdoc_tags.py` (byte-identical sibling) gains `@fixture`+`@illustrative`; the gen-manifest E2 extraction delta applied on top of VSL naming (NOT copied verbatim). Conditional-emit ⇒ manifest byte-unchanged; manifest-check + golden clean. **E2 remainder:** `gen-examples.py --coverage` advisory gate + Makefile/ci wiring + proposal row (v-stdlib executable coverage 0/117 — gate surfaces the E3 backfill). Builds on [[living-examples-e1]].
+
 - [living-examples-e1](living-examples-e1.md) — **Living Examples E1 (v-stdlib) DONE 2026-06-24**: `gen-examples.py` byte-identical sibling → `examples/` + `index.md` + `data/` home; `make examples`/`examples-check` in gates+ci. **v-stdlib starts at 0/117 executable coverage** (no Pattern-A @examples in VSL source) — the index surfaces the whole backfill job, which is mostly live-VistA + side-effect-safe (E2-E3, the long pole). No DOCTST coexistence (v-stdlib never had doctests). Proposal `proposals/living-executable-examples.md`.
 
 - [stdlib-docs-phase6](stdlib-docs-phase6.md) — **Stdlib-docs Phase 6 (Polish) v-stdlib slice DONE 2026-06-24** (Phase 6 COMPLETE both repos): `docs/guides/quick-start.md` + **`tap-architecture.md`** (the "one missing narrative" — RPC+HL7→S3 tap data-flow + safety model, distinct from the DIBRG ops runbook) + `examples/vslcfg-demo.m`. Fixed the STALE README ("empty scaffold" → 17 modules + the tap). docs-validate 0/0. Stdlib-docs Phases 1–6 all delivered; residual = the deferred Go `m doc` CLI.

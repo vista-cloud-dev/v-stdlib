@@ -423,7 +423,16 @@ def build_label_entry(
             if code not in raised_in_body:
                 raised_in_body.append(code)
 
-    return {
+    # @fixture: a Living-Examples sample-data dependency. Body is "PATH [doc]".
+    fixtures: list[dict] = []
+    for body in tags.get("@fixture", []):
+        parts = body.strip().split(None, 1)
+        if parts:
+            fixtures.append({"path": parts[0], "doc": parts[1].strip() if len(parts) > 1 else ""})
+    # @illustrative: the coverage-exemption reason (label has no executable example).
+    illustrative = tags["@illustrative"][0].strip() if tags.get("@illustrative") else ""
+
+    entry = {
         "form": sig_form,
         "signature": signature,
         "synopsis": synopsis,
@@ -440,6 +449,13 @@ def build_label_entry(
         "description": parsed["description"],
         "source": {"file": source_path, "line": source_line},
     }
+    # Emit the Living-Examples fields only when present, so existing manifests are
+    # unchanged until a label actually carries the tag (E3 backfill).
+    if fixtures:
+        entry["fixtures"] = fixtures
+    if illustrative:
+        entry["illustrative"] = illustrative
+    return entry
 
 
 def read_stdlib_version() -> str:
