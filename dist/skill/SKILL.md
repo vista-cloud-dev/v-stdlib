@@ -26,6 +26,15 @@ Load when the task references any `VSL*` module / `^VSL` symbol or
 when writing VistA-layer M code (Kernel / FileMan / XPAR / Broker)
 that should consume the VSL bindings instead of re-deriving them.
 
+## Companion library — m-stdlib (layer m, engine-neutral)
+
+v-stdlib is the **VistA-specific** half (layer `v`). It sits ON the
+engine-neutral base **m-stdlib** (`STD*`, layer `m`) — JSON, base64,
+crypto, assertions, datetime, HTTP, S3, and the rest. The m/v waterline
+is one-way (`v -> m`): a `VSL*` routine MAY call an `STD*` one, never the
+reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
+<https://github.com/vista-cloud-dev/m-stdlib/blob/master/dist/skill/SKILL.md>.
+
 ## Companion files
 
 | File | Use when |

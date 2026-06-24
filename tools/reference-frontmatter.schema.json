@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vista-cloud-dev/m-stdlib/blob/master/tools/reference-frontmatter.schema.json",
+  "title": "stdlib-docs — generated module-page frontmatter (Regime B)",
+  "description": "The robust, machine-processable frontmatter schema for the GENERATED per-module reference pages (docs/modules/<module>.md) in m-stdlib / v-stdlib. This is the Regime-B contract (see docs/background/docs-governance-two-regimes-adr.md): the per-module pages are machine output, NOT prose docs, and are governed by this schema + the stdlib-docs drift gates, not the doc-framework prose validator. Validated by tools/check-frontmatter.py (make check-frontmatter). One schema serves both stdlibs; per-repo fields are optional.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["module", "synopsis", "labels", "errors", "stable", "since", "see_also"],
+  "properties": {
+    "module": {
+      "type": "string",
+      "pattern": "^(STD|VSL)[A-Z0-9]+$",
+      "description": "The routine/module name; STD* (m-stdlib) or VSL* (v-stdlib). MUST equal the filename stem upper-cased."
+    },
+    "layer": {
+      "type": "string",
+      "enum": ["m", "v"],
+      "description": "The m/v waterline layer (m = engine-neutral, v = VistA-specific). Emitted by v-stdlib; optional in m-stdlib (its layer is m by repo)."
+    },
+    "synopsis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One-line module summary from the routine header."
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Public label names exposed by the module (from the manifest)."
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^U-" },
+      "description": "U-<MOD>* error codes the module's public labels raise (from the manifest)."
+    },
+    "see_also": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Related modules (cross-references)."
+    },
+    "stable": {
+      "type": "string",
+      "description": "Stability marker (e.g. 'stable')."
+    },
+    "since": {
+      "type": "string",
+      "description": "Version the module first shipped in (may be empty until the lib tags a release)."
+    },
+    "tag": {
+      "type": "string",
+      "description": "m-stdlib: the release tag this module shipped in (from index.md)."
+    },
+    "phase": {
+      "type": "string",
+      "description": "m-stdlib: the roadmap phase grouping (from index.md)."
+    },
+    "conformance": {
+      "type": "array",
+      "description": "m-stdlib: conformance-corpus paths exercising this module, or []."
+    },
+    "created": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO date the page was created."
+    },
+    "last_modified": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO date of the last material change."
+    },
+    "revisions": {
+      "type": "integer",
+      "description": "Revision count."
+    },
+    "doc_type": {
+      "type": "array",
+      "description": "Document-class tag(s), e.g. [REFERENCE]."
+    }
+  }
+}

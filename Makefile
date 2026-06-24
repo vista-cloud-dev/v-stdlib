@@ -45,7 +45,7 @@ S3_TESTBED := scripts/s3-testbed.sh
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check docs-bodies docs-bodies-check
+        docs-check docs-bodies docs-bodies-check check-frontmatter
 
 all: check
 
@@ -253,11 +253,19 @@ docs-bodies:
 docs-bodies-check:
 	@python3 tools/gen-bodies.py --check
 
+# check-frontmatter (Regime-B governance — docs-governance-two-regimes ADR): the
+# generated module pages (docs/modules/) are machine output, excluded from the
+# doc-framework prose validator and governed instead by their OWN robust schema,
+# tools/reference-frontmatter.schema.json. This validates every page's frontmatter
+# against it. Engine-free; byte-identical sibling of m-stdlib's check-frontmatter.py.
+check-frontmatter:
+	@python3 tools/check-frontmatter.py --check
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
 gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
-       manifest-check manifest-golden skill-check docs-check docs-bodies-check
+       manifest-check manifest-golden skill-check docs-check docs-bodies-check check-frontmatter
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.

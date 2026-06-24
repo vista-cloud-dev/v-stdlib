@@ -125,6 +125,27 @@ def _build_skill_md(manifest: dict, errors: dict) -> str:
     )
     lines.append("that should consume the VSL bindings instead of re-deriving them.")
     lines.append("")
+    lines.append("## Companion library — m-stdlib (layer m, engine-neutral)")
+    lines.append("")
+    lines.append(
+        "v-stdlib is the **VistA-specific** half (layer `v`). It sits ON the"
+    )
+    lines.append(
+        "engine-neutral base **m-stdlib** (`STD*`, layer `m`) — JSON, base64,"
+    )
+    lines.append(
+        "crypto, assertions, datetime, HTTP, S3, and the rest. The m/v waterline"
+    )
+    lines.append(
+        "is one-way (`v -> m`): a `VSL*` routine MAY call an `STD*` one, never the"
+    )
+    lines.append(
+        "reverse. For an engine-neutral primitive, load the **m-stdlib** skill:"
+    )
+    lines.append(
+        "<https://github.com/vista-cloud-dev/m-stdlib/blob/master/dist/skill/SKILL.md>."
+    )
+    lines.append("")
     lines.append("## Companion files")
     lines.append("")
     lines.append("| File | Use when |")
