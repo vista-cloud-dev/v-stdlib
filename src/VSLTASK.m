@@ -1,4 +1,6 @@
 VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process seam).
+	; doc: @exrun live
+	; doc: @exsafe transactional
 	;
 	; Binds the persistent-listener seam to Kernel TaskMan. A long-running VSL/
 	; VWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks

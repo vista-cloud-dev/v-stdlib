@@ -1,4 +1,5 @@
 VSLRPCTAP	; v-stdlib — RPC tap adapter at the VSLRPC chokepoint (the fenced tee).
+	; doc: @exrun bare
 	;
 	; The thin RPC adapter over the VSLTAP core (spec §4.1.3, §6.1). VSLRPC is the
 	; ephemeral RPC runner (proposed, unbuilt) — so this session wires the seam,

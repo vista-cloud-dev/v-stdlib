@@ -1,4 +1,5 @@
 VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
+	; doc: @exrun bare
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positives: `t` is populated by reference by $$parse^STDJSON
 	; (and `res` by reconcile's helpers); the analyser cannot see through the

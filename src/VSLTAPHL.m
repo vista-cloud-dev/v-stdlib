@@ -1,4 +1,5 @@
 VSLTAPHL	; v-stdlib — tap health instrument + standby readiness (the watchdog).
+	; doc: @exrun bare
 	;
 	; The always-on instrument behind the tap (spec §6.2/§6.4/§8/§8.1): cheap
 	; counters/timers, the A/B latency watchdog that FEEDS auto-failover, and the

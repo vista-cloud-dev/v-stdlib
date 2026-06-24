@@ -1,4 +1,5 @@
 VSLTAP	; v-stdlib — non-interference traffic-tap core (the safety gate).
+	; doc: @exrun bare
 	;
 	; Phase 2 / M1 of the RPC+HL7 -> S3 traffic tap (spec §6/§4.1). VSLTAP is the
 	; load-bearing capture core everything downstream waits behind. Its whole job

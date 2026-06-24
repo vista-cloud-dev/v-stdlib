@@ -161,6 +161,23 @@ def parse_module_file(path: Path) -> dict:
             break
     module["tier"] = tier
 
+    # Living-examples execution scope + side-effect class (E4). Routine-header
+    # tags, same extraction shape as @tier. @exrun = which engine tier runs
+    # <MOD>EX.m (dual|ydb|live; absent → dual); @exsafe = the live-VistA
+    # side-effect class for the residue safety model (read-only|transactional|
+    # illustrative-skip; absent → read-only).
+    example_run = "dual"
+    example_safety = "read-only"
+    for body in header_body_lines:
+        m_run = re.match(r"doc:\s*@exrun\s+(\S+)", body.strip())
+        if m_run:
+            example_run = m_run.group(1).strip().lower()
+        m_safe = re.match(r"doc:\s*@exsafe\s+(\S+)", body.strip())
+        if m_safe:
+            example_safety = m_safe.group(1).strip().lower()
+    module["example_run"] = example_run
+    module["example_safety"] = example_safety
+
     # Walk the rest of the file label-by-label.
     while i < len(lines):
         line = lines[i]

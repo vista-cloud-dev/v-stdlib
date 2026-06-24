@@ -3,6 +3,8 @@
   "errors": [
     "U-VSLGOLD-ARG"
   ],
+  "example_run": "dual",
+  "example_safety": "read-only",
   "labels": {
     "greet": {
       "deprecated": "",

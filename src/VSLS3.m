@@ -1,4 +1,5 @@
 VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
+	; doc: @exrun bare
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positive: `hdr` is populated by reference by $$hdr^VSLTAP in
 	; resolveRec; the analyser cannot see through the by-ref call, so it reads it as

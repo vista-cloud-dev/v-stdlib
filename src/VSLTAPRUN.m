@@ -1,4 +1,5 @@
 VSLTAPRUN	; v-stdlib — the periodic fidelity-run task (closes the console loop).
+	; doc: @exrun bare
 	;
 	; Phase 5 / M4 (GA), plan stage 5.1. persist^VSLTAPFC + $$lastFidelity exist
 	; and the VWEBT console reads ^VSLTAP("fc","last"), but in a live install

@@ -1,4 +1,6 @@
 VSLLOG	; v-stdlib — VistA FileMan audit-sink adapter (the S3 audit seam).
+	; doc: @exrun live
+	; doc: @exsafe transactional
 	;
 	; Binds the observability sink to a VistA FileMan audit file. VSLLOG is the
 	; first v->v composition: it writes audit records by REUSING VSLFS (the

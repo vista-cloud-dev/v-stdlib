@@ -1,4 +1,6 @@
 VSLRPCWRAP	; v-stdlib — the XWB broker-dispatch wrap glue (FU-5 / G-RPCHOOK).
+	; doc: @exrun bare-ydb
+	; doc: @exsafe transactional
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positive: the broker's process-scope vars (XWB/XWBP/XWBSEC/
 	; XWBPTYPE/DUZ/XWBTIP/XWBTSKT) are defined by the CALLER (CALLP^XWBBRK), not by

@@ -1,4 +1,6 @@
 VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
+	; doc: @exrun live
+	; doc: @exsafe transactional
 	;
 	; Binds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter
 	; store at the SYS (system) entity — the faithful analog of STDENV's flat

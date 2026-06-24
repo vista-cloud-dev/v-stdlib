@@ -35,7 +35,7 @@ class Tag:
     status: str = "stable"
 
 
-# The fourteen doc-manifest tags. Order = the grammar's §5 order.
+# The sixteen doc-manifest tags. Order = the grammar's §5 order.
 TAGS: list[Tag] = [
     Tag("@param", "label", "0..N", "NAME [TYPE] BODY", "params",
         "Parameter declaration.",
@@ -71,6 +71,26 @@ TAGS: list[Tag] = [
     Tag("@tier", "module", "0..1", "core|optional", "tier",
         "Classifies the whole module (routine-header tag).",
         '@tier optional'),
+    Tag("@exrun", "module", "0..1", "dual|bare|bare-ydb|ydb|live", "example_run",
+        "Living-examples execution scope (E4) — which engine tier/arms run the "
+        "module's examples/programs/<MOD>EX.m. dual (default) = both bare engines "
+        "(m-test-engine YDB + m-test-iris IRIS), gating, plus the live tier; bare "
+        "= both bare engines only, NOT live (a module that exercises its own "
+        "shared global, e.g. the tap family writing ^VSLTAP); bare-ydb = the YDB "
+        "bare engine only (IRIS-bare-incompatible and not live); ydb = YDB only "
+        "(bare m-test-engine + live vehu — its IRIS-bare backend is absent, e.g. "
+        "a $ZF call-out/$ZCMDLINE demo); live = live VistA only (vehu/foia), "
+        "skipped on the bare engines (needs Kernel/FileMan). Absent → dual. "
+        "Routine-header tag.",
+        '@exrun bare'),
+    Tag("@exsafe", "module", "0..1", "read-only|transactional|illustrative-skip", "example_safety",
+        "Living-examples live-VistA side-effect class (E4 §8 safety model) — "
+        "read-only (default; reads known data), transactional (mutates inside "
+        "TSTART/TROLLBACK or self-restores the prior value), illustrative-skip "
+        "(cannot be made safe on a shared live system; not run live). The live "
+        "runner's pre/post residue check enforces a byte-identical engine "
+        "regardless of the declared class. Routine-header tag.",
+        '@exsafe transactional'),
     Tag("@fixture", "label", "0..N", "PATH [BODY]", "fixtures",
         "Declares an example's sample-data fixture dependency (Living Examples).",
         '@fixture examples/data/stdcsv/people.csv  the input rows'),

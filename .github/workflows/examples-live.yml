@@ -1,0 +1,26 @@
+# Nightly LIVE-tier living-examples cadence (Living Executable Examples, E4 / L4).
+# Runs examples/programs/*EX.m on the LIVE engines (vehu + foia, --namespace
+# VISTA on IRIS) via the driver stack, staging the STD* base ($MSTDLIB/src), runs
+# the §8 residue check, and commits the refreshed examples/REPORT.md. Fail-soft
+# (never blocks); the bare tier in ci.yml is the hard PR gate. The VistA-binding
+# modules (@exrun live: VSLCFG/VSLBLD/VSLFS/VSLIO/VSLLOG/VSLTASK/VSLENV) execute
+# here; the tap family (@exrun bare) runs only on the bare tier.
+#
+# Needs a SELF-HOSTED runner on the host with the live engine containers, the
+# built `m`, and the sibling m-stdlib checkout (MSTDLIB) — the live engines are
+# local (see the reusable workflow). Locally it is just `make examples-run-live`.
+name: examples-live
+
+on:
+  schedule:
+    - cron: "0 7 * * *"   # 07:00 UTC nightly (staggered after m-stdlib's 06:30)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  live:
+    uses: vista-cloud-dev/.github/.github/workflows/examples-live.yml@main
+    with:
+      m: "$HOME/vista-cloud-dev/m-cli/dist/m"

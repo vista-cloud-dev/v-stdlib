@@ -1,4 +1,5 @@
 VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
+	; doc: @exrun live
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positives: the analyser reads the Kernel device-handler
 	; input variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ

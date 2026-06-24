@@ -45,7 +45,8 @@ S3_TESTBED := scripts/s3-testbed.sh
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check examples-coverage
+        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check examples-coverage \
+        examples-run examples-run-ydb examples-run-iris examples-run-live
 
 all: check
 
@@ -284,6 +285,38 @@ examples-check:
 # per-repo with --strict at 100% (proposal L5).
 examples-coverage:
 	@python3 tools/gen-examples.py --coverage
+
+# examples-run (Living Executable Examples, E4 — docs proposal §7 live execution):
+# EXECUTES the generated examples/programs/*EX.m through the driver stack only
+# (`m test --docker …`; never raw docker-exec — the engine-access rule), by
+# per-module @exrun scope, asserting every suite green (a 0/0 silent abort is a
+# failure). VSL* consumes STD*, so every arm stages $(MSTDLIB)/src too.
+# tools/run-examples.py (byte-identical sibling of m-stdlib's) owns the arm/scope
+# logic + the REPORT.md generator.
+#
+#   examples-run        bare tier, BOTH bare engines (m-test-engine + m-test-iris),
+#                       GATING. Runs the dual + ydb-scope tap/S3/auth modules; the
+#                       VistA-binding modules (@exrun live: VSLCFG/VSLBLD/VSLFS/
+#                       VSLIO/VSLLOG/VSLTASK/VSLENV) are skipped on bare.
+#   examples-run-ydb    bare YDB arm only (CI hard gate; m-ci.yml engine-targets).
+#   examples-run-iris   bare IRIS arm only (CI fail-soft job; m-ci.yml iris-targets).
+#   examples-run-live   live tier (vehu + foia, --namespace VISTA on IRIS),
+#                       fail-soft, runs the §8 residue check + writes
+#                       examples/REPORT.md (the nightly cadence). This is where the
+#                       @exrun live modules actually execute.
+EXRUN := python3 tools/run-examples.py --m $(M) --extra-routines $(MSTDLIB)/src
+
+examples-run:
+	$(EXRUN) --tier bare
+
+examples-run-ydb:
+	$(EXRUN) --tier bare --arms ydb-bare
+
+examples-run-iris:
+	$(EXRUN) --tier bare --arms iris-bare
+
+examples-run-live:
+	$(EXRUN) --tier live --report examples/REPORT.md
 
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +

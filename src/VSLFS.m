@@ -1,4 +1,6 @@
 VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
+	; doc: @exrun live
+	; doc: @exsafe transactional
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays
 	; (FDA / IEN / ERR, written by the called DBS routine by-reference) as

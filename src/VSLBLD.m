@@ -1,4 +1,5 @@
 VSLBLD	; v-stdlib — the VSL KIDS base build definition + env-check binding (packaging seam).
+	; doc: @exrun live
 	;
 	; Defines the VSL layer's KIDS base build and the build-time facts a consumer
 	; needs. The build itself is the drift-gated artifact kids/vsl.build.json ->

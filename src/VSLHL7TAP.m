@@ -1,4 +1,5 @@
 VSLHL7TAP	; v-stdlib — HL7 store-tail adapter (decoupled, zero in-line).
+	; doc: @exrun bare
 	;
 	; Phase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §4, D-3). The HL7 half of
 	; the tap. Unlike VSLRPCTAP (an in-line tee BESIDE the ephemeral RPC runner),

@@ -1,4 +1,5 @@
 VSLENV	; v-stdlib — the VSL KIDS environment-check routine (the XPDENV hook).
+	; doc: @exrun live
 	;
 	; The single, SELF-CONTAINED environment-check routine named by the VSL KIDS
 	; base build (kids/vsl.build.json "envCheck"). KIDS loads ONLY this routine on

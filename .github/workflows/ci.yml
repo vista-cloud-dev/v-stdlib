@@ -75,6 +75,11 @@ jobs:
       - name: Option-A round-trip → MinIO (YDB)
         run: make test-s3 ENGINE=ydb DOCKER=m-test-engine
 
+      - name: Living examples — bare YDB arm (E4, hard gate)
+        # Executes examples/programs/*EX.m on m-test-engine via the driver stack,
+        # by @exrun scope (dual + ydb; @exrun live modules skipped on bare).
+        run: make examples-run-ydb
+
       - name: Tear down
         if: always()
         run: |
@@ -132,6 +137,12 @@ jobs:
 
       - name: Option-A round-trip → MinIO (IRIS)
         run: make test-s3 ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m --namespace USER'
+
+      - name: Living examples — bare IRIS arm (E4, fail-soft)
+        # Executes the dual-scope examples on m-test-iris via the driver stack.
+        # This job is continue-on-error (org IRIS posture), so a red surfaces
+        # softly. @exrun ydb (VSLRPCWRAP) + @exrun live modules are skipped here.
+        run: make examples-run-iris
 
       - name: Tear down
         if: always()

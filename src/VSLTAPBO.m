@@ -1,4 +1,5 @@
 VSLTAPBO	; v-stdlib — traffic-tap back-out / verify-clean (the G-UNINST gate).
+	; doc: @exrun bare
 	;
 	; Phase 5 / M4 (GA), plan stage 5.1. v-pkg's KIDS uninstall is routine-only
 	; (it removes the routines + the #9.7/#9.6 build records); it deliberately
