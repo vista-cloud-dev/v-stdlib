@@ -44,7 +44,8 @@ S3_TESTBED := scripts/s3-testbed.sh
 .PHONY: all check fmt fmt-check lint arch test test-bare test-s3 test-s3-matrix coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
-        manifest manifest-check manifest-golden frontmatter skill skill-check skill-install
+        manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
+        docs-check
 
 all: check
 
@@ -230,11 +231,20 @@ skill-install: skill
 	cp -f dist/skill/error-codes.md $(HOME)/claude/skills/v-stdlib/error-codes.md
 	@echo "skill installed at $(HOME)/claude/skills/v-stdlib/"
 
+# docs-check (stdlib-docs Phase 2 / AC2): the completeness gate — red when any
+# src/VSL*.m module lacks a manifest entry OR a docs/modules/<module>.md page.
+# Engine-free; the same gate m-stdlib runs (one maintained sibling). It also
+# runs org-wide via the reusable m-ci.yml (a guarded auto-step), so every M
+# caller inherits it; listed here too for the local dev loop. Ships green in
+# v-stdlib because Phase 1 generated all 17 stub pages.
+docs-check:
+	@python3 tools/check-docs.py --check
+
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
 gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
-       manifest-check manifest-golden skill-check
+       manifest-check manifest-golden skill-check docs-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.
