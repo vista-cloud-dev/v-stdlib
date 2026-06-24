@@ -7,7 +7,7 @@ metadata:
 
 **RPC+HL7→S3 traffic tap — Phase 2 / M1 DONE (2026-06-19, branch `phase2-vsltap`,
 unmerged).** The non-interference capture core — THE safety gate everything
-downstream waits behind (spec `docs/proposals/rpc-traffic-s3-streaming.md`
+downstream waits behind (spec `docs/proposals/implemented/rpc-traffic-s3-streaming.md`
 §6/§4.1/§8.1; plan §6). **Dual-engine GREEN: YDB (m-test-engine) 73/73 + IRIS
 (m-test-iris) 73/73**, on BARE engines (no VistA, no S3, no network — Phase 2 is
 egress-independent by design; the Phase-1 G-HTTP-* blockers don't touch it).

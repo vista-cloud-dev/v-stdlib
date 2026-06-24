@@ -45,7 +45,7 @@ have no host mount).
 
 **RPC+HL7→S3 traffic tap — Phase 3 / M2: egress-independent CORE DONE (2026-06-19,
 branch `phase3-egress-fidelity`, unmerged).** Joins the two ends the gate waits behind
-(spec `docs/proposals/rpc-traffic-s3-streaming.md` §9/§11/§12/§4.1.3/§7/§15; plan §7).
+(spec `docs/proposals/implemented/rpc-traffic-s3-streaming.md` §9/§11/§12/§4.1.3/§7/§15; plan §7).
 Built leaf-first, TDD red-first, **dual-engine GREEN: YDB (m-test-engine) + IRIS
 (m-test-iris) — 62/62 new** (VSLS3 28 + VSLTAPFC 19 + drain 15) **+ 148/148 with the
 Phase-2 set** (no regression). Kickoff: `docs/prompts/phase3-egress-fidelity-kickoff.md`.

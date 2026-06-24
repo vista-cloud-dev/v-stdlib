@@ -4,8 +4,8 @@ status: draft
 created: 2026-06-21
 doc_type: [OPERATIONS]
 package: VSL (RPC + HL7 → S3 traffic tap)
-spec: docs/proposals/rpc-traffic-s3-streaming.md (in the docs repo)
-plan: docs/proposals/rpc-traffic-s3-streaming-implementation-plan.md §9 (GA)
+spec: docs/proposals/implemented/rpc-traffic-s3-streaming.md (in the docs repo)
+plan: docs/proposals/implemented/rpc-traffic-s3-streaming-implementation-plan.md §9 (GA)
 ---
 
 # DIBRG — VSL Traffic-Tap deploy / install / back-out / rollback
