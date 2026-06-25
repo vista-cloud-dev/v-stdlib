@@ -18,6 +18,7 @@ VSLTAPV2TST	; v-stdlib — cache layout v2 + FU-5/14/17/18 end-to-end (capture -
 	do tGlobalMergeIsSingleFaithfulSnapshot(.pass,.fail)
 	do tGlobalMergeDrainRoundTrip(.pass,.fail)
 	do tMixedV1AndV2BothDrain(.pass,.fail)
+	do tHashBestEffortDoesNotDisable(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -129,3 +130,14 @@ appendDummy()	; (private) append one legacy v1 string record; return its value.
 	new x
 	set x=$$append^VSLTAP("legacy-v1-rec")
 	quit "legacy-v1-rec"
+	;
+tHashBestEffortDoesNotDisable(pass,fail)	;@TEST "best-effort hash: with hashing off, capture STILL succeeds + tap NOT disabled + header sha256 empty (a missing crypto dep must never disable capture)"
+	new rec,h
+	do setup()
+	set ^VSLTAP("cfg","payloadhash")=0
+	set rec("dir")="resp",rec("call_id")="500-1-9",rec("rpc")="ORWPT INFO",rec("payload")="body",rec("result_kind")="scalar"
+	do eq^STDASSERT(.pass,.fail,$$appendRec^VSLTAP(.rec),1,"capture succeeds with hashing off (not faulted/disabled)")
+	do eq^STDASSERT(.pass,.fail,$$disabled^VSLTAP(),"","the tap did NOT auto-disable")
+	set h=+$get(^XTMP("VSLTAP","head"))
+	do eq^STDASSERT(.pass,.fail,$piece($get(^XTMP("VSLTAP","data",h)),"^",18),"","payload_sha256 (piece 18) empty when hashing skipped")
+	quit

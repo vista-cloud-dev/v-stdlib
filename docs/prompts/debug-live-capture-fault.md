@@ -1,5 +1,18 @@
 # Resume prompt — debug the live RPC-tap capture fault on vehu (FU-5 5B.2 live validation)
 
+> **RESOLVED 2026-06-25 — root cause + fix landed.** The fault was
+> `write1rec^VSLTAP` calling `$$sha256^STDCRYPTO` unconditionally while **STDCRYPTO
+> is not installed on vehu** (`%YDB-E-ZLINKFILE, File STDCRYPTO.m not found`;
+> `VSL*1.0*3` shipped only the `VSL*` routines). The append fence caught it →
+> `disable("fault")`. Fix: best-effort `$$hashOf^VSLTAP` (hash only when crypto is
+> usable, else `""`) — a missing crypto dep no longer disables capture. TDD
+> red→green, 136/0. See `docs/memory/live-capture-fault-stdcrypto.md`.
+>
+> **Only the live CPRS smoke remains** (needs a mutating deploy to the shared vehu
+> engine → explicit go-ahead): (1) `v pkg install --auto-snapshot` the fixed
+> VSLTAP onto vehu; (2) `v pkg wrap-rpc install --commit` to re-splice the broker
+> (currently `spliced:False`); (3) `scripts/rpc-tail.sh` + click CPRS tabs.
+
 **Paste the section below into a fresh session started in `~/vista-cloud-dev/v-stdlib`.**
 
 ---

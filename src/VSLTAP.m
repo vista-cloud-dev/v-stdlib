@@ -317,7 +317,7 @@ write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so
 	else  do
 	. set wl=$length(pl),cc=1
 	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
-	. set hash=$$sha256^STDCRYPTO(pl)
+	. set hash=$$hashOf(pl)
 	. set ^XTMP("VSLTAP","data",seq,"hc",1)=hash
 	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
 	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.
@@ -326,6 +326,22 @@ write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so
 	do record^VSLTAPHL(0,wl,0)
 	set wrote=1
 	quit
+	;
+hashOf(data)	; (private) BEST-EFFORT payload integrity hash: sha256 when STDCRYPTO is
+	; available, else "". A missing/unconfigured crypto callout (STDCRYPTO not
+	; installed, or libcrypto not loaded on this engine) must NEVER disable capture —
+	; the payload_sha256 anchor is OPTIONAL provenance, not a capture precondition.
+	; (Before this guard, the unconditional $$sha256^STDCRYPTO ZLINKFILE'd on any
+	; engine without STDCRYPTO, the fence caught it, and the whole tap self-disabled
+	; with reason "fault" — capture silently never worked.) The `payloadhash` knob
+	; (default 1) forces the skip for tests/ops.
+	; doc: @param data    string  the bytes to digest
+	; doc: @returns       string  64-char lowercase hex digest, or "" when off/unavailable
+	; doc: @example   kill ^VSLTAP set ^VSLTAP("cfg","payloadhash")=0 do eq^STDASSERT(.pass,.fail,$$hashOf^VSLTAP("x"),"","payloadhash=0 -> empty digest (best-effort, no crypto needed)") kill ^VSLTAP
+	if '+$$cfg("payloadhash",1) quit ""
+	if $text(available^STDCRYPTO)="" quit ""
+	if '$$available^STDCRYPTO() quit ""
+	quit $$sha256^STDCRYPTO(data)
 	;
 hdrLine(seq,rec,kind,wl,cc,enc,hash)	; (private) assemble the cache-layout-v2 ^-delimited header.
 	; doc: @internal
