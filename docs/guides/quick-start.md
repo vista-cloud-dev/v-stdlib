@@ -22,7 +22,7 @@ and [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) for deploy / back-out.
   `VSLHL7TAP`, `VSLSEC` (token path). These run on a plain `m-test-engine` /
   `m-test-iris`.
 - **VistA-dependent**: `VSLCFG` (XPAR), `VSLFS` (FileMan), `VSLIO` (Kernel TCP),
-  `VSLLOG`, `VSLTASK`, `VSLBLD`, `VSLENV` — need a live VistA (Kernel + FileMan).
+  `VSLLOG`, `VSLTASK`, `VSLENV` — need a live VistA (Kernel + FileMan).
 
 ## 2. Run the suite (30 sec)
 
@@ -60,8 +60,8 @@ demo under [`../../examples/`](../../examples/).
 The tap captures broker RPC + HL7 traffic and ships it to S3 as LDJSON, with
 **non-interference** as the prime invariant (it never perturbs the captured
 call). It is shipped as the **VSL KIDS build** (`dist/kids/VSL.kids`) and is
-**reversibly installable** — `$$verifyClean^VSLTAPBO` proves no residue after
-back-out.
+installed/backed-out **strictly via v-pkg** (`v-pkg install`/`uninstall`,
+snapshot/restore class-aware) — no bespoke installer.
 
 - **Understand it:** [`tap-architecture.md`](tap-architecture.md) — data flow +
   the safety model.

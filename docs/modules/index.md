@@ -6,13 +6,12 @@ generated_from: dist/vsl-manifest.json
 
 # v-stdlib — module catalogue
 
-v-stdlib unversioned; **16 modules**, **118 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
+v-stdlib unversioned; **14 modules**, **105 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
 
 Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` routine from m-stdlib, never the reverse (the m/v waterline). For the engine-neutral primitives see the `m-stdlib` catalogue.
 
 | Module | Labels | Synopsis |
 |---|---|---|
-| [`VSLBLD`](vslbld.md) | 4 | the VSL KIDS base build definition + env-check binding (packaging seam) |
 | [`VSLCFG`](vslcfg.md) | 2 | VistA configuration adapter over XPAR (Parameter Tools) |
 | [`VSLENV`](vslenv.md) | 4 | the VSL KIDS environment-check routine (the XPDENV hook) |
 | [`VSLFS`](vslfs.md) | 5 | VistA FileMan storage adapter (FileMan DBS record store) |
@@ -24,7 +23,6 @@ Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` r
 | [`VSLS3`](vsls3.md) | 11 | S3 egress sink: LDJSON envelope + the §11 bucket layout |
 | [`VSLSEC`](vslsec.md) | 5 | VistA identity/authorization adapter (Kernel) |
 | [`VSLTAP`](vsltap.md) | 30 | non-interference traffic-tap core (the safety gate) |
-| [`VSLTAPBO`](vsltapbo.md) | 9 | traffic-tap back-out / verify-clean (the G-UNINST gate) |
 | [`VSLTAPFC`](vsltapfc.md) | 7 | fidelity comparator: byte-equality proof, not assertion |
 | [`VSLTAPHL`](vsltaphl.md) | 6 | tap health instrument + standby readiness (the watchdog) |
 | [`VSLTASK`](vsltask.md) | 6 | VistA TaskMan persistent-listener adapter (the process seam) |

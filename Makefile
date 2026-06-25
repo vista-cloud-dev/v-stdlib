@@ -27,7 +27,7 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 
 # Bare-engine-green suites — the traffic-tap + S3 + auth tier, which run on a
 # plain M engine with NO VistA (no Kernel/FileMan). These are the engine-bound
-# CI gate (`make ci`). The VistA-dependent suites (VSLBLD/VSLCFG/VSLFS/VSLIO/
+# CI gate (`make ci`). The VistA-dependent suites (VSLCFG/VSLFS/VSLIO/
 # VSLLOG/VSLTASK — they need #-files + Kernel APIs and report 0/0 on a bare
 # engine) are NOT here; run them via `make test` on a VistA-equipped engine.
 # VSLS3E2ETST is the live round-trip — it runs in `make test-s3-matrix`, not here.
@@ -35,11 +35,10 @@ BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
               tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPFENCETST.m \
               tests/VSLTAPHLTST.m tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m \
               tests/VSLTAPV2TST.m tests/VSLRPCWRAPTST.m \
-              tests/VSLTAPBOTST.m \
               tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
 
 # Bare-runnable routine set for the bare coverage gate — every src routine MINUS
-# the VistA-binding ones (tagged `; doc: @exrun live`: VSLBLD/VSLCFG/VSLENV/VSLFS/
+# the VistA-binding ones (tagged `; doc: @exrun live`: VSLCFG/VSLENV/VSLFS/
 # VSLIO/VSLLOG/VSLTASK). Those report 0 covered on a bare engine (they need
 # Kernel/FileMan/XPAR), so measuring them under the bare tier would falsely drag
 # the aggregate down — they are covered on the live tier instead. Derived from the
@@ -312,7 +311,7 @@ examples-coverage:
 #
 #   examples-run        bare tier, BOTH bare engines (m-test-engine + m-test-iris),
 #                       GATING. Runs the dual + ydb-scope tap/S3/auth modules; the
-#                       VistA-binding modules (@exrun live: VSLCFG/VSLBLD/VSLFS/
+#                       VistA-binding modules (@exrun live: VSLCFG/VSLFS/
 #                       VSLIO/VSLLOG/VSLTASK/VSLENV) are skipped on bare.
 #   examples-run-ydb    bare YDB arm only (CI hard gate; m-ci.yml engine-targets).
 #   examples-run-iris   bare IRIS arm only (CI fail-soft job; m-ci.yml iris-targets).
@@ -352,7 +351,7 @@ check-fast: fmt-check lint arch gates
 # engines (incl. the VSLTAPBENCHTST 3-arm non-interference benchmark, spec
 # §6.4/§7 D-7), then the Option-A round-trip MATRIX (VSLS3E2ETST × {YDB,IRIS}
 # against MinIO, plan stage 3.4). The VistA-dependent functional suites
-# (VSLCFG/VSLFS/VSLIO/VSLLOG/VSLBLD/VSLTASK) are NOT here — they need a real
+# (VSLCFG/VSLFS/VSLIO/VSLLOG/VSLTASK) are NOT here — they need a real
 # VistA; run the full set with `make check` on a VistA-equipped engine.
 # Just `make ci` (no ENGINE= needed — it drives both test engines + MinIO).
 .PHONY: ci

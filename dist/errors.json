@@ -1,10 +1,4 @@
 {
-  "U-VSL-BLD-ARG": {
-    "labels": [
-      "requireBase"
-    ],
-    "module": "VSLBLD"
-  },
   "U-VSL-FS-DIERR": {
     "labels": [
       "set"

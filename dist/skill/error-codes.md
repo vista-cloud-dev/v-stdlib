@@ -1,15 +1,11 @@
 # v-stdlib — error codes
 
-v-stdlib unversioned; 7 error codes across 6 modules.
+v-stdlib unversioned; 6 error codes across 5 modules.
 
 Inverted index over the manifest's `@raises` arrays. Every
 `,U-VSL...-,` code a v-stdlib label sets via `set $ecode=`
 is listed with the labels that raise it. For an `$ETRAP` handler
 that needs to disambiguate sources, this is the lookup table.
-
-## `VSLBLD`
-
-- **`U-VSL-BLD-ARG`** — raised by: `requireBase`
 
 ## `VSLFS`
 

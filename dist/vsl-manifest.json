@@ -1,149 +1,6 @@
 {
   "stdlib_version": "",
   "modules": {
-    "VSLBLD": {
-      "synopsis": "v-stdlib — the VSL KIDS base build definition + env-check binding (packaging seam).",
-      "description": "doc: @exrun live\n\nDefines the VSL layer's KIDS base build and the build-time facts a consumer\nneeds. The build itself is the drift-gated artifact kids/vsl.build.json ->\ndist/kids/VSL.kids (gated by `make check-kids`): all the VSL* routines + the\nVPNG GREETING #8989.51 PARAMETER DEFINITION + a Required Build on the m-stdlib\nbase (MSL*0.1*1, so STD* is reused from one shared install, never copied in)\n+ the VSLENV environment-check routine. VSLBLD binds ONLY the KIDS/Kernel\nprogrammer API (ICR #10141, XPDUTL); the actual install / verify / back-out\nis performed by v-pkg over the driver — VSLBLD does NOT duplicate v-pkg's\ninstall mechanics (the in-`v` no-duplication rule; architecture §7.2).\n\nPublic API:\n  $$manifest^VSLBLD(out)     — fill out() with the base routines + Required Build + patch identity\n  $$envCheck^VSLBLD(facts)   — the environment facts (engine/version/Kernel/TLS) via VSLENV (v->v)\n  $$requireBase^VSLBLD(build) — 1 iff KIDS build `build` is installed (the R6 version-skew check)\n  $$lastError^VSLBLD()       — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call, never on a normal negative ***\nA malformed call (an empty build name) maps to a clean ,U-VSL-BLD-ARG, $ECODE\nwith the detail in ^TMP($job,\"vslbld\",\"err\") for $$lastError. A base that is\nsimply NOT installed is a normal 0 from $$requireBase — NOT an error (kickoff\ndecision 4, the VSLSEC DENY-is-not-an-error posture).",
-      "errors": [
-        "U-VSL-BLD-ARG"
-      ],
-      "labels": {
-        "manifest": {
-          "form": "extrinsic",
-          "signature": "$$manifest^VSLBLD(out)",
-          "synopsis": "Fill out() with the VSL base's routines, its Required Build and patch identity; return the routine count.",
-          "params": [
-            {
-              "name": "out",
-              "type": "array",
-              "doc": "(by ref) out(\"routines\",n)=routine; out(\"requiredBuild\"); out(\"patch\")"
-            }
-          ],
-          "returns": {
-            "type": "numeric",
-            "doc": "the number of routines the VSL base ships"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do true^STDASSERT(.pass,.fail,$$manifest^VSLBLD(.out)'<5,\"the base ships at least the five M1-M4 VSL* modules\")",
-            "set n=$$manifest^VSLBLD(.out) do true^STDASSERT(.pass,.fail,$get(out(\"requiredBuild\"))=\"MSL*0.1*1\",\"manifest declares the Required Build on the m-stdlib base\")",
-            "set n=$$manifest^VSLBLD(.out) do true^STDASSERT(.pass,.fail,$get(out(\"patch\"))=\"VSL*1.0*3\",\"manifest declares the patch identity VSL*1.0*3\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLBLD.m",
-            "line": 30
-          }
-        },
-        "envCheck": {
-          "form": "extrinsic",
-          "signature": "$$envCheck^VSLBLD(facts)",
-          "synopsis": "The environment facts (engine/version/Kernel/TLS) via the self-contained VSLENV (v->v).",
-          "params": [
-            {
-              "name": "facts",
-              "type": "array",
-              "doc": "(by ref) receives engine/version/kernel/tls facts"
-            }
-          ],
-          "returns": {
-            "type": "bool",
-            "doc": "1 on success"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do true^STDASSERT(.pass,.fail,$$envCheck^VSLBLD(.facts)=1,\"$$envCheck succeeds on a live VistA\")",
-            "set ok=$$envCheck^VSLBLD(.facts) do true^STDASSERT(.pass,.fail,$get(facts(\"engine\"))'=\"\",\"env-check reports the engine type\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLBLD.m",
-            "line": 58
-          }
-        },
-        "requireBase": {
-          "form": "extrinsic",
-          "signature": "$$requireBase^VSLBLD(build)",
-          "synopsis": "1 iff KIDS build `build` is installed on this system (the R6 version-skew check).",
-          "params": [
-            {
-              "name": "build",
-              "type": "string",
-              "doc": "a KIDS build/patch identity (e.g. \"MSL*0.1*1\")"
-            }
-          ],
-          "returns": {
-            "type": "bool",
-            "doc": "1 iff installed; 0 (a normal not-installed result) otherwise"
-          },
-          "raises": [
-            {
-              "code": "U-VSL-BLD-ARG",
-              "doc": "the call is malformed (an empty build name)"
-            }
-          ],
-          "raised_in_body": [],
-          "examples": [
-            "do true^STDASSERT(.pass,.fail,$$requireBase^VSLBLD(\"ZZNOSUCH*9.9*9\")=0,\"an absent base build is a normal 0 (a not-installed result, not a loud failure)\")",
-            "do raises^STDASSERT(.pass,.fail,\"set x=$$requireBase^VSLBLD(\"\"\"\")\",\"U-VSL-BLD-ARG\",\"$$requireBase with no build name raises U-VSL-BLD-...\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "@icr 10141 @call $$PATCH^XPDUTL @status Supported @custodian XU @source XU/krn_8_0_dg_kids_ug#verifying-patch-installation",
-          "source": {
-            "file": "src/VSLBLD.m",
-            "line": 65
-          }
-        },
-        "lastError": {
-          "form": "extrinsic",
-          "signature": "$$lastError^VSLBLD()",
-          "synopsis": "The last VSLBLD error message (the composed malformed-call detail).",
-          "params": [],
-          "returns": {
-            "type": "string",
-            "doc": "^TMP($job,\"vslbld\",\"err\"), or \"\" if none"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do raises^STDASSERT(.pass,.fail,\"set x=$$requireBase^VSLBLD(\"\"\"\")\",\"U-VSL-BLD-ARG\",\"arming the error state\") do true^STDASSERT(.pass,.fail,$$lastError^VSLBLD()'=\"\",\"lastError carries the malformed-call detail after a rejected call\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLBLD.m",
-            "line": 75
-          }
-        }
-      },
-      "source": {
-        "file": "src/VSLBLD.m",
-        "line": 1
-      },
-      "tier": "core",
-      "example_run": "live",
-      "example_safety": "read-only"
-    },
     "VSLCFG": {
       "synopsis": "v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).",
       "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic extrinsics:\n  $$get^VSLCFG(key,default)   — read a SYS-level parameter value, else default\n  $$set^VSLCFG(key,value)     — set a parameter value at the SYS entity\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263).",
@@ -233,7 +90,7 @@
     },
     "VSLENV": {
       "synopsis": "v-stdlib — the VSL KIDS environment-check routine (the XPDENV hook).",
-      "description": "doc: @exrun live\n\nThe single, SELF-CONTAINED environment-check routine named by the VSL KIDS\nbase build (kids/vsl.build.json \"envCheck\"). KIDS loads ONLY this routine on\nthe target at check time and runs it TWICE — once at Load a Distribution and\nagain at Install (the key variable XPDENV signals the phase) — so it must not\ncall any other VSL*/STD* routine from the build (none are loaded yet); it\nuses only intrinsics + RESIDENT Kernel APIs (architecture §7.2, KIDS DG).\n\nIt fails fast on a genuine showstopper (Kernel absent -> XPDQUIT) and reports\nthe engine type/version, Kernel patch level and TLS-config presence — the\nfacts a VWEB-class consumer Requires and extends (engine, TLS, Kernel level,\nIRIS-for-Health minimum). The programmatic $$check entry returns those facts\nwithout touching KIDS state, so VSLBLD/tests can read them off-install.\n\nPublic API:\n  VSLENV            — the KIDS env-check entry (run by KIDS; honors XPDENV/XPDQUIT)\n  $$check^VSLENV(facts) — fill facts(engine,version,kernel,tls); always returns 1",
+      "description": "doc: @exrun live\n\nThe single, SELF-CONTAINED environment-check routine named by the VSL KIDS\nbase build (kids/vsl.build.json \"envCheck\"). KIDS loads ONLY this routine on\nthe target at check time and runs it TWICE — once at Load a Distribution and\nagain at Install (the key variable XPDENV signals the phase) — so it must not\ncall any other VSL*/STD* routine from the build (none are loaded yet); it\nuses only intrinsics + RESIDENT Kernel APIs (architecture §7.2, KIDS DG).\n\nIt fails fast on a genuine showstopper (Kernel absent -> XPDQUIT) and reports\nthe engine type/version, Kernel patch level and TLS-config presence — the\nfacts a VWEB-class consumer Requires and extends (engine, TLS, Kernel level,\nIRIS-for-Health minimum). The programmatic $$check entry returns those facts\nwithout touching KIDS state, so a consumer/tests can read them off-install.\n\nPublic API:\n  VSLENV            — the KIDS env-check entry (run by KIDS; honors XPDENV/XPDQUIT)\n  $$check^VSLENV(facts) — fill facts(engine,version,kernel,tls); always returns 1",
       "errors": [],
       "labels": {
         "abort": {
@@ -2306,7 +2163,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path\ngate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP(\"cfg\",…), NOT XPAR (no\nXPAR/FileMan read on the capture path). seed bridges the two: it copies\neach set param into its cfg key once, at install/configure time.\n$text(GET^XPAR)-guarded -> a bare engine is a clean no-op.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
+          "description": "The KIDS install creates the tap params (kids/vsl.build.json); the hot-path\ngate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP(\"cfg\",…), NOT XPAR (no\nXPAR/FileMan read on the capture path). seed bridges the two: it copies\neach set param into its cfg key once, at install/configure time.\n$text(GET^XPAR)-guarded -> a bare engine is a clean no-op.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLTAP.m",
             "line": 97
@@ -2971,249 +2828,6 @@
       "example_run": "bare",
       "example_safety": "read-only"
     },
-    "VSLTAPBO": {
-      "synopsis": "v-stdlib — traffic-tap back-out / verify-clean (the G-UNINST gate).",
-      "description": "doc: @exrun bare\n\nPhase 5 / M4 (GA), plan stage 5.1. v-pkg's KIDS uninstall is routine-only\n(it removes the routines + the #9.7/#9.6 build records); it deliberately\nleaves the tap's RUNTIME footprint behind. VSLTAPBO reverses exactly that\nfootprint and then PROVES, by inspection, that nothing is orphaned — the\nreversible-install invariant a fleet rollout depends on (risk G-UNINST):\n\n  1. any scheduled TaskMan jobs (recorded in ^VSLTAP(\"task\"))\n  2. the tap's XPAR #8989.51 PARAMETER instances + definitions (the config seam)\n  3. the ^XTMP(\"VSLTAP\",…) rolling capture cache (the SAC scratch global)\n  4. the ^VSLTAP control state (cfg / disabled / hb / _offwindows / hl / fc)\n\n*** Layer: v (above the m/v waterline). The state-global cleanup (3,4) is\npure M and runs on a BARE engine; the XPAR (2) and TaskMan (1) legs are\nVistA seams, each fault-fenced so a bare engine survives them and a partial\nVistA absence never blocks the cleanup. Order matters: dequeue tasks (their\nnumbers live in ^VSLTAP) BEFORE the state kill removes the record.\n\nPublic API:\n  do backout()              full back-out: dequeue tasks -> drop params -> kill state\n  $$verifyClean(detail)     1 iff no tap residue; detail(globals/params/tasks) names any\n  do cleanState()           kill ^XTMP(\"VSLTAP\") + ^VSLTAP (the bare-testable core)\n  do cleanParams()          drop the tap #8989.51 XPAR instances + definitions (fenced)\n  do cleanTasks()           dequeue the recorded flush/fidelity TaskMan jobs (fenced)\n  $$params(out)             the canonical tap XPAR param-name list -> count",
-      "errors": [],
-      "labels": {
-        "params": {
-          "form": "extrinsic",
-          "signature": "$$params^VSLTAPBO(out)",
-          "synopsis": "Fill out(1..N) with the tap's XPAR #8989.51 param names; return N.",
-          "params": [
-            {
-              "name": "out",
-              "type": "array",
-              "doc": "by-ref; killed then filled out(1)=name … out(N)=name"
-            }
-          ],
-          "returns": {
-            "type": "numeric",
-            "doc": "the count of tap params (the KIDS build + the back-out share this list)"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do true^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)>0,\"params: the tap ships at least one XPAR param\")",
-            "new out do eq^STDASSERT(.pass,.fail,$$params^VSLTAPBO(.out)_\"|\"_out(7),\"10|VSL S3 ENDPOINT\",\"params: 10 knobs, the 7th is the S3 endpoint\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The durable install-time config + the S3 deployment knobs. Operator\nRUNTIME state (mode/consumer) stays in ^VSLTAP(\"cfg\"), not XPAR.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 33
-          }
-        },
-        "backout": {
-          "form": "procedure",
-          "signature": "do backout^VSLTAPBO()",
-          "synopsis": "Full back-out: dequeue tasks, drop the XPAR params, kill the state. Idempotent.",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "set ^XTMP(\"VSLTAP\",\"data\",1)=\"rec\",^VSLTAP(\"hb\")=$horolog do backout^VSLTAPBO() do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),\"backout: a seeded footprint verifies clean afterward\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "Each leg is independently fault-fenced, so a missing TaskMan/XPAR/FileMan\n(a bare engine, or a partial install) never blocks the state cleanup. Tasks\nfirst — their numbers live in ^VSLTAP, which the state kill then removes.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 62
-          }
-        },
-        "cleanState": {
-          "form": "procedure",
-          "signature": "do cleanState^VSLTAPBO()",
-          "synopsis": "Kill the rolling capture cache and ALL VSL control state.",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "set ^VSLTAP(\"cfg\",\"mode\")=\"armed\",^XTMP(\"VSLTAP\",\"data\",1)=\"x\" do cleanState^VSLTAPBO() do eq^STDASSERT(.pass,.fail,$data(^VSLTAP)+$data(^XTMP(\"VSLTAP\")),0,\"cleanState: both the cache and the control state are gone\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The whole tap footprint that lives in globals: ^XTMP(\"VSLTAP\",…) (the\nSAC auto-purge scratch cache) and ^VSLTAP (cfg/disabled/hb/_offwindows/\nhl/fc/task). Pure M — no VistA needed; this is what the bare suite proves.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 74
-          }
-        },
-        "cleanParams": {
-          "form": "procedure",
-          "signature": "do cleanParams^VSLTAPBO()",
-          "synopsis": "Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition.",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do cleanParams^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,\"cleanParams: the fenced XPAR leg returns without raising on a bare engine\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "Fault-fenced as a whole (a bare engine has no XPAR/FileMan), and per-param\ninside delParam, so one missing param does not strand the rest.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 85
-          }
-        },
-        "delParam": {
-          "form": "procedure",
-          "signature": "do delParam^VSLTAPBO(name)",
-          "synopsis": "(private) clear the SYS-level instance, then delete the #8989.51 definition record.",
-          "params": [
-            {
-              "name": "name",
-              "type": "string",
-              "doc": "the XPAR parameter name (#8989.51 .01)"
-            }
-          ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do delParam^VSLTAPBO(\"VSL TAP CAP\") do true^STDASSERT(.pass,.fail,1,\"delParam: a not-present param is a clean no-op (fenced) on a bare engine\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "EN^XPAR(...,\"@\") removes the SYS instance value; the definition record is\ndeleted via FileMan DBS FILE^DIE with .01=\"@\" (no DELETE^DIE exists — the\nVSLFS pattern). Per-param fenced so a not-present param is a clean no-op.\n@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters\n@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer\n$text-guarded: a bare engine has no XPAR/FileMan, so each leg is a clean\nskip (there is nothing to remove); the $etrap still fences a genuine fault.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 95
-          }
-        },
-        "cleanTasks": {
-          "form": "procedure",
-          "signature": "do cleanTasks^VSLTAPBO()",
-          "synopsis": "Dequeue every recorded TaskMan job (read BEFORE cleanState).",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do cleanTasks^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,\"cleanTasks: the fenced TaskMan leg returns without raising on a bare engine\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The scheduled-task numbers live in ^VSLTAP(\"task\",label)=ztsk. These\njobs are periodic re-queues (NOT persistent listeners), so they dequeue\ncleanly. Fenced — no TaskMan on a bare engine.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 118
-          }
-        },
-        "dequeue": {
-          "form": "procedure",
-          "signature": "do dequeue^VSLTAPBO(ztsk)",
-          "synopsis": "(private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced.",
-          "params": [
-            {
-              "name": "ztsk",
-              "type": "numeric",
-              "doc": "the task number to remove from the schedule"
-            }
-          ],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do dequeue^VSLTAPBO(0) do true^STDASSERT(.pass,.fail,1,\"dequeue: a non-positive task number is a clean no-op\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "@icr 10063 @call KILL^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#killztload-delete-a-task",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 135
-          }
-        },
-        "verifyClean": {
-          "form": "extrinsic",
-          "signature": "$$verifyClean^VSLTAPBO(detail)",
-          "synopsis": "1 iff no tap residue remains across all layers; detail() names any survivor.",
-          "params": [
-            {
-              "name": "detail",
-              "type": "array",
-              "doc": "OUT by-ref; killed then filled detail(globals/params/tasks)"
-            }
-          ],
-          "returns": {
-            "type": "bool",
-            "doc": "1 iff globals, XPAR params and tasks are all clean"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "kill ^XTMP(\"VSLTAP\"),^VSLTAP do true^STDASSERT(.pass,.fail,$$verifyClean^VSLTAPBO(.detail),\"verifyClean: an empty system verifies clean\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "Globals (cache + control state) are checked on any engine; the XPAR-param\nand task legs are fenced VistA seams — a bare engine reports them clean.",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 149
-          }
-        },
-        "paramsResidue": {
-          "form": "extrinsic",
-          "signature": "$$paramsResidue^VSLTAPBO(detail)",
-          "synopsis": "(private) 1 iff any tap #8989.51 definition survives (fenced; bare -> 0).",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "do eq^STDASSERT(.pass,.fail,$$paramsResidue^VSLTAPBO(.detail),0,\"paramsResidue: a bare engine (no FileMan) reports no surviving XPAR definitions\")"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
-          "source": {
-            "file": "src/VSLTAPBO.m",
-            "line": 163
-          }
-        }
-      },
-      "source": {
-        "file": "src/VSLTAPBO.m",
-        "line": 1
-      },
-      "tier": "core",
-      "example_run": "bare",
-      "example_safety": "read-only"
-    },
     "VSLTAPFC": {
       "synopsis": "v-stdlib — fidelity comparator: byte-equality proof, not assertion.",
       "description": "doc: @exrun bare\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: `t` is populated by reference by $$parse^STDJSON\n(and `res` by reconcile's helpers); the analyser cannot see through the\nextrinsic/by-ref call, so it reads them as \"read before defined\".\n\nPhase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §7). VSLTAPFC is the\nstanding, gated, byte-level equivalence check that answers \"is the captured\ncopy full-fidelity correct?\" — by COMPARISON, never by claim. It decodes a\nshipped envelope back to the raw bytes and proves they byte-equal the\ncaptured source (RPC: the in-app tee vs the independent passive mirror; HL7:\nthe shipped object vs its #772 source), and it reconciles a whole corpus\nagainst the read-back objects — every record present exactly once, in\nsequence, byte-matched, no unaccounted drop (the §15.2 round-trip core).\nFidelity is BYTE-EQUALITY against the source — NO digest/hash is used (the tap\nonly observes plain RPC bytes; it adds no crypto). A mismatch is a FAILURE,\nsurfaced on the console and red-gated in CI.\n\n*** Layer: v (above the m/v waterline). It consumes `m` DOWN only — STDJSON\n(parse the LDJSON envelope), STDB64 (decode a base64\npayload). It produces no traffic and reaches no engine: pure comparison\nover envelopes and source records, so it runs on a bare engine and as a CI\ngate over recorded fixtures (the live read-back leg is VSLS3 $$readback,\nexercised by the integration harness).\n\nPublic API:\n  $$payloadOf(line)            decode one envelope line back to the raw bytes\n  $$matches(line,source)       1 iff the decoded payload byte-equals source\n  $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)\n  $$drops(envs,res)            FU-15 loss taxonomy: rpc_error/rpc_denied by call_id reconcile\n  $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line\n  do persist(res,ts)           store the last run at ^VSLTAP(\"fc\",\"last\")\n  $$lastFidelity()             the last persisted manifest line, or \"\" (none yet)",
@@ -3686,7 +3300,7 @@
     },
     "VSLTASK": {
       "synopsis": "v-stdlib — VistA TaskMan persistent-listener adapter (the process seam).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the persistent-listener seam to Kernel TaskMan. A long-running VSL/\nVWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks\na queued task persistent, so TaskMan automatically RE-RUNS it when the lock\non ^%ZTSCH(\"TASK\",n) is dropped — a self-healing listener (architecture\n§3.5). VSLTASK is a thin binding over the Supported ^%ZTLOAD programmer API\n(ICR #10063), NOT new machinery; portable diagnostics belong in STDLOG (v->m),\nnever re-implemented here.\n\nPublic API:\n  $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)\n  $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)\n  $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)\n  $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#\n  $$lastError^VSLTASK()         — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call / a real TaskMan fault ***\nA malformed call (no entry / no task#) or a TaskMan queue fault maps to a\nclean ,U-VSL-TASK-ARG, / ,U-VSL-TASK-QUEUE, $ECODE, with the detail in\n^TMP($job,\"vsltask\",\"err\") for $$lastError. A normal negative — \"the\nscheduler is not running here\" ($$running=0) or \"no stop requested\"\n($$stop=0) — is NOT an error (kickoff decision 4). The flag-based $ETRAP\npattern is used (NEVER zgoto — a zgoto trap aborts the resident harness 0/0,\nthe M4 VSLLOG gotcha); OUR trap is cleared before any re-raise.\n\nSelf-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks\n^%ZTSCH(\"TASK\",n,\"P\"); TaskMan re-runs on a lock drop). Observing a live\nrestart needs the task body installed as a RESIDENT routine (the VSLBLD/\nv-pkg path) + lock manipulation, and a persistent task is deliberately\nun-KILLable — out of scope for a safe unit test (see VSLTASKTST).",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the persistent-listener seam to Kernel TaskMan. A long-running VSL/\nVWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks\na queued task persistent, so TaskMan automatically RE-RUNS it when the lock\non ^%ZTSCH(\"TASK\",n) is dropped — a self-healing listener (architecture\n§3.5). VSLTASK is a thin binding over the Supported ^%ZTLOAD programmer API\n(ICR #10063), NOT new machinery; portable diagnostics belong in STDLOG (v->m),\nnever re-implemented here.\n\nPublic API:\n  $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)\n  $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)\n  $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)\n  $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#\n  $$lastError^VSLTASK()         — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call / a real TaskMan fault ***\nA malformed call (no entry / no task#) or a TaskMan queue fault maps to a\nclean ,U-VSL-TASK-ARG, / ,U-VSL-TASK-QUEUE, $ECODE, with the detail in\n^TMP($job,\"vsltask\",\"err\") for $$lastError. A normal negative — \"the\nscheduler is not running here\" ($$running=0) or \"no stop requested\"\n($$stop=0) — is NOT an error (kickoff decision 4). The flag-based $ETRAP\npattern is used (NEVER zgoto — a zgoto trap aborts the resident harness 0/0,\nthe M4 VSLLOG gotcha); OUR trap is cleared before any re-raise.\n\nSelf-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks\n^%ZTSCH(\"TASK\",n,\"P\"); TaskMan re-runs on a lock drop). Observing a live\nrestart needs the task body installed as a RESIDENT routine (the v-pkg\ninstall path) + lock manipulation, and a persistent task is deliberately\nun-KILLable — out of scope for a safe unit test (see VSLTASKTST).",
       "errors": [
         "U-VSL-TASK-ARG",
         "U-VSL-TASK-QUEUE"
@@ -3893,12 +3507,6 @@
     }
   },
   "errors": {
-    "U-VSL-BLD-ARG": {
-      "module": "VSLBLD",
-      "labels": [
-        "requireBase"
-      ]
-    },
     "U-VSL-FS-DIERR": {
       "module": "VSLFS",
       "labels": [

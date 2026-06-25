@@ -17,8 +17,8 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 16 modules, 118 public labels,
-7 error codes.
+**Catalogue:** 14 modules, 105 public labels,
+6 error codes.
 
 ## When to use this skill
 
@@ -45,7 +45,6 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 
 ## Module catalogue
 
-- **`VSLBLD`** — the VSL KIDS base build definition + env-check binding (packaging seam).
 - **`VSLCFG`** — VistA configuration adapter over XPAR (Parameter Tools).
 - **`VSLENV`** — the VSL KIDS environment-check routine (the XPDENV hook).
 - **`VSLFS`** — VistA FileMan storage adapter (FileMan DBS record store).
@@ -57,7 +56,6 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 - **`VSLS3`** — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 - **`VSLSEC`** — VistA identity/authorization adapter (Kernel).
 - **`VSLTAP`** — non-interference traffic-tap core (the safety gate).
-- **`VSLTAPBO`** — traffic-tap back-out / verify-clean (the G-UNINST gate).
 - **`VSLTAPFC`** — fidelity comparator: byte-equality proof, not assertion.
 - **`VSLTAPHL`** — tap health instrument + standby readiness (the watchdog).
 - **`VSLTASK`** — VistA TaskMan persistent-listener adapter (the process seam).

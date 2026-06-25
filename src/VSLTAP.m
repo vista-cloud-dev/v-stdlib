@@ -95,7 +95,7 @@ setAlwaysOn(flag)	; LEGACY/SUBSUMED (D-8 -> FU-9): kept for backward compatibili
 	; ---------- the install-time XPAR -> cfg seed (self-configuring install) ----------
 	;
 seed()	; Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (self-configuring install).
-	; doc: The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path
+	; doc: The KIDS install creates the tap params (kids/vsl.build.json); the hot-path
 	; doc: gate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP("cfg",…), NOT XPAR (no
 	; doc: XPAR/FileMan read on the capture path). seed bridges the two: it copies
 	; doc: each set param into its cfg key once, at install/configure time.

@@ -28,8 +28,8 @@ VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process se
 	;
 	; Self-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks
 	; ^%ZTSCH("TASK",n,"P"); TaskMan re-runs on a lock drop). Observing a live
-	; restart needs the task body installed as a RESIDENT routine (the VSLBLD/
-	; v-pkg path) + lock manipulation, and a persistent task is deliberately
+	; restart needs the task body installed as a RESIDENT routine (the v-pkg
+	; install path) + lock manipulation, and a persistent task is deliberately
 	; un-KILLable — out of scope for a safe unit test (see VSLTASKTST).
 	;
 	quit

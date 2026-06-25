@@ -16,10 +16,11 @@ the **VSL KIDS build** (`dist/kids/VSL.kids`); everything below the waterline is
 already proven (capture core, egress, fidelity, console). This guide is the GA
 deployment contract.
 
-> **Reversible install is the invariant.** Every install step has an exact
-> reversal, and `$$verifyClean^VSLTAPBO` proves no residue remains. Engine access
-> is **only** through the driver stack (`v-pkg`, `m vista exec`) — never raw
-> `docker exec`/`iris session`.
+> **Install and back-out are strictly v-pkg.** The tap ships as one KIDS build;
+> `v-pkg install`/`uninstall` (snapshot/restore class-aware) are the ONLY install
+> and reversal methods — there is no bespoke M installer or back-out routine.
+> Engine access is **only** through the driver stack (`v-pkg`, `m vista exec`) —
+> never raw `docker exec`/`iris session`.
 
 ---
 
@@ -27,17 +28,19 @@ deployment contract.
 
 | Layer | Artifact | Installed by | Removed by |
 |---|---|---|---|
-| Routines | `VSLTAP`, `VSLRPCTAP`, `VSLHL7TAP`, `VSLTAPHL`, `VSLTAPFC`, `VSLS3`, `VSLTAPBO` (+ the VSL base) | `v-pkg install` (KIDS) | `v-pkg uninstall` (routines + #9.7/#9.6) |
-| Config | XPAR `#8989.51` PARAMETER DEFINITIONs (`$$params^VSLTAPBO`) | KIDS `parameterDefinitions` | **`VSLTAPBO` `cleanParams`** |
-| Tasks | any scheduled TaskMan jobs (recorded in `^VSLTAP("task")`) | runtime | **`VSLTAPBO` `cleanTasks`** |
-| State | `^VSLTAP` control state + `^XTMP("VSLTAP",…)` rolling cache | runtime (arm + capture) | **`VSLTAPBO` `cleanState`** |
+| Routines | `VSLTAP`, `VSLRPCTAP`, `VSLHL7TAP`, `VSLTAPHL`, `VSLTAPFC`, `VSLS3` (+ the VSL base) | `v-pkg install` (KIDS) | `v-pkg uninstall` (routines + #9.7/#9.6) |
+| Config | XPAR `#8989.51` PARAMETER DEFINITIONs | KIDS `parameterDefinitions` | `v-pkg uninstall` (drops the #8989.51 defs) |
+| State | `^VSLTAP` control state + `^XTMP("VSLTAP",…)` rolling cache | runtime (arm + capture) | transient — `^XTMP` auto-purges (Kernel, `RETAIN` horizon); `^VSLTAP` is runtime control state |
 
-**Key fact (risk G-UNINST):** `v-pkg uninstall` is **routine-only** — it removes
-the routines and the KIDS build records but **not** the config / tasks / cache /
-state. `VSLTAPBO` is the dedicated back-out that removes that runtime footprint;
-the full back-out is therefore **`v-pkg uninstall` + `do backout^VSLTAPBO()`**.
+**Reversal is `v-pkg uninstall`.** It removes the routines, the `#9.7/#9.6` build
+records, and the `#8989.51` PARAMETER DEFINITIONs. The only thing it does not touch
+is the tap's **runtime** footprint — the `^XTMP("VSLTAP",…)` rolling cache (which
+auto-purges on the Kernel `RETAIN` horizon) and the `^VSLTAP` control state — both
+transient runtime globals, not shipped data. There is **no** bespoke M back-out
+routine; if an operator wants the runtime globals gone immediately rather than on
+the purge horizon, `kill ^VSLTAP,^XTMP("VSLTAP")`.
 
-The 10 tap XPAR params:
+The tap XPAR params:
 
 | Param | Type | Purpose |
 |---|---|---|
@@ -46,7 +49,6 @@ The 10 tap XPAR params:
 | `VSL TAP HBSTALE` | numeric | heartbeat staleness bound (seconds) |
 | `VSL TAP RETAIN` | numeric | `^XTMP` cache retain days (Kernel auto-purge) |
 | `VSL TAP ALWAYSON` | yes/no | always-on flight-recorder opt-in |
-| `VSL TAP FIDELITY CADENCE` | numeric | periodic fidelity-run period (seconds) |
 | `VSL S3 ENDPOINT` | free text | S3 endpoint override (empty = real AWS) |
 | `VSL S3 BUCKET` | free text | target bucket |
 | `VSL S3 REGION` | free text | SigV4 region (e.g. `us-gov-west-1`) |
@@ -95,7 +97,7 @@ operator/console).
 
 ## 4. Configure (self-configuring + operator)
 
-The KIDS install creates the 10 XPAR params (unset). Set the deployment values at
+The KIDS install creates the tap XPAR params (unset). Set the deployment values at
 SYS (FileMan/XPAR, or `$$set^VSLCFG`); at minimum the S3 destination:
 
 ```
@@ -103,10 +105,9 @@ VSL S3 ENDPOINT  = ""                  ; empty = real AWS (set for MinIO/LocalSt
 VSL S3 BUCKET    = vista-traffic-<env>
 VSL S3 REGION    = us-gov-west-1
 VSL S3 PREFIX    = <station>
-VSL TAP FIDELITY CADENCE = 3600
 ```
 
-Then arm + start the periodic fidelity run:
+Then arm the tap:
 
 ```
 do arm^VSLTAP()                ; operator kill-switch ON
@@ -117,50 +118,43 @@ do arm^VSLTAP()                ; operator kill-switch ON
 > (`POST /traffic/tap action=off`) and per-host auto-failover are the kill
 > switches.
 
-## 5. Back-out (the reversal — risk G-UNINST)
+## 5. Back-out (strictly v-pkg)
 
-Run the runtime back-out **first** (it reads the task numbers from `^VSLTAP`
-before the state is removed), then the routine-level KIDS uninstall:
+Disarm the tap, then reverse the install with the generic v-pkg lifecycle. The tap
+is class-1 pure-overwrite of the broker splice (snapshot/restore handles that), and
+the VSL package itself uninstalls routines + `#9.7/#9.6` + the `#8989.51`
+PARAMETER DEFINITIONs:
 
 ```
-; 1. remove the runtime footprint (tasks -> XPAR params -> ^XTMP cache -> ^VSLTAP)
-do backout^VSLTAPBO()
+; 1. disarm (operator kill-switch OFF) so capture/egress stops
+do off^VSLTAP()
 
-; 2. prove nothing is orphaned
-set clean=$$verifyClean^VSLTAPBO(.detail)   ; clean=1, detail() empty
-
-; 3. routine-level back-out (routines + #9.7/#9.6)
+; 2. reverse the install — routines + #9.7/#9.6 + #8989.51 param defs
 v-pkg uninstall --engine <ydb|iris> --transport docker dist/kids/VSL.kids
+
+; 3. (optional) drop the transient runtime globals immediately rather than
+;    waiting for the ^XTMP Kernel purge horizon
+kill ^VSLTAP,^XTMP("VSLTAP")
 ```
 
-`backout^VSLTAPBO()` is idempotent and fault-fenced (each VistA leg is
-`$text()`-guarded), so a partial install or a re-run is safe.
+If the broker RPC wrap was installed, reverse it the same way — `v pkg wrap-rpc
+backout --commit` (which restores the captured stock pre-image via the generic
+restore path). There is **no** bespoke M back-out routine.
 
-## 6. Verify-clean (the back-out exit gate)
+## 6. Rollback
 
-`$$verifyClean^VSLTAPBO(.detail)` returns **1** iff:
-- `^XTMP("VSLTAP")` and `^VSLTAP` are gone (globals),
-- no tap `#8989.51` PARAMETER DEFINITION survives (params),
-- no recorded fidelity/flush task record survives (tasks).
-
-`detail("globals"/"params"/"tasks")` names any survivor. A non-clean result means
-the back-out is incomplete — do not consider the system rolled back.
-
-## 7. Rollback
-
-A failed/partial install rolls back via §5 (back-out) + §6 (verify-clean) — the
-same path. Because the in-app capture path is **host/instance/cloud-independent**
-(risk G-HW), rollback is uniform across the fleet; the per-station S3 prefix
-isolates blast radius. Re-install (§2) after correcting the fault.
+A failed/partial install rolls back via §5 — the same path. Because the in-app
+capture path is **host/instance/cloud-independent** (risk G-HW), rollback is
+uniform across the fleet; the per-station S3 prefix isolates blast radius.
+Re-install (§2) after correcting the fault.
 
 ---
 
-## 8. Status & owed live validation
+## 7. Status & owed live validation
 
-The back-out **logic** and `$$verifyClean` are bare-proven dual-engine
-(`VSLTAPBOTST` 12/12). **Owed:** the live `install → verify → back-out →
-verify-clean` on both VistA engines (vehu + foia) over the driver — the real
-G-UNINST exit gate — plus the patch bump and the XPAR→`^VSLTAP("cfg")` seed step
-(so the hot-path knobs and the S3 config take effect from the installed params).
-The live `liveReconcile` source seam (passive mirror / #772) lands with the
-real-S3 increment (plan §9 stage 5.2).
+Install/back-out are the generic v-pkg lifecycle (snapshot/restore class-aware),
+exercised by the v-pkg suite. **Owed:** the live `install → verify → uninstall`
+on both VistA engines (vehu + foia) over the driver, plus the patch bump and the
+XPAR→`^VSLTAP("cfg")` seed step (so the hot-path knobs and the S3 config take
+effect from the installed params). The live `liveReconcile` source seam (passive
+mirror / #772) lands with the real-S3 increment (plan §9 stage 5.2).

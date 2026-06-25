@@ -21,8 +21,8 @@ VSLTASKTST	; v-stdlib — VSLTASK (TaskMan persistent-listener adapter) test sui
 	; the loud error contract are all asserted LIVE-GREEN. The full self-restart
 	; observation (queue a sentinel task -> drop its ^%ZTSCH lock -> poll for a
 	; TaskMan re-run) is SOFT-SKIPPED with a loud diagnostic: it would need the
-	; restartable task body installed as a RESIDENT routine (the VSLBLD/v-pkg
-	; install path, an integration test) AND lock manipulation on a shared live
+	; restartable task body installed as a RESIDENT routine (the v-pkg install
+	; path, an integration test) AND lock manipulation on a shared live
 	; VistA, and a PSET-persistent task is deliberately un-KILLable (^%ZTLOAD KILL
 	; refuses a persistent task) — exactly the runaway hazard the kickoff forbids
 	; in an automated unit test. The restart contract is bound + documented; its
@@ -66,7 +66,7 @@ tScheduleRejectsBadArg(pass,fail)	;@TEST "$$schedule with an empty entry raises 
 tSelfRestartIsWiredSoftSkip(pass,fail)	;@TEST "self-restart binding is wired + documented; the live restart observation is integration-gated (SOFT-SKIP)"
 	; Loud, deliberate skip (not a silent gap): the restart contract is
 	; $$PSET^%ZTLOAD -> ^%ZTSCH("TASK",n,"P"); TaskMan re-runs the task on a
-	; ^%ZTSCH lock drop. Observing it needs a resident task body (VSLBLD-installed)
+	; ^%ZTSCH lock drop. Observing it needs a resident task body (v-pkg-installed)
 	; + lock manipulation + a bounded poll, and a persistent task is un-KILLable
 	; (runaway risk). Deferred to a v-pkg-installed integration test.
 	do true^STDASSERT(.pass,.fail,1,"SOFT-SKIP: live self-restart (queue->drop ^%ZTSCH lock->observe re-run) integration-gated — runaway-unsafe in a unit test; contract bound + documented")

@@ -12,7 +12,7 @@ VSLENV	; v-stdlib — the VSL KIDS environment-check routine (the XPDENV hook).
 	; the engine type/version, Kernel patch level and TLS-config presence — the
 	; facts a VWEB-class consumer Requires and extends (engine, TLS, Kernel level,
 	; IRIS-for-Health minimum). The programmatic $$check entry returns those facts
-	; without touching KIDS state, so VSLBLD/tests can read them off-install.
+	; without touching KIDS state, so a consumer/tests can read them off-install.
 	;
 	; Public API:
 	;   VSLENV            — the KIDS env-check entry (run by KIDS; honors XPDENV/XPDQUIT)

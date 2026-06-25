@@ -92,13 +92,10 @@ and the live install ran a wrap-on/wrap-off byte-identical proof.
 ## Fidelity, health, lifecycle
 
 - **`VSLTAPFC`** — the fidelity comparator: decode a shipped LDJSON envelope back
-  to the captured bytes, re-hash, and prove **byte-equality** against the source
-  (plus a loss taxonomy — `rpc_error` / `rpc_denied`). Proof, not assertion.
+  to the captured bytes and prove **byte-equality** against the source
+  (plus a loss taxonomy — `rpc_error` / `rpc_denied`). Proof, not assertion; no hash.
 - **`VSLTAPHL`** — the watchdog: heartbeat liveness, latency percentiles, a
   synthetic round-trip canary, and a standby-readiness probe.
-- **`VSLTAPBO`** — back-out / verify-clean: every install step has an exact
-  reversal, and `$$verifyClean^VSLTAPBO` proves no residue (XPAR params, TaskMan
-  jobs, `^XTMP`/`^VSLTAP` state) remains. Reversible install is the invariant.
 - **`VSLTASK`** — the TaskMan persistent-listener seam (`^%ZTLOAD`); **`VSLCFG`**
   — the XPAR (`#8989.51`) config seam that arms the tap and names the sink.
 
@@ -106,7 +103,7 @@ and the live install ran a wrap-on/wrap-off byte-identical proof.
 
 `VSLSEC` (identity / security-key checks over Kernel), `VSLFS` (FileMan DBS
 storage), `VSLIO` (Kernel TCP transport), `VSLLOG` (FileMan audit sink),
-`VSLENV` / `VSLBLD` (the KIDS env-check + base-build packaging seam). Each is the
+`VSLENV` (the KIDS env-check hook, run by the v-pkg-driven install). Each is the
 VistA binding of an engine-neutral `STD*` seam, consumed one-way `v → m`.
 
 ## Where next

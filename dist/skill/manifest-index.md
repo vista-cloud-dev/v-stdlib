@@ -1,22 +1,11 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 16 modules; 118 public labels.
+v-stdlib unversioned; 14 modules; 105 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
 right. For full per-label detail (params, returns, raises,
 examples, source location), read the manifest entry directly.
-
-## `VSLBLD`
-
-the VSL KIDS base build definition + env-check binding (packaging seam).
-
-- `$$envCheck^VSLBLD(facts)` — The environment facts (engine/version/Kernel/TLS) via the self-contained VSLENV (v->v).
-- `$$lastError^VSLBLD()` — The last VSLBLD error message (the composed malformed-call detail).
-- `$$manifest^VSLBLD(out)` — Fill out() with the VSL base's routines, its Required Build and patch identity; return the routine count.
-- `$$requireBase^VSLBLD(build)` — 1 iff KIDS build `build` is installed on this system (the R6 version-skew check).
-
-_raises: `U-VSL-BLD-ARG`_
 
 ## `VSLCFG`
 
@@ -166,20 +155,6 @@ non-interference traffic-tap core (the safety gate).
 - `$$tail^VSLTAP()` — (lowest-retained seq) - 1 (0 if empty).
 - `$$tee^VSLTAP(rec)` — The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fenced.
 - `$$teeRec^VSLTAP(rec)` — The named rich-record capture seam the FU-5 wrap calls (via VSLRPCTAP) — fenced.
-
-## `VSLTAPBO`
-
-traffic-tap back-out / verify-clean (the G-UNINST gate).
-
-- `do backout^VSLTAPBO()` — Full back-out: dequeue tasks, drop the XPAR params, kill the state. Idempotent.
-- `do cleanParams^VSLTAPBO()` — Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition.
-- `do cleanState^VSLTAPBO()` — Kill the rolling capture cache and ALL VSL control state.
-- `do cleanTasks^VSLTAPBO()` — Dequeue every recorded TaskMan job (read BEFORE cleanState).
-- `do delParam^VSLTAPBO(name)` — (private) clear the SYS-level instance, then delete the #8989.51 definition record.
-- `do dequeue^VSLTAPBO(ztsk)` — (private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced.
-- `$$params^VSLTAPBO(out)` — Fill out(1..N) with the tap's XPAR #8989.51 param names; return N.
-- `$$paramsResidue^VSLTAPBO(detail)` — (private) 1 iff any tap #8989.51 definition survives (fenced; bare -> 0).
-- `$$verifyClean^VSLTAPBO(detail)` — 1 iff no tap residue remains across all layers; detail() names any survivor.
 
 ## `VSLTAPFC`
 

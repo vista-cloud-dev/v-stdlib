@@ -1,16 +1,4 @@
 {
-  "VSLBLD": [
-    {
-      "call": "$$PATCH^XPDUTL",
-      "custodian": "XU",
-      "icr": 10141,
-      "source": {
-        "anchor": "verifying-patch-installation",
-        "doc_key": "XU/krn_8_0_dg_kids_ug"
-      },
-      "status": "Supported"
-    }
-  ],
   "VSLCFG": [
     {
       "call": "$$GET^XPAR",
@@ -159,58 +147,6 @@
       "source": {
         "anchor": "getxpar-return-an-instance-of-a-parameter",
         "doc_key": "XU/krn_8_0_dg_toolkit_ug"
-      },
-      "status": "Supported"
-    }
-  ],
-  "VSLTAPBO": [
-    {
-      "call": "EN^XPAR",
-      "custodian": "XU",
-      "icr": 2263,
-      "source": {
-        "anchor": "enxpar-add-change-delete-parameters",
-        "doc_key": "XU/krn_8_0_dg_toolkit_ug"
-      },
-      "status": "Supported"
-    },
-    {
-      "call": "$$FIND1^DIC",
-      "custodian": "DI",
-      "icr": "DBS",
-      "source": {
-        "anchor": "find1dic-finder-single-record",
-        "doc_key": "DI/fm22_2dg"
-      },
-      "status": "Supported"
-    },
-    {
-      "call": "FILE^DIE",
-      "custodian": "DI",
-      "icr": "DBS",
-      "source": {
-        "anchor": "filedie-filer",
-        "doc_key": "DI/fm22_2dg"
-      },
-      "status": "Supported"
-    },
-    {
-      "call": "KILL^%ZTLOAD",
-      "custodian": "XU",
-      "icr": 10063,
-      "source": {
-        "anchor": "killztload-delete-a-task",
-        "doc_key": "XU/krn_8_0_dg_taskman_ug"
-      },
-      "status": "Supported"
-    },
-    {
-      "call": "$$FIND1^DIC",
-      "custodian": "DI",
-      "icr": "DBS",
-      "source": {
-        "anchor": "find1dic-finder-single-record",
-        "doc_key": "DI/fm22_2dg"
       },
       "status": "Supported"
     }
