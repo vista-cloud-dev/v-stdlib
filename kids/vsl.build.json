@@ -1,7 +1,7 @@
 {
   "package": "VSL",
   "version": "1.0",
-  "patch": "3",
+  "patch": "4",
   "allowLongNames": true,
   "components": {
     "routines": [
