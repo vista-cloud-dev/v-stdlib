@@ -2,7 +2,7 @@ VSLTAPV2TST	; v-stdlib — cache layout v2 + FU-5/14/17/18 end-to-end (capture -
 	; Phase 6: the rich-record capture path the FU-5 broker wrap drives. Proves the
 	; cache-layout-v2 ring (header + "p" chunks + "g" MERGE snapshot), the schema-v1
 	; drain (dual-mode: v2 records AND legacy v1 strings from $$append), FU-17's single
-	; in-path MERGE for a GLOBAL ARRAY result with all serialize/hash deferred to the
+	; in-path MERGE for a GLOBAL ARRAY result with all serialize deferred to the
 	; drain, FU-18 context (duz/job/client), and the byte-exact §15.2 round-trip via
 	; VSLTAPFC. The egress leg uses the CAPTURE sink seam (the batch body is returned in
 	; `res`, no real PUT), so it runs on a BARE engine:
@@ -47,7 +47,7 @@ tScalarV2DrainRoundTrip(pass,fail)	;@TEST "a scalar v2 record drains to a schema
 	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"the shipped line is well-formed schema-v1 JSON")
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("schema_version")),1,"schema_version=1")
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("direction")),"resp","direction carried from the header")
-	do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,pay),"payload byte-equals the captured source AND the hash anchor is intact")
+	do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,pay),"payload byte-equals the captured source")
 	do eq^STDASSERT(.pass,.fail,$$size^VSLTAP(),0,"the ring is trimmed after the batch ships")
 	quit
 	;
@@ -106,7 +106,6 @@ tGlobalMergeDrainRoundTrip(pass,fail)	;@TEST "FU-17: the drain serializes the sn
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("result_kind")),"global","result_kind=global")
 	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_encoding")),"base64","a global result ships base64 (binary-safe)")
 	do eq^STDASSERT(.pass,.fail,$$payloadOf^VSLTAPFC(line),expect,"the shipped payload decodes byte-exact to the serialized snapshot")
-	do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),"the payload_sha256 anchors the serialized bytes (intrinsic integrity)")
 	quit
 	;
 tMixedV1AndV2BothDrain(pass,fail)	;@TEST "dual-mode drain: a legacy v1 string record and a v2 record both ship in one batch"

@@ -100,20 +100,19 @@ reschedule()	; (private) re-queue the next periodic run (bare-safe no-op without
 	;
 	; ---------- the live fidelity sampler (the source seam that lights the console) ----------
 	;
-fidelityNow()	; Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
-	; doc: @returns numeric  the count of shipped envelopes whose payload re-hashes to its
-	; doc:                   sha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled
-	; doc: The PRODUCTION fidelity signal that lights the VWEBT console — it needs no
+fidelityNow()	; Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.
+	; doc: @returns numeric  the count of shipped objects that read back as well-formed
+	; doc:                   schema-v1 envelopes; -1 if no egress / nothing sampled
+	; doc: The PRODUCTION readback signal that lights the VWEBT console — it needs no
 	; doc: generated corpus and no separate process. It LISTs the per-station shipped
 	; doc: objects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,
-	; doc: and runs `$$verify^VSLTAPFC` on every envelope (the shipped payload re-hashes
-	; doc: to the sha256 anchor captured at ship time) -> matched/mismatch. This proves
-	; doc: the ship->store->readback path is BYTE-FAITHFUL to what the tap captured —
-	; doc: it catches storage / transport / encoding corruption (exactly the egress
-	; doc: bugs the build hit). [The deeper capture==wire leg — shipped vs an independent
-	; doc: mirror/#772 source — remains a documented future enhancement; the ring is
-	; doc: trimmed post-drain so it cannot be that source.] Fenced; persists
-	; doc: ^VSLTAP("fc","last"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.
+	; doc: and checks every line PARSES as a schema-v1 envelope -> matched/mismatch. This
+	; doc: proves the ship->store->readback path returns valid objects (it catches gross
+	; doc: storage / transport / truncation corruption). NO hash is used — strong byte-
+	; doc: fidelity is the byte-equality reconcile against the source corpus
+	; doc: ($$reconcile^VSLTAPFC, the §15.2 round-trip), and at-rest integrity is the
+	; doc: storage layer's (S3's) job. Fenced; persists ^VSLTAP("fc","last"), which VWEBT
+	; doc: reads via `$$lastFidelity^VSLTAPFC`.
 	; doc: @example   write $$fidelityNow^VSLTAPRUN()  ; -1
 	new $etrap,ctx,opt,bucket,station,proto,prefix,listing,sc,res,k,cap,seen
 	set $etrap="set $ecode="""" quit -1"
@@ -140,7 +139,7 @@ nextKey(k,seen,listing,ctx,bucket,opt,res)	; (private) step to the previous list
 	set seen=seen+1
 	quit
 	;
-verifyObject(key,ctx,bucket,opt,res)	; (private) read one shipped object back and integrity-verify each NDJSON envelope line.
+verifyObject(key,ctx,bucket,opt,res)	; (private) read one shipped object back and confirm each NDJSON envelope line is well-formed.
 	new $etrap,resp,sc,body,i
 	set $etrap="set $ecode="""" quit"
 	set sc=$$readback^VSLS3(.ctx,bucket,key,.opt,.resp)
@@ -149,8 +148,9 @@ verifyObject(key,ctx,bucket,opt,res)	; (private) read one shipped object back an
 	for i=1:1:$length(body,$char(10)) do tallyLine($piece(body,$char(10),i),.res)
 	quit
 	;
-tallyLine(line,res)	; (private) integrity-verify one envelope line; bump matched / mismatch.
+tallyLine(line,res)	; (private) confirm one readback line is a well-formed schema-v1 envelope; bump matched / mismatch.
+	new t
 	if line="" quit
-	if $$verify^VSLTAPFC(line) set res("matched")=res("matched")+1 quit
+	if $$parse^STDJSON(line,.t) set res("matched")=res("matched")+1 quit
 	set res("mismatch")=res("mismatch")+1
 	quit

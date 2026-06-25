@@ -316,13 +316,14 @@ write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so
 	else  do
 	. set wl=$length(pl),cc=1
 	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
-	; NO crypto in the capture path: RPC traffic is plain ASCII and the tap only
-	; observes it — it does not harden the broker. The optional integrity anchor
-	; (payload_sha256) is computed ONCE at egress (envelope^VSLS3, the S3 boundary
-	; where PHI controls live), so the in-broker hot path stays dependency-free.
-	; (Hashing here forced a hard STDCRYPTO dependency that ZLINKFILE'd on engines
-	; without m-stdlib and silently self-disabled the whole tap — and it was dead:
-	; the stored hash was never read; the drain recomputes from the raw bytes.)
+	; NO crypto anywhere in the tap: RPC traffic is plain ASCII the tap only
+	; OBSERVES — it does not harden the broker or its traffic, so it adds no
+	; digest. Fidelity is proven downstream by BYTE-EQUALITY against the captured
+	; source (VSLTAPFC), not a hash; at-rest integrity is the storage layer's
+	; (S3's) job. (Hashing here forced a hard STDCRYPTO dependency that ZLINKFILE'd
+	; on engines without m-stdlib and silently self-disabled the whole tap — and it
+	; was dead: the stored hash was never read.) The header keeps an empty piece-18
+	; slot for layout stability; the shipped envelope emits no payload_sha256.
 	set hash=""
 	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
 	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.

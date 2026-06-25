@@ -28,7 +28,7 @@ VSLTAPRUNTST	; v-stdlib — VSLTAPRUN periodic fidelity-run task test suite.
 env(rec,seq)	; (private) build one faithful schema-v1 resp envelope line for source `rec` at `seq`.
 	; doc: Phase-6 envelope API: $$envelope^VSLS3(.rec,.opt) takes a by-ref field
 	; doc: array (rec("payload") = the RAW bytes). A resp carries result_kind; the
-	; doc: payload encodes raw + a sha256 anchor, so $$reconcile/$$verify round-trips it.
+	; doc: payload encodes raw (no digest), so $$reconcile round-trips it by byte-equality.
 	new r,o
 	set r("payload")=rec
 	set r("protocol")="rpc"

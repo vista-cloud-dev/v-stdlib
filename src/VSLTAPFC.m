@@ -7,18 +7,18 @@ VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
 	;
 	; Phase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §7). VSLTAPFC is the
 	; standing, gated, byte-level equivalence check that answers "is the captured
-	; copy full-fidelity correct?" — by COMPARISON, never by claim. It re-derives
-	; the per-record sha256 anchor a shipped envelope carries (intrinsic
-	; integrity), it decodes a shipped envelope back to the raw bytes and proves
-	; they byte-equal the captured source (RPC: the in-app tee vs the independent
-	; passive mirror; HL7: the shipped object vs its #772 source), and it
-	; reconciles a whole corpus against the read-back objects — every record
-	; present exactly once, in sequence, sha256-matched, no unaccounted drop (the
-	; §15.2 round-trip core). A mismatch is a FAILURE, surfaced on the console and
-	; red-gated in CI.
+	; copy full-fidelity correct?" — by COMPARISON, never by claim. It decodes a
+	; shipped envelope back to the raw bytes and proves they byte-equal the
+	; captured source (RPC: the in-app tee vs the independent passive mirror; HL7:
+	; the shipped object vs its #772 source), and it reconciles a whole corpus
+	; against the read-back objects — every record present exactly once, in
+	; sequence, byte-matched, no unaccounted drop (the §15.2 round-trip core).
+	; Fidelity is BYTE-EQUALITY against the source — NO digest/hash is used (the tap
+	; only observes plain RPC bytes; it adds no crypto). A mismatch is a FAILURE,
+	; surfaced on the console and red-gated in CI.
 	;
 	; *** Layer: v (above the m/v waterline). It consumes `m` DOWN only — STDJSON
-	; (parse the LDJSON envelope), STDCRYPTO (re-hash), STDB64 (decode a base64
+	; (parse the LDJSON envelope), STDB64 (decode a base64
 	; payload). It produces no traffic and reaches no engine: pure comparison
 	; over envelopes and source records, so it runs on a bare engine and as a CI
 	; gate over recorded fixtures (the live read-back leg is VSLS3 $$readback,
@@ -26,8 +26,7 @@ VSLTAPFC	; v-stdlib — fidelity comparator: byte-equality proof, not assertion.
 	;
 	; Public API:
 	;   $$payloadOf(line)            decode one envelope line back to the raw bytes
-	;   $$verify(line)               1 iff the payload re-hashes to its own anchor
-	;   $$matches(line,source)       1 iff payload byte-equals source AND verifies
+	;   $$matches(line,source)       1 iff the decoded payload byte-equals source
 	;   $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)
 	;   $$drops(envs,res)            FU-15 loss taxonomy: rpc_error/rpc_denied by call_id reconcile
 	;   $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line
@@ -50,23 +49,13 @@ payloadOf(line)	; Decode one LDJSON envelope line back to the verbatim captured 
 	if $$valueOf^STDJSON($get(t("payload_encoding")))="base64" quit $$decode^STDB64(pl)
 	quit pl
 	;
-verify(line)	; 1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7).
-	; doc: @param line  string  one VSLS3 schema-v1 envelope line
-	; doc: @returns     bool    intrinsic integrity — the shipped object equals what was captured
-	; doc: @example   new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),"a faithfully shipped payload re-hashes to its own sha256 anchor")
-	; doc: @example   write $$verify^VSLTAPFC("not a json envelope")  ; 0
-	new t,hash
-	if '$$parse^STDJSON(line,.t) quit 0
-	set hash=$$valueOf^STDJSON($get(t("payload_sha256")))
-	quit (hash=$$sha256^STDCRYPTO($$payloadOf(line)))
-	;
-matches(line,source)	; 1 iff the decoded payload byte-equals `source` AND the hash anchor is intact.
+matches(line,source)	; 1 iff the decoded payload byte-equals `source` (the fidelity proof).
 	; doc: @param line    string  one VSLS3 envelope line
 	; doc: @param source  byte-string  the captured source record (the tee, the #772 message)
 	; doc: @returns       bool    the byte-equality proof (RPC tee-vs-mirror; HL7 vs #772)
-	; doc: @example   new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"decoded payload byte-equals the source AND the hash is intact")
+	; doc: @example   new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"the decoded payload byte-equals the source")
 	; doc: @example   new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello WORLD"),0,"any drift from the source fails byte-equality")
-	quit ($$payloadOf(line)=$get(source))&$$verify(line)
+	quit ($$payloadOf(line)=$get(source))
 	;
 	; ---------- round-trip reconciliation (the §15.2 core) ----------
 	;
@@ -75,8 +64,8 @@ reconcile(corpus,envs,res)	; Reconcile a generated corpus against the read-back 
 	; doc: @param envs    array  by-ref: envs(seq)   = the read-back envelope line
 	; doc: @param res     array  OUT by-ref: res("matched"/"mismatch"/"missing"/"extra")
 	; doc: @returns       bool   1 iff EVERY corpus record is present exactly once,
-	; doc:                       byte-equal + hash-matched, with no missing and no extra
-	; doc: A drift (payload differs or hash stale) is a mismatch; a dropped record
+	; doc:                       byte-equal, with no missing and no extra
+	; doc: A drift (payload differs from the source) is a mismatch; a dropped record
 	; doc: is missing; a record shipped under a seq not in the corpus is extra.
 	; doc: Drops are only acceptable if accounted for in _offwindows (out of band).
 	; doc: @example   new corpus,envs,res,r1,r2,o1,o2 set corpus(1)="record-1",corpus(2)="record-2" set r1("direction")="resp",r1("call_id")="c1",r1("seq")=1,r1("payload")="record-1" set envs(1)=$$envelope^VSLS3(.r1,.o1) set r2("direction")="resp",r2("call_id")="c2",r2("seq")=2,r2("payload")="record-2" set envs(2)=$$envelope^VSLS3(.r2,.o2) do true^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res),"a faithful round-trip reconciles fully")

@@ -14,7 +14,6 @@ VSLS3EX ; Living examples for VSLS3 — generated from @example tags.
         do tExampleEnvelope5(.pass,.fail)
         do tExampleEnvelope6(.pass,.fail)
         do tExampleEnvelope7(.pass,.fail)
-        do tExampleEnvelope8(.pass,.fail)
         do tExampleFidelityKey(.pass,.fail)
         do tExampleGSerialize(.pass,.fail)
         do tExampleKey(.pass,.fail)
@@ -58,10 +57,6 @@ tExampleEnvelope6(pass,fail)    ;@TEST "example: VSLS3.envelope"
         quit
         ;
 tExampleEnvelope7(pass,fail)    ;@TEST "example: VSLS3.envelope"
-        new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hi" set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_sha256")),$$sha256^STDCRYPTO("hi"),"payload_sha256 anchors the RAW bytes, even under base64")
-        quit
-        ;
-tExampleEnvelope8(pass,fail)    ;@TEST "example: VSLS3.envelope"
         new rec,opt,a,b set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,"deterministic: same fixture frames byte-identical (M-collation key order)")
         quit
         ;

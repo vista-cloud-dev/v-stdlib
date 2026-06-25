@@ -2,7 +2,8 @@ VSLS3TST	; v-stdlib — VSLS3 egress sink + schema-v1 LDJSON envelope test suite
 	; Phase 3 / M2 + Phase 6 (FU-14/15/17/18): the schema-v1 wire envelope
 	; (docs/design/s3tap-envelope-schema-lock.md §3), the §11 object-key layout,
 	; and the config seam. The envelope is ONE shape for req + resp (`direction`
-	; discriminates); wire_len/payload_sha256 are computed over the RAW bytes; the
+	; discriminates); wire_len is computed over the RAW bytes (no payload digest —
+	; the tap adds no crypto); the
 	; payload round-trips byte-exact (raw inline + base64). The live S3 PUT/GET
 	; round-trip (which needs engine HTTP egress, G-HTTP-*) is carved into the
 	; integration suite, not here — these run on a BARE engine:
@@ -20,7 +21,7 @@ VSLS3TST	; v-stdlib — VSLS3 egress sink + schema-v1 LDJSON envelope test suite
 	do tEnvelopeRespCarriesResultKind(.pass,.fail)
 	do tEnvelopeNoTrailingNewline(.pass,.fail)
 	do tEnvelopeBase64RoundTrip(.pass,.fail)
-	do tEnvelopeHashAnchorsRawBytes(.pass,.fail)
+	do tEnvelopeHasNoHashField(.pass,.fail)
 	do tEnvelopeByteIdenticalDeterministic(.pass,.fail)
 	do tKeyLayout(.pass,.fail)
 	do tManifestKeyLayout(.pass,.fail)
@@ -118,13 +119,12 @@ tEnvelopeBase64RoundTrip(pass,fail)	;@TEST "base64 switch: payload is base64; de
 	do eq^STDASSERT(.pass,.fail,$$decode^STDB64(b64),$$specials(),"base64 payload decodes byte-exact")
 	quit
 	;
-tEnvelopeHashAnchorsRawBytes(pass,fail)	;@TEST "payload_sha256 anchors the RAW bytes (the fidelity anchor VSLTAPFC re-checks), even under base64"
+tEnvelopeHasNoHashField(pass,fail)	;@TEST "the envelope carries NO payload digest field (the tap observes raw RPC; it adds no crypto)"
 	new rec,opt,line,t
 	do resp(.rec,$$specials(),7)
-	set opt("base64")=1
 	set line=$$envelope^VSLS3(.rec,.opt)
 	do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed")
-	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_sha256")),$$sha256^STDCRYPTO($$specials()),"payload_sha256 = sha256 of the verbatim RAW record (pre-encoding)")
+	do eq^STDASSERT(.pass,.fail,$data(t("payload_sha256")),0,"no payload_sha256 member is emitted")
 	quit
 	;
 tEnvelopeByteIdenticalDeterministic(pass,fail)	;@TEST "the same fixture frames to a byte-identical line on every call (deterministic key order)"

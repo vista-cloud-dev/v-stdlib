@@ -15,14 +15,17 @@ VSLS3	; v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 	; (escaped-inline, lossless and greppable — base64 a per-stream switch), and
 	; it PUTs/GETs objects under the per-station key layout. The envelope is the
 	; ENTIRE format decision (§9): a thin, non-interpretive header (ts, proto,
-	; dir, station, seq, conn, len, hash) + the payload. **No parsing, typing, or
+	; dir, station, seq, conn, len) + the RAW payload. **No parsing, typing, or
 	; structuring of the traffic happens here** — the only operations are
-	; content-preserving (copy -> envelope -> ship). Fidelity is anchored by a
-	; per-record sha256 over the RAW bytes, which VSLTAPFC re-checks downstream.
+	; content-preserving (copy -> envelope -> ship). NO hashing/integrity field is
+	; added: RPC traffic is plain ASCII the tap only OBSERVES, and fidelity is
+	; proven downstream by BYTE-EQUALITY against the captured source (VSLTAPFC), not
+	; by an embedded digest. In-transit/at-rest integrity is the storage layer's
+	; (S3's) job, not the tap's.
 	;
 	; *** Layer: v (above the m/v waterline). It consumes `m` DOWN only —
 	; STDJSON (the public node->text encoder, so JSON escaping is never hand-
-	; rolled), STDCRYPTO (sha256), STDB64 (the base64 switch), STDDATE (the day
+	; rolled), STDB64 (the base64 switch), STDDATE (the day
 	; partition), and STDS3/STDSIGV4 (the egress transport monopoly, the only
 	; way to reach S3). It never inverts the dependency. The S3 credentials /
 	; endpoint / bucket / station are a CONFIG SEAM read from ^VSLTAP("cfg",…)
@@ -61,9 +64,9 @@ envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
 	; doc: $$encode^STDJSON — so the payload's JSON string-escaping is lossless and never
 	; doc: hand-rolled. Keys emit in M collation order (deterministic, so fixtures
 	; doc: byte-compare). ONE shape serves req and resp (`direction` discriminates): a req
-	; doc: carries `denied`, a resp carries `result_kind`. wire_len/payload_sha256 are
-	; doc: computed HERE over the RAW bytes (the hash anchors §7; the expensive op is kept
-	; doc: in the drain, off the in-path). RAW is byte-faithful + greppable and round-trips
+	; doc: carries `denied`, a resp carries `result_kind`. wire_len is computed HERE over
+	; doc: the RAW bytes; NO payload digest is emitted (fidelity is proven by byte-equality
+	; doc: downstream in VSLTAPFC, not an embedded hash). RAW is byte-faithful + greppable and round-trips
 	; doc: under byte mode (1 M char == 1 byte); set opt("base64") (the §9 per-stream switch,
 	; doc: FU-1 default) for guaranteed-conformant UTF-8 output on binary streams.
 	; doc: Full contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).
@@ -73,7 +76,6 @@ envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
 	; doc: @example   new rec,opt,line,t set rec("direction")="req",rec("call_id")="500-1-8",rec("seq")=8,rec("denied")=1,rec("payload")="p" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("denied")),1,"a req carries denied, not result_kind")
 	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-9",rec("seq")=9,rec("payload")="v" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("result_kind")),"scalar","a resp carries result_kind, not denied")
 	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")=("a"_$char(9)_"b"_""""_"q") set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$decode^STDB64($$valueOf^STDJSON(t("payload"))),"a"_$char(9)_"b"_""""_"q","base64 switch decodes byte-exact")
-	; doc: @example   new rec,opt,line,t set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hi" set opt("base64")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),"well-formed") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t("payload_sha256")),$$sha256^STDCRYPTO("hi"),"payload_sha256 anchors the RAW bytes, even under base64")
 	; doc: @example   new rec,opt,a,b set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,"deterministic: same fixture frames byte-identical (M-collation key order)")
 	new env,enc,pl,raw,dir,wl,cc
 	set raw=$get(rec("payload"))
@@ -101,7 +103,6 @@ envelope(rec,opt)	; Frame one captured record as a single schema-v1 LDJSON line.
 	set env("wire_len")="n:"_wl
 	set env("chunk_count")="n:"_cc
 	set env("payload_encoding")="s:"_enc
-	set env("payload_sha256")="s:"_$$sha256^STDCRYPTO(raw)
 	set env("payload")="s:"_pl
 	quit $$encode^STDJSON(.env)
 	;

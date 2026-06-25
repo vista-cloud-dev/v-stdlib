@@ -26,11 +26,10 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `drops` | `$$drops^VSLTAPFC(envs, res)` | Classify the loss taxonomy by grouping the shipped envelopes on call_id (FU-15). |
 | `lastFidelity` | `$$lastFidelity^VSLTAPFC()` | The last persisted _fidelity manifest line, or "" when no run has run yet. |
 | `manifest` | `$$manifest^VSLTAPFC(res, ts)` | Serialise a fidelity run to a single JSON manifest line (the _fidelity object). |
-| `matches` | `$$matches^VSLTAPFC(line, source)` | 1 iff the decoded payload byte-equals `source` AND the hash anchor is intact. |
+| `matches` | `$$matches^VSLTAPFC(line, source)` | 1 iff the decoded payload byte-equals `source` (the fidelity proof). |
 | `payloadOf` | `$$payloadOf^VSLTAPFC(line)` | Decode one LDJSON envelope line back to the verbatim captured bytes. |
 | `persist` | `do persist^VSLTAPFC(res, ts)` | Store the last fidelity run so the console can read it (no live run on request). |
 | `reconcile` | `$$reconcile^VSLTAPFC(corpus, envs, res)` | Reconcile a generated corpus against the read-back envelopes, by sequence. |
-| `verify` | `$$verify^VSLTAPFC(line)` | 1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7). |
 
 ### `$$drops^VSLTAPFC(envs, res)`
 
@@ -81,7 +80,7 @@ new res,t set res("matched")=3,res("mismatch")=2,res("missing")=0,res("extra")=0
 
 ### `$$matches^VSLTAPFC(line, source)`
 
-1 iff the decoded payload byte-equals `source` AND the hash anchor is intact.
+1 iff the decoded payload byte-equals `source` (the fidelity proof).
 
 **Parameters**
 
@@ -93,7 +92,7 @@ new res,t set res("matched")=3,res("mismatch")=2,res("missing")=0,res("extra")=0
 **Example**
 
 ```m
-new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"decoded payload byte-equals the source AND the hash is intact")
+new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"the decoded payload byte-equals the source")
 new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello WORLD"),0,"any drift from the source fails byte-equality")
 ```
 
@@ -143,30 +142,13 @@ Reconcile a generated corpus against the read-back envelopes, by sequence.
 - `res` _(array)_ — OUT by-ref: res("matched"/"mismatch"/"missing"/"extra")
 
 **Returns** _bool_ — 1 iff EVERY corpus record is present exactly once,
-byte-equal + hash-matched, with no missing and no extra
+byte-equal, with no missing and no extra
 
 **Example**
 
 ```m
 new corpus,envs,res,r1,r2,o1,o2 set corpus(1)="record-1",corpus(2)="record-2" set r1("direction")="resp",r1("call_id")="c1",r1("seq")=1,r1("payload")="record-1" set envs(1)=$$envelope^VSLS3(.r1,.o1) set r2("direction")="resp",r2("call_id")="c2",r2("seq")=2,r2("payload")="record-2" set envs(2)=$$envelope^VSLS3(.r2,.o2) do true^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res),"a faithful round-trip reconciles fully")
 new corpus,envs,res,r1,o1 set corpus(1)="record-1",corpus(2)="record-2" set r1("direction")="resp",r1("call_id")="c1",r1("seq")=1,r1("payload")="record-1" set envs(1)=$$envelope^VSLS3(.r1,.o1) do eq^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res)_"|"_res("matched")_"|"_res("missing"),"0|1|1","a dropped record (seq 2) is flagged missing, reconcile fails")
-```
-
-### `$$verify^VSLTAPFC(line)`
-
-1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7).
-
-**Parameters**
-
-- `line` _(string)_ — one VSLS3 schema-v1 envelope line
-
-**Returns** _bool_ — intrinsic integrity — the shipped object equals what was captured
-
-**Example**
-
-```m
-new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),"a faithfully shipped payload re-hashes to its own sha256 anchor")
-write $$verify^VSLTAPFC("not a json envelope")  ; 0
 ```
 
 <!-- END GENERATED API REFERENCE -->

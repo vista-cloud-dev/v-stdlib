@@ -17,8 +17,6 @@ VSLTAPFCEX ; Living examples for VSLTAPFC — generated from @example tags.
         do tExamplePersist(.pass,.fail)
         do tExampleReconcile(.pass,.fail)
         do tExampleReconcile2(.pass,.fail)
-        do tExampleVerify(.pass,.fail)
-        do tExampleVerify2(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
         quit
@@ -40,7 +38,7 @@ tExampleManifest2(pass,fail)    ;@TEST "example: VSLTAPFC.manifest"
         quit
         ;
 tExampleMatches(pass,fail)      ;@TEST "example: VSLTAPFC.matches"
-        new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"decoded payload byte-equals the source AND the hash is intact")
+        new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-5",rec("seq")=5,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,"hello world"),"the decoded payload byte-equals the source")
         quit
         ;
 tExampleMatches2(pass,fail)     ;@TEST "example: VSLTAPFC.matches"
@@ -69,13 +67,5 @@ tExampleReconcile(pass,fail)    ;@TEST "example: VSLTAPFC.reconcile"
         ;
 tExampleReconcile2(pass,fail)   ;@TEST "example: VSLTAPFC.reconcile"
         new corpus,envs,res,r1,o1 set corpus(1)="record-1",corpus(2)="record-2" set r1("direction")="resp",r1("call_id")="c1",r1("seq")=1,r1("payload")="record-1" set envs(1)=$$envelope^VSLS3(.r1,.o1) do eq^STDASSERT(.pass,.fail,$$reconcile^VSLTAPFC(.corpus,.envs,.res)_"|"_res("matched")_"|"_res("missing"),"0|1|1","a dropped record (seq 2) is flagged missing, reconcile fails")
-        quit
-        ;
-tExampleVerify(pass,fail)       ;@TEST "example: VSLTAPFC.verify"
-        new rec,opt,line set rec("direction")="resp",rec("call_id")="500-1-7",rec("seq")=7,rec("payload")="hello world" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),"a faithfully shipped payload re-hashes to its own sha256 anchor")
-        quit
-        ;
-tExampleVerify2(pass,fail)      ;@TEST "example: VSLTAPFC.verify"
-        do eq^STDASSERT(.pass,.fail,$$verify^VSLTAPFC("not a json envelope"),0,"example: VSLTAPFC.verify")
         quit
         ;

@@ -40,10 +40,16 @@ approach — that helper has been deleted.)
 Red→green; **137/0** across VSLTAPTST/V2/RPCWRAP/FC on m-test-engine. `dist/kids/
 VSL.kids` regenerated (drift gate green).
 
-**Egress still hashes (intentional, kept):** `VSLS3.m` keeps the `$$sha256^
-STDCRYPTO` at the S3 boundary — that's where PHI controls and the FU fidelity gate
-live. STDCRYPTO must be available wherever the egress drain runs (the batch
-ship-out host), not on the broker hot path.
+**Egress hash ALSO removed (2026-06-25, owner directive):** the tap captures raw
+real RPC traffic with NO embellishments — only required features. Hashing is not
+required (RPCs are plain ASCII the tap only observes; encryption/integrity is the
+S3 PHI-controlled boundary's job, not the tap's), so `payload_sha256` is gone from
+the `VSLS3` envelope too. `$$verify^VSLTAPFC` (intrinsic re-hash) and the
+tamper-detection tests are deleted; `$$matches`/`$$reconcile` prove fidelity by
+BYTE-EQUALITY against the captured source (the required, crypto-free proof).
+`fidelityNow^VSLTAPRUN` now confirms each readback parses as a well-formed
+envelope (no crypto). **v-stdlib's tap is now fully STDCRYPTO-free.** See
+[[egress-hash-removed]].
 
 **Still owed (live CPRS smoke):** deploy the fixed VSLTAP to vehu (via `v pkg
 install --auto-snapshot` — the new class-aware patch path), re-splice the broker

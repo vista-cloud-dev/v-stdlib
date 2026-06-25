@@ -1513,7 +1513,7 @@
     },
     "VSLS3": {
       "synopsis": "v-stdlib — S3 egress sink: LDJSON envelope + the §11 bucket layout.",
-      "description": "doc: @exrun bare\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positive: `hdr` is populated by reference by $$hdr^VSLTAP in\nresolveRec; the analyser cannot see through the by-ref call, so it reads it as\n\"read before defined\".\nm-lint: disable-file=M-MOD-036\nM-MOD-036: gSerialize walks a v2 \"g\" MERGE snapshot via @root/@nref indirection.\nThe refs are internal closed ^XTMP(\"VSLTAP\",…) names built by $name here (drain-side,\noff the in-path), never external input — the indirection is the deferred FU-17 serialize.\n\nPhase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §9/§11/§12). VSLS3 is\nthe `v` wrapper over the `m` S3 client (STDS3/STDSIGV4): it frames one\nverbatim captured record as a single LDJSON line carrying the RAW payload\n(escaped-inline, lossless and greppable — base64 a per-stream switch), and\nit PUTs/GETs objects under the per-station key layout. The envelope is the\nENTIRE format decision (§9): a thin, non-interpretive header (ts, proto,\ndir, station, seq, conn, len, hash) + the payload. **No parsing, typing, or\nstructuring of the traffic happens here** — the only operations are\ncontent-preserving (copy -> envelope -> ship). Fidelity is anchored by a\nper-record sha256 over the RAW bytes, which VSLTAPFC re-checks downstream.\n\n*** Layer: v (above the m/v waterline). It consumes `m` DOWN only —\nSTDJSON (the public node->text encoder, so JSON escaping is never hand-\nrolled), STDCRYPTO (sha256), STDB64 (the base64 switch), STDDATE (the day\npartition), and STDS3/STDSIGV4 (the egress transport monopoly, the only\nway to reach S3). It never inverts the dependency. The S3 credentials /\nendpoint / bucket / station are a CONFIG SEAM read from ^VSLTAP(\"cfg\",…)\n(the same control state the Phase-2 core uses), so a deployment points the\nsink at real S3 or a local S3-equivalent (MinIO/LocalStack) with no code\nchange — just the `endpoint` override (§15.1).\n\nThe live PUT/GET round-trip needs engine HTTP egress (G-HTTP-YDB /\nG-HTTP-IRIS-GET); the envelope/key/config core here is egress-INDEPENDENT\nand runs on a bare engine. The round-trip is proven in the integration\nharness against a MinIO sink (spec §15.2).\n\nPublic API:\n  $$envelope(.rec,.opt)                      one schema-v1 LDJSON line from a field array\n  $$gSerialize(seq)                          serialize a v2 \"g\" MERGE subtree (FU-17, drain-side)\n  $$key(station,proto,seq,ymd)               traffic/<st>/<proto>/Y/M/D/<seq>.ndjson\n  $$offWindowsKey(station,ymd)               traffic/<st>/_offwindows/Y/M/D.json\n  $$fidelityKey(station,ymd)                 traffic/<st>/_fidelity/Y/M/D.json\n  $$ctx(ctx,opt)                             build the S3 ctx+opt from the seam -> bucket\n  $$ship(ctx,bucket,key,body,opt,resp)       PUT one object (status; egress)\n  $$readback(ctx,bucket,key,opt,resp)        GET one object (status; egress)\n  $$list(ctx,bucket,prefix,opt,listing)      LIST object keys under a prefix (status; egress)\n  $$drain(res)                               flush the ^XTMP ring -> ship -> trim",
+      "description": "doc: @exrun bare\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positive: `hdr` is populated by reference by $$hdr^VSLTAP in\nresolveRec; the analyser cannot see through the by-ref call, so it reads it as\n\"read before defined\".\nm-lint: disable-file=M-MOD-036\nM-MOD-036: gSerialize walks a v2 \"g\" MERGE snapshot via @root/@nref indirection.\nThe refs are internal closed ^XTMP(\"VSLTAP\",…) names built by $name here (drain-side,\noff the in-path), never external input — the indirection is the deferred FU-17 serialize.\n\nPhase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §9/§11/§12). VSLS3 is\nthe `v` wrapper over the `m` S3 client (STDS3/STDSIGV4): it frames one\nverbatim captured record as a single LDJSON line carrying the RAW payload\n(escaped-inline, lossless and greppable — base64 a per-stream switch), and\nit PUTs/GETs objects under the per-station key layout. The envelope is the\nENTIRE format decision (§9): a thin, non-interpretive header (ts, proto,\ndir, station, seq, conn, len) + the RAW payload. **No parsing, typing, or\nstructuring of the traffic happens here** — the only operations are\ncontent-preserving (copy -> envelope -> ship). NO hashing/integrity field is\nadded: RPC traffic is plain ASCII the tap only OBSERVES, and fidelity is\nproven downstream by BYTE-EQUALITY against the captured source (VSLTAPFC), not\nby an embedded digest. In-transit/at-rest integrity is the storage layer's\n(S3's) job, not the tap's.\n\n*** Layer: v (above the m/v waterline). It consumes `m` DOWN only —\nSTDJSON (the public node->text encoder, so JSON escaping is never hand-\nrolled), STDB64 (the base64 switch), STDDATE (the day\npartition), and STDS3/STDSIGV4 (the egress transport monopoly, the only\nway to reach S3). It never inverts the dependency. The S3 credentials /\nendpoint / bucket / station are a CONFIG SEAM read from ^VSLTAP(\"cfg\",…)\n(the same control state the Phase-2 core uses), so a deployment points the\nsink at real S3 or a local S3-equivalent (MinIO/LocalStack) with no code\nchange — just the `endpoint` override (§15.1).\n\nThe live PUT/GET round-trip needs engine HTTP egress (G-HTTP-YDB /\nG-HTTP-IRIS-GET); the envelope/key/config core here is egress-INDEPENDENT\nand runs on a bare engine. The round-trip is proven in the integration\nharness against a MinIO sink (spec §15.2).\n\nPublic API:\n  $$envelope(.rec,.opt)                      one schema-v1 LDJSON line from a field array\n  $$gSerialize(seq)                          serialize a v2 \"g\" MERGE subtree (FU-17, drain-side)\n  $$key(station,proto,seq,ymd)               traffic/<st>/<proto>/Y/M/D/<seq>.ndjson\n  $$offWindowsKey(station,ymd)               traffic/<st>/_offwindows/Y/M/D.json\n  $$fidelityKey(station,ymd)                 traffic/<st>/_fidelity/Y/M/D.json\n  $$ctx(ctx,opt)                             build the S3 ctx+opt from the seam -> bucket\n  $$ship(ctx,bucket,key,body,opt,resp)       PUT one object (status; egress)\n  $$readback(ctx,bucket,key,opt,resp)        GET one object (status; egress)\n  $$list(ctx,bucket,prefix,opt,listing)      LIST object keys under a prefix (status; egress)\n  $$drain(res)                               flush the ^XTMP ring -> ship -> trim",
       "errors": [],
       "labels": {
         "envelope": {
@@ -1545,7 +1545,6 @@
             "new rec,opt,line,t set rec(\"direction\")=\"req\",rec(\"call_id\")=\"500-1-8\",rec(\"seq\")=8,rec(\"denied\")=1,rec(\"payload\")=\"p\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"denied\")),1,\"a req carries denied, not result_kind\")",
             "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-9\",rec(\"seq\")=9,rec(\"payload\")=\"v\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"result_kind\")),\"scalar\",\"a resp carries result_kind, not denied\")",
             "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=(\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\") set opt(\"base64\")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$decode^STDB64($$valueOf^STDJSON(t(\"payload\"))),\"a\"_$char(9)_\"b\"_\"\"\"\"_\"q\",\"base64 switch decodes byte-exact\")",
-            "new rec,opt,line,t set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hi\" set opt(\"base64\")=1 set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$parse^STDJSON(line,.t),\"well-formed\") do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON(t(\"payload_sha256\")),$$sha256^STDCRYPTO(\"hi\"),\"payload_sha256 anchors the RAW bytes, even under base64\")",
             "new rec,opt,a,b set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set a=$$envelope^VSLS3(.rec,.opt),b=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,a,b,\"deterministic: same fixture frames byte-identical (M-collation key order)\")"
           ],
           "since": "",
@@ -1553,10 +1552,10 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The object is assembled as a STDJSON node and serialised by the PUBLIC\n$$encode^STDJSON — so the payload's JSON string-escaping is lossless and never\nhand-rolled. Keys emit in M collation order (deterministic, so fixtures\nbyte-compare). ONE shape serves req and resp (`direction` discriminates): a req\ncarries `denied`, a resp carries `result_kind`. wire_len/payload_sha256 are\ncomputed HERE over the RAW bytes (the hash anchors §7; the expensive op is kept\nin the drain, off the in-path). RAW is byte-faithful + greppable and round-trips\nunder byte mode (1 M char == 1 byte); set opt(\"base64\") (the §9 per-stream switch,\nFU-1 default) for guaranteed-conformant UTF-8 output on binary streams.\nFull contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).",
+          "description": "The object is assembled as a STDJSON node and serialised by the PUBLIC\n$$encode^STDJSON — so the payload's JSON string-escaping is lossless and never\nhand-rolled. Keys emit in M collation order (deterministic, so fixtures\nbyte-compare). ONE shape serves req and resp (`direction` discriminates): a req\ncarries `denied`, a resp carries `result_kind`. wire_len is computed HERE over\nthe RAW bytes; NO payload digest is emitted (fidelity is proven by byte-equality\ndownstream in VSLTAPFC, not an embedded hash). RAW is byte-faithful + greppable and round-trips\nunder byte mode (1 M char == 1 byte); set opt(\"base64\") (the §9 per-stream switch,\nFU-1 default) for guaranteed-conformant UTF-8 output on binary streams.\nFull contract: docs/design/s3tap-envelope-schema-lock.md §3 (schema v1).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 54
+            "line": 57
           }
         },
         "gSerialize": {
@@ -1587,7 +1586,7 @@
           "description": "FU-17 defers ALL of a global result's serialize/chunk/hash to the drain (off the\nin-path; capture did one MERGE). The $QUERY walk is in M-collation order so the\nblob is deterministic across engines, and STDJSON escaping makes each node lossless\nfor arbitrary bytes (the blob is then base64'd in the envelope). The exact wire form\n(vs the broker's SNDDATA encoding) is FU-11's concern; here it need only be a\ndeterministic, byte-faithful representation the §15.2 round-trip can prove.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 112
+            "line": 113
           }
         },
         "key": {
@@ -1634,7 +1633,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 155
+            "line": 156
           }
         },
         "offWindowsKey": {
@@ -1670,7 +1669,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 167
+            "line": 168
           }
         },
         "fidelityKey": {
@@ -1706,7 +1705,7 @@
           "description": "",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 176
+            "line": 177
           }
         },
         "ctx": {
@@ -1742,7 +1741,7 @@
           "description": "The same control state the Phase-2 core uses (^VSLTAP(\"cfg\",…)). An\nempty endpoint -> virtual-hosted real S3; a set endpoint -> path-style\nS3-equivalent (the no-code-change testbed hook, §15.1).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 196
+            "line": 197
           }
         },
         "ship": {
@@ -1796,7 +1795,7 @@
           "description": "The ONLY way to reach S3 (waterline rule 3: the m S3 client is the\ntransport monopoly). Runs in the SEPARATE flush process, never the\nRPC path (§4.1.3). 0 on a bare engine with no HTTP egress (G-HTTP-*).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 217
+            "line": 218
           },
           "illustrative": "live S3/MinIO PUT over engine HTTP egress (STDS3); no side-effect-safe bare-engine example — proven in the §15.2 MinIO integration harness."
         },
@@ -1846,7 +1845,7 @@
           "description": "The fidelity-harness read leg (spec §15.2 step 4): read the shipped\nobject back and compare byte-for-byte (VSLTAPFC). `opt` carries the\nendpoint override (from $$ctx) so the GET reaches the same endpoint the\nPUT used — without it the read op signs+sends to real AWS, not MinIO.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 232
+            "line": 233
           },
           "illustrative": "live S3/MinIO GET over engine HTTP egress (STDS3); the read leg of the §15.2 round-trip, not runnable on a bare engine."
         },
@@ -1896,7 +1895,7 @@
           "description": "The discovery leg for the periodic fidelity sampler (VSLTAPRUN\n$$fidelityNow): enumerate recently-shipped objects under the per-station\nprefix so they can be read back and integrity-verified. Same `opt`\nendpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 246
+            "line": 247
           },
           "illustrative": "live S3/MinIO LIST over engine HTTP egress (STDS3 listObjectsV2); proven in STDS3MINIOTST, not on a bare engine."
         },
@@ -1928,7 +1927,7 @@
           "description": "The whole egress path runs in the SEPARATE flush process (VSLTASK calls\nthis) — never the RPC CPU (§4.1.3). It is consumer-gated AND auto-\nfailover-aware: it ships ONLY while the Phase-2 gate is enabled, so a\ndead/slow sink or any interference signal turns it off cleanly (the gate\nrecords the off-window). On a 200 it self-drains the shipped seqs\n(drainTo^VSLTAP); on any other status it leaves the ring for retry.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 262
+            "line": 263
           }
         },
         "resolveRec": {
@@ -1971,7 +1970,7 @@
           "description": "A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY\nresult is serialized from the \"g\" MERGE snapshot (FU-17) and base64'd; a scalar\nfrom its \"p\",1 chunk. A legacy v1 string record ($$append — the synthetic\ndemonstrator path) ships as a plain payload under the configured direction. The\nheader's schema_version keeps both readable from one ring (schema-lock §4).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 305
+            "line": 306
           }
         }
       },
@@ -2547,7 +2546,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 354
+            "line": 355
           }
         },
         "head": {
@@ -2570,7 +2569,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 359
+            "line": 360
           }
         },
         "tail": {
@@ -2593,7 +2592,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 364
+            "line": 365
           }
         },
         "read": {
@@ -2616,7 +2615,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 369
+            "line": 370
           }
         },
         "present": {
@@ -2642,7 +2641,7 @@
           "description": "FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a\nconcurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight\nslot; stopping at the first absent node leaves that slot for the next tick rather\nthan shipping \"\" and trimming a record that is about to land. `$$read` can't tell\nan absent slot from a legitimately-empty record ($get-> \"\" for both); this can.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 374
+            "line": 375
           }
         },
         "isV2": {
@@ -2665,7 +2664,7 @@
           "description": "A legacy v1 string record ($$append) has only the scalar data node — no child.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 385
+            "line": 386
           }
         },
         "hdr": {
@@ -2702,7 +2701,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 393
+            "line": 394
           }
         },
         "chunk": {
@@ -2725,7 +2724,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 423
+            "line": 424
           }
         },
         "drainTo": {
@@ -2757,7 +2756,7 @@
           "description": "Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships\n200 — never from the RPC path. Idempotent; never advances past head.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 428
+            "line": 429
           }
         },
         "disable": {
@@ -2786,7 +2785,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 445
+            "line": 446
           }
         },
         "disabled": {
@@ -2809,7 +2808,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 457
+            "line": 458
           }
         },
         "rearm": {
@@ -2832,7 +2831,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 462
+            "line": 463
           }
         },
         "offWindows": {
@@ -2861,7 +2860,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 471
+            "line": 472
           }
         },
         "state": {
@@ -2888,7 +2887,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 481
+            "line": 482
           }
         },
         "heartbeat": {
@@ -2910,7 +2909,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 494
+            "line": 495
           }
         },
         "healthy": {
@@ -2937,7 +2936,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 499
+            "line": 500
           }
         },
         "purgeNode": {
@@ -2960,7 +2959,7 @@
           "description": "The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of\nFileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No\nFileMan file (§4.1.1). Scheduling the option is an install-time seam.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 513
+            "line": 514
           }
         }
       },
@@ -3217,7 +3216,7 @@
     },
     "VSLTAPFC": {
       "synopsis": "v-stdlib — fidelity comparator: byte-equality proof, not assertion.",
-      "description": "doc: @exrun bare\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: `t` is populated by reference by $$parse^STDJSON\n(and `res` by reconcile's helpers); the analyser cannot see through the\nextrinsic/by-ref call, so it reads them as \"read before defined\".\n\nPhase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §7). VSLTAPFC is the\nstanding, gated, byte-level equivalence check that answers \"is the captured\ncopy full-fidelity correct?\" — by COMPARISON, never by claim. It re-derives\nthe per-record sha256 anchor a shipped envelope carries (intrinsic\nintegrity), it decodes a shipped envelope back to the raw bytes and proves\nthey byte-equal the captured source (RPC: the in-app tee vs the independent\npassive mirror; HL7: the shipped object vs its #772 source), and it\nreconciles a whole corpus against the read-back objects — every record\npresent exactly once, in sequence, sha256-matched, no unaccounted drop (the\n§15.2 round-trip core). A mismatch is a FAILURE, surfaced on the console and\nred-gated in CI.\n\n*** Layer: v (above the m/v waterline). It consumes `m` DOWN only — STDJSON\n(parse the LDJSON envelope), STDCRYPTO (re-hash), STDB64 (decode a base64\npayload). It produces no traffic and reaches no engine: pure comparison\nover envelopes and source records, so it runs on a bare engine and as a CI\ngate over recorded fixtures (the live read-back leg is VSLS3 $$readback,\nexercised by the integration harness).\n\nPublic API:\n  $$payloadOf(line)            decode one envelope line back to the raw bytes\n  $$verify(line)               1 iff the payload re-hashes to its own anchor\n  $$matches(line,source)       1 iff payload byte-equals source AND verifies\n  $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)\n  $$drops(envs,res)            FU-15 loss taxonomy: rpc_error/rpc_denied by call_id reconcile\n  $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line\n  do persist(res,ts)           store the last run at ^VSLTAP(\"fc\",\"last\")\n  $$lastFidelity()             the last persisted manifest line, or \"\" (none yet)",
+      "description": "doc: @exrun bare\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: `t` is populated by reference by $$parse^STDJSON\n(and `res` by reconcile's helpers); the analyser cannot see through the\nextrinsic/by-ref call, so it reads them as \"read before defined\".\n\nPhase 3 / M2 of the RPC+HL7 -> S3 traffic tap (spec §7). VSLTAPFC is the\nstanding, gated, byte-level equivalence check that answers \"is the captured\ncopy full-fidelity correct?\" — by COMPARISON, never by claim. It decodes a\nshipped envelope back to the raw bytes and proves they byte-equal the\ncaptured source (RPC: the in-app tee vs the independent passive mirror; HL7:\nthe shipped object vs its #772 source), and it reconciles a whole corpus\nagainst the read-back objects — every record present exactly once, in\nsequence, byte-matched, no unaccounted drop (the §15.2 round-trip core).\nFidelity is BYTE-EQUALITY against the source — NO digest/hash is used (the tap\nonly observes plain RPC bytes; it adds no crypto). A mismatch is a FAILURE,\nsurfaced on the console and red-gated in CI.\n\n*** Layer: v (above the m/v waterline). It consumes `m` DOWN only — STDJSON\n(parse the LDJSON envelope), STDB64 (decode a base64\npayload). It produces no traffic and reaches no engine: pure comparison\nover envelopes and source records, so it runs on a bare engine and as a CI\ngate over recorded fixtures (the live read-back leg is VSLS3 $$readback,\nexercised by the integration harness).\n\nPublic API:\n  $$payloadOf(line)            decode one envelope line back to the raw bytes\n  $$matches(line,source)       1 iff the decoded payload byte-equals source\n  $$reconcile(corpus,envs,res) round-trip reconcile; res(matched/mismatch/missing/extra)\n  $$drops(envs,res)            FU-15 loss taxonomy: rpc_error/rpc_denied by call_id reconcile\n  $$manifest(res,ts)           serialise a fidelity run to a JSON manifest line\n  do persist(res,ts)           store the last run at ^VSLTAP(\"fc\",\"last\")\n  $$lastFidelity()             the last persisted manifest line, or \"\" (none yet)",
       "errors": [],
       "labels": {
         "payloadOf": {
@@ -3250,45 +3249,13 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 41
-          }
-        },
-        "verify": {
-          "form": "extrinsic",
-          "signature": "$$verify^VSLTAPFC(line)",
-          "synopsis": "1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7).",
-          "params": [
-            {
-              "name": "line",
-              "type": "string",
-              "doc": "one VSLS3 schema-v1 envelope line"
-            }
-          ],
-          "returns": {
-            "type": "bool",
-            "doc": "intrinsic integrity — the shipped object equals what was captured"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-7\",rec(\"seq\")=7,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),\"a faithfully shipped payload re-hashes to its own sha256 anchor\")",
-            "write $$verify^VSLTAPFC(\"not a json envelope\")  ; 0"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "",
-          "source": {
-            "file": "src/VSLTAPFC.m",
-            "line": 53
+            "line": 40
           }
         },
         "matches": {
           "form": "extrinsic",
           "signature": "$$matches^VSLTAPFC(line, source)",
-          "synopsis": "1 iff the decoded payload byte-equals `source` AND the hash anchor is intact.",
+          "synopsis": "1 iff the decoded payload byte-equals `source` (the fidelity proof).",
           "params": [
             {
               "name": "line",
@@ -3308,7 +3275,7 @@
           "raises": [],
           "raised_in_body": [],
           "examples": [
-            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-5\",rec(\"seq\")=5,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,\"hello world\"),\"decoded payload byte-equals the source AND the hash is intact\")",
+            "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-5\",rec(\"seq\")=5,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do true^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,\"hello world\"),\"the decoded payload byte-equals the source\")",
             "new rec,opt,line set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-5\",rec(\"seq\")=5,rec(\"payload\")=\"hello world\" set line=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$matches^VSLTAPFC(line,\"hello WORLD\"),0,\"any drift from the source fails byte-equality\")"
           ],
           "since": "",
@@ -3319,7 +3286,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 63
+            "line": 52
           }
         },
         "reconcile": {
@@ -3345,7 +3312,7 @@
           ],
           "returns": {
             "type": "bool",
-            "doc": "1 iff EVERY corpus record is present exactly once,\nbyte-equal + hash-matched, with no missing and no extra"
+            "doc": "1 iff EVERY corpus record is present exactly once,\nbyte-equal, with no missing and no extra"
           },
           "raises": [],
           "raised_in_body": [],
@@ -3358,10 +3325,10 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "A drift (payload differs or hash stale) is a mismatch; a dropped record\nis missing; a record shipped under a seq not in the corpus is extra.\nDrops are only acceptable if accounted for in _offwindows (out of band).",
+          "description": "A drift (payload differs from the source) is a mismatch; a dropped record\nis missing; a record shipped under a seq not in the corpus is extra.\nDrops are only acceptable if accounted for in _offwindows (out of band).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 73
+            "line": 62
           }
         },
         "drops": {
@@ -3397,7 +3364,7 @@
           "description": "A `call_id` with a req and NO resp is a loss: `rpc_denied` if the req carries\ndenied=1 (CHKPRMIT short-circuit, never dispatched), else `rpc_error` (a runtime\nfault in the dispatch → the broker trap re-dispatches and the resp side-call is\nnever reached — FU-16). Both are EXPECTED, accounted outcomes (high-value for an\nanalysis tap), recorded in the _drops manifest, never a silent gap (schema-lock §5).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 109
+            "line": 98
           }
         },
         "manifest": {
@@ -3434,7 +3401,7 @@
           "description": "ok=true iff there were zero mismatches, zero missing and zero extras —\nthe standing byte-equality proof shipped under traffic/<st>/_fidelity/.",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 152
+            "line": 141
           }
         },
         "persist": {
@@ -3470,7 +3437,7 @@
           "description": "$$verify/$$reconcile/$$manifest compute fidelity ON CALL against a corpus;\nVWEBT (the console) needs a passive getter, so the periodic comparator (and\nthe make test-s3 round-trip) call persist after a run. Single \"last\" slot:\na newer run replaces the prior one (the console shows the latest result).",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 176
+            "line": 165
           }
         },
         "lastFidelity": {
@@ -3495,7 +3462,7 @@
           "description": "A pure read of the VSL control state — the snapshot reader (VWEBT) parses it.",
           "source": {
             "file": "src/VSLTAPFC.m",
-            "line": 188
+            "line": 177
           },
           "illustrative": "the empty-state contract (\"\" when no run has run) needs a clean slot with no prior persisted run; shown read-only as a self-restoring round-trip in the example above"
         }
@@ -3833,11 +3800,11 @@
         "fidelityNow": {
           "form": "extrinsic",
           "signature": "$$fidelityNow^VSLTAPRUN()",
-          "synopsis": "Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.",
+          "synopsis": "Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.",
           "params": [],
           "returns": {
             "type": "numeric",
-            "doc": "the count of shipped envelopes whose payload re-hashes to its\nsha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled"
+            "doc": "the count of shipped objects that read back as well-formed\nschema-v1 envelopes; -1 if no egress / nothing sampled"
           },
           "raises": [],
           "raised_in_body": [],
@@ -3849,7 +3816,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The PRODUCTION fidelity signal that lights the VWEBT console — it needs no\ngenerated corpus and no separate process. It LISTs the per-station shipped\nobjects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,\nand runs `$$verify^VSLTAPFC` on every envelope (the shipped payload re-hashes\nto the sha256 anchor captured at ship time) -> matched/mismatch. This proves\nthe ship->store->readback path is BYTE-FAITHFUL to what the tap captured —\nit catches storage / transport / encoding corruption (exactly the egress\nbugs the build hit). [The deeper capture==wire leg — shipped vs an independent\nmirror/#772 source — remains a documented future enhancement; the ring is\ntrimmed post-drain so it cannot be that source.] Fenced; persists\n^VSLTAP(\"fc\",\"last\"), which VWEBT reads via `$$lastFidelity^VSLTAPFC`.",
+          "description": "The PRODUCTION readback signal that lights the VWEBT console — it needs no\ngenerated corpus and no separate process. It LISTs the per-station shipped\nobjects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,\nand checks every line PARSES as a schema-v1 envelope -> matched/mismatch. This\nproves the ship->store->readback path returns valid objects (it catches gross\nstorage / transport / truncation corruption). NO hash is used — strong byte-\nfidelity is the byte-equality reconcile against the source corpus\n($$reconcile^VSLTAPFC, the §15.2 round-trip), and at-rest integrity is the\nstorage layer's (S3's) job. Fenced; persists ^VSLTAP(\"fc\",\"last\"), which VWEBT\nreads via `$$lastFidelity^VSLTAPFC`.",
           "source": {
             "file": "src/VSLTAPRUN.m",
             "line": 103
@@ -3872,7 +3839,7 @@
           "description": "The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.",
           "source": {
             "file": "src/VSLTAPRUN.m",
-            "line": 133
+            "line": 132
           },
           "illustrative": "private iterator over a $$list^VSLS3 listing array — needs a live S3 ctx + bucket + shipped objects to step; exercised end-to-end via $$fidelityNow."
         }

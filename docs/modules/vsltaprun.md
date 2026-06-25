@@ -24,7 +24,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | Label | Signature | Summary |
 |---|---|---|
 | `cadence` | `$$cadence^VSLTAPRUN()` | The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600. |
-| `fidelityNow` | `$$fidelityNow^VSLTAPRUN()` | Sample recently-shipped objects, integrity-verify each, persist the result -> matched count. |
+| `fidelityNow` | `$$fidelityNow^VSLTAPRUN()` | Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count. |
 | `nextKey` | `do nextKey^VSLTAPRUN(k, seen, listing, ctx, bucket, opt, res)` | (private) step to the previous listed subscript; verify its object if it's a real key. |
 | `reconcilePersist` | `$$reconcilePersist^VSLTAPRUN(corpus, envs)` | Reconcile the corpus vs the read-back envelopes, persist the result, return ok. |
 | `run` | `do run^VSLTAPRUN()` | The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan). |
@@ -44,10 +44,10 @@ write $$cadence^VSLTAPRUN()  ; 3600
 
 ### `$$fidelityNow^VSLTAPRUN()`
 
-Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
+Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.
 
-**Returns** _numeric_ — the count of shipped envelopes whose payload re-hashes to its
-sha256 anchor (round-trip integrity match); -1 if no egress / nothing sampled
+**Returns** _numeric_ — the count of shipped objects that read back as well-formed
+schema-v1 envelopes; -1 if no egress / nothing sampled
 
 **Example**
 

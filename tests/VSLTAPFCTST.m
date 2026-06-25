@@ -2,19 +2,17 @@ VSLTAPFCTST	; v-stdlib — VSLTAPFC fidelity comparator test suite.
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positive: `t` is populated by reference by $$parse^STDJSON.
 	; Phase 3 / M2, stage 3.2 (spec §7). PROVES byte-equality, it does not assert
-	; it: a shipped envelope's payload re-hashes to its own anchor (intrinsic
-	; integrity), the decoded payload byte-equals the captured source (RPC tee vs
+	; it: the decoded payload byte-equals the captured source (RPC tee vs
 	; mirror; HL7 vs #772), and a full corpus reconciles against the read-back
-	; objects (every record once, in seq, sha256-matched, no unaccounted drop —
-	; the §15.2 round-trip core). All egress-INDEPENDENT (the live MinIO read-back
+	; objects (every record once, in seq, byte-matched, no unaccounted drop —
+	; the §15.2 round-trip core). Fidelity is byte-equality against the source; NO
+	; hash/digest is used (the tap adds no crypto). All egress-INDEPENDENT (the live MinIO read-back
 	; is the integration harness); runs on a BARE engine:
 	;   m test --engine ydb  --docker m-test-engine --chset m \
 	;     --routines src --routines <m-stdlib>/src tests/VSLTAPFCTST.m
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
 	;
-	do tVerifyIntrinsicHash(.pass,.fail)
-	do tVerifyDetectsTamper(.pass,.fail)
 	do tPayloadOfInline(.pass,.fail)
 	do tPayloadOfBase64(.pass,.fail)
 	do tMatchesSourceByteExact(.pass,.fail)
@@ -43,44 +41,6 @@ env(rec,seq,opt)	; (private) build one schema-v1 resp envelope line for `rec` at
 	merge o2=opt
 	quit $$envelope^VSLS3(.o,.o2)
 	;
-tVerifyIntrinsicHash(pass,fail)	;@TEST "verify: a faithfully shipped envelope re-hashes to its own sha256 anchor"
-	new line
-	set line=$$env($$specials(),7)
-	do true^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(line),"the envelope's payload matches its hash anchor (no drift)")
-	quit
-	;
-tVerifyDetectsTamper(pass,fail)	;@TEST "verify: a tampered payload no longer matches the hash anchor -> 0"
-	new line,tampered
-	set line=$$env("the original bytes",3)
-	; flip one payload byte while leaving the hash anchor intact
-	set tampered=$$retamper(line)
-	do eq^STDASSERT(.pass,.fail,$$verify^VSLTAPFC(tampered),0,"a payload byte-change is caught by the hash re-check")
-	quit
-	;
-retamper(line)	; (private) replace the payload with different bytes, keep the old payload_sha256.
-	new t,env
-	if '$$parse^STDJSON(line,.t) quit ""
-	set env="o"
-	set env("schema_version")="n:"_$$valueOf^STDJSON(t("schema_version"))
-	set env("event_id")="s:"_$$valueOf^STDJSON(t("event_id"))
-	set env("call_id")="s:"_$$valueOf^STDJSON(t("call_id"))
-	set env("ts")="s:"_$$valueOf^STDJSON(t("ts"))
-	set env("protocol")="s:"_$$valueOf^STDJSON(t("protocol"))
-	set env("direction")="s:"_$$valueOf^STDJSON(t("direction"))
-	set env("station")="s:"_$$valueOf^STDJSON(t("station"))
-	set env("seq")="n:"_$$valueOf^STDJSON(t("seq"))
-	set env("rpc")="s:"_$$valueOf^STDJSON(t("rpc"))
-	set env("duz")="s:"_$$valueOf^STDJSON(t("duz"))
-	set env("job")="n:"_$$valueOf^STDJSON(t("job"))
-	set env("client")="s:"_$$valueOf^STDJSON(t("client"))
-	set env("result_kind")="s:"_$$valueOf^STDJSON(t("result_kind"))
-	set env("wire_len")="n:"_$$valueOf^STDJSON(t("wire_len"))
-	set env("chunk_count")="n:"_$$valueOf^STDJSON(t("chunk_count"))
-	set env("payload_encoding")="s:"_$$valueOf^STDJSON(t("payload_encoding"))
-	set env("payload_sha256")="s:"_$$valueOf^STDJSON(t("payload_sha256"))
-	set env("payload")="s:TAMPERED bytes that differ"
-	quit $$encode^STDJSON(.env)
-	;
 tPayloadOfInline(pass,fail)	;@TEST "payloadOf: decodes an inline envelope back to the verbatim bytes"
 	new rec,line
 	set rec=$$specials()
@@ -95,7 +55,7 @@ tPayloadOfBase64(pass,fail)	;@TEST "payloadOf: decodes a base64 envelope back to
 	do eq^STDASSERT(.pass,.fail,$$payloadOf^VSLTAPFC(line),rec,"base64 payload decodes byte-exact")
 	quit
 	;
-tMatchesSourceByteExact(pass,fail)	;@TEST "matches: decoded payload byte-equals the captured source AND the hash is intact"
+tMatchesSourceByteExact(pass,fail)	;@TEST "matches: decoded payload byte-equals the captured source"
 	new rec,line
 	set rec=$$specials()
 	set line=$$env(rec,5)

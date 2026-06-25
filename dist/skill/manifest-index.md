@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 17 modules; 125 public labels.
+v-stdlib unversioned; 17 modules; 124 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -188,11 +188,10 @@ fidelity comparator: byte-equality proof, not assertion.
 - `$$drops^VSLTAPFC(envs, res)` — Classify the loss taxonomy by grouping the shipped envelopes on call_id (FU-15).
 - `$$lastFidelity^VSLTAPFC()` — The last persisted _fidelity manifest line, or "" when no run has run yet.
 - `$$manifest^VSLTAPFC(res, ts)` — Serialise a fidelity run to a single JSON manifest line (the _fidelity object).
-- `$$matches^VSLTAPFC(line, source)` — 1 iff the decoded payload byte-equals `source` AND the hash anchor is intact.
+- `$$matches^VSLTAPFC(line, source)` — 1 iff the decoded payload byte-equals `source` (the fidelity proof).
 - `$$payloadOf^VSLTAPFC(line)` — Decode one LDJSON envelope line back to the verbatim captured bytes.
 - `do persist^VSLTAPFC(res, ts)` — Store the last fidelity run so the console can read it (no live run on request).
 - `$$reconcile^VSLTAPFC(corpus, envs, res)` — Reconcile a generated corpus against the read-back envelopes, by sequence.
-- `$$verify^VSLTAPFC(line)` — 1 iff the envelope's payload re-hashes to the sha256 anchor it carries (§7).
 
 ## `VSLTAPHL`
 
@@ -210,7 +209,7 @@ tap health instrument + standby readiness (the watchdog).
 the periodic fidelity-run task (closes the console loop).
 
 - `$$cadence^VSLTAPRUN()` — The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
-- `$$fidelityNow^VSLTAPRUN()` — Sample recently-shipped objects, integrity-verify each, persist the result -> matched count.
+- `$$fidelityNow^VSLTAPRUN()` — Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.
 - `do nextKey^VSLTAPRUN(k, seen, listing, ctx, bucket, opt, res)` — (private) step to the previous listed subscript; verify its object if it's a real key.
 - `$$reconcilePersist^VSLTAPRUN(corpus, envs)` — Reconcile the corpus vs the read-back envelopes, persist the result, return ok.
 - `do run^VSLTAPRUN()` — The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).
