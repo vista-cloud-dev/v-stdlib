@@ -11,10 +11,15 @@
 > boundary, where PHI controls live). TDD red→green, 137/0; `dist/kids/VSL.kids`
 > regenerated. See `docs/memory/live-capture-fault-stdcrypto.md`.
 >
-> **Only the live CPRS smoke remains** (needs a mutating deploy to the shared vehu
-> engine → explicit go-ahead): (1) `v pkg install --auto-snapshot` the fixed
-> VSLTAP onto vehu; (2) `v pkg wrap-rpc install --commit` to re-splice the broker
-> (currently `spliced:False`); (3) `scripts/rpc-tail.sh` + click CPRS tabs.
+> **DONE on vehu 2026-06-25 (driver stack only) — except the human CPRS click.**
+> Deployed the fixed crypto-free stack as **VSL\*1.0\*4** (`v pkg install
+> --auto-snapshot`, status 3); cleared the stale fault; synthetic RPCs through the
+> wrap glue captured with `disabled=""`/`captureOn=1`; re-spliced the broker
+> (`v pkg wrap-rpc install --commit` → `spliced:true`); drove 2 RPCs → 4 ring
+> records (crypto-free, piece-18 empty). The capture fault is RESOLVED and proven
+> live. **Remaining:** run `scripts/rpc-tail.sh --engine ydb --transport docker`
+> and click CPRS tabs in the win10 VM (a human action). v-pkg long-name bug found
+> + fixed en route (`validRoutineName` 8→31, v-pkg `ae1814f`).
 
 **Paste the section below into a fresh session started in `~/vista-cloud-dev/v-stdlib`.**
 

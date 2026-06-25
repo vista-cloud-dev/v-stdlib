@@ -51,9 +51,20 @@ BYTE-EQUALITY against the captured source (the required, crypto-free proof).
 envelope (no crypto). **v-stdlib's tap is now fully STDCRYPTO-free.** See
 [[egress-hash-removed]].
 
-**Still owed (live CPRS smoke):** deploy the fixed VSLTAP to vehu (via `v pkg
-install --auto-snapshot` — the new class-aware patch path), re-splice the broker
-(`wrap-rpc install --commit`; it is currently spliced:False per [[verify-drift]]),
-run `scripts/rpc-tail.sh`, click CPRS tabs. Blocked only by the shared-engine
-write-guardrail (mutating installs on vehu need explicit go-ahead). The capture
-fault itself is RESOLVED. See `docs/prompts/debug-live-capture-fault.md`.
+**Live-validated on vehu 2026-06-25 (driver stack only).** Deployed the fixed
+crypto-free stack as **VSL\*1.0\*4** (`v pkg install --auto-snapshot`, status 3,
+13 routines overwritten — bumped from \*3 because content changed and the \*3
+#9.7 record blocked a same-patch reinstall). Cleared the stale `disabled="fault"`
+state; a direct `$$appendRec` then a synthetic RPC pair through the wrap glue
+(`req^VSLRPCWRAP`/`resp^VSLRPCWRAP` with the broker vars) both captured with
+**`disabled=""`, `captureOn=1`** — the fault is gone. Re-spliced the broker
+(`v pkg wrap-rpc install --commit` → `spliced:true`, 215 lines, stock pre-image
+captured). Drove 2 RPCs → **4 ring records** (req+resp, duz=168 context, piece-18
+sha **empty** = crypto-free). The ring is always-on (capture = armed AND
+not-disabled, independent of consumer; consumer only gates egress). **Only the
+human CPRS tab-click in the win10 VM remains** — run `scripts/rpc-tail.sh --engine
+ydb --transport docker` and click. (`$$state`=UNHEALTHY is the VSLTAPHL watchdog
+— stale heartbeat / no egress consumer — NOT a capture gate; self-heals on
+traffic.) **A v-pkg bug surfaced + fixed:** `validRoutineName` capped names at 8
+chars, blocking the 9-char `VSLHL7TAP` pre-image probe → raised to 31 (v-pkg
+`ae1814f`). See `docs/prompts/debug-live-capture-fault.md`.
