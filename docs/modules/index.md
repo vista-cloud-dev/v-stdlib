@@ -6,14 +6,13 @@ generated_from: dist/vsl-manifest.json
 
 # v-stdlib — module catalogue
 
-v-stdlib unversioned; **14 modules**, **105 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
+v-stdlib unversioned; **13 modules**, **101 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
 
 Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` routine from m-stdlib, never the reverse (the m/v waterline). For the engine-neutral primitives see the `m-stdlib` catalogue.
 
 | Module | Labels | Synopsis |
 |---|---|---|
 | [`VSLCFG`](vslcfg.md) | 2 | VistA configuration adapter over XPAR (Parameter Tools) |
-| [`VSLENV`](vslenv.md) | 4 | the VSL KIDS environment-check routine (the XPDENV hook) |
 | [`VSLFS`](vslfs.md) | 5 | VistA FileMan storage adapter (FileMan DBS record store) |
 | [`VSLHL7TAP`](vslhl7tap.md) | 8 | HL7 store-tail adapter (decoupled, zero in-line) |
 | [`VSLIO`](vslio.md) | 8 | VistA TCP transport adapter over the Kernel device handler |

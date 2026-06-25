@@ -22,7 +22,7 @@ and [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) for deploy / back-out.
   `VSLHL7TAP`, `VSLSEC` (token path). These run on a plain `m-test-engine` /
   `m-test-iris`.
 - **VistA-dependent**: `VSLCFG` (XPAR), `VSLFS` (FileMan), `VSLIO` (Kernel TCP),
-  `VSLLOG`, `VSLTASK`, `VSLENV` — need a live VistA (Kernel + FileMan).
+  `VSLLOG`, `VSLTASK` — need a live VistA (Kernel + FileMan).
 
 ## 2. Run the suite (30 sec)
 

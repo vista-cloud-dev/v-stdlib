@@ -38,7 +38,7 @@ BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
               tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
 
 # Bare-runnable routine set for the bare coverage gate — every src routine MINUS
-# the VistA-binding ones (tagged `; doc: @exrun live`: VSLCFG/VSLENV/VSLFS/
+# the VistA-binding ones (tagged `; doc: @exrun live`: VSLCFG/VSLFS/
 # VSLIO/VSLLOG/VSLTASK). Those report 0 covered on a bare engine (they need
 # Kernel/FileMan/XPAR), so measuring them under the bare tier would falsely drag
 # the aggregate down — they are covered on the live tier instead. Derived from the
@@ -312,7 +312,7 @@ examples-coverage:
 #   examples-run        bare tier, BOTH bare engines (m-test-engine + m-test-iris),
 #                       GATING. Runs the dual + ydb-scope tap/S3/auth modules; the
 #                       VistA-binding modules (@exrun live: VSLCFG/VSLFS/
-#                       VSLIO/VSLLOG/VSLTASK/VSLENV) are skipped on bare.
+#                       VSLIO/VSLLOG/VSLTASK) are skipped on bare.
 #   examples-run-ydb    bare YDB arm only (CI hard gate; m-ci.yml engine-targets).
 #   examples-run-iris   bare IRIS arm only (CI fail-soft job; m-ci.yml iris-targets).
 #   examples-run-live   live tier (vehu + foia, --namespace VISTA on IRIS),

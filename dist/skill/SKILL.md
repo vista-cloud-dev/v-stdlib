@@ -17,7 +17,7 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 14 modules, 105 public labels,
+**Catalogue:** 13 modules, 101 public labels,
 6 error codes.
 
 ## When to use this skill
@@ -46,7 +46,6 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 ## Module catalogue
 
 - **`VSLCFG`** — VistA configuration adapter over XPAR (Parameter Tools).
-- **`VSLENV`** — the VSL KIDS environment-check routine (the XPDENV hook).
 - **`VSLFS`** — VistA FileMan storage adapter (FileMan DBS record store).
 - **`VSLHL7TAP`** — HL7 store-tail adapter (decoupled, zero in-line).
 - **`VSLIO`** — VistA TCP transport adapter over the Kernel device handler.

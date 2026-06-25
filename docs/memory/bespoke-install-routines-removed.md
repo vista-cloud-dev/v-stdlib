@@ -24,11 +24,16 @@ nothing but their own tests — pure redundancy with the v-pkg lifecycle + the
   duplicate added nothing.
 - Their tests, `docs/modules/*` pages, and example programs.
 
-**Kept: `VSLENV`** — the KIDS environment-check hook (XPDENV) named in the build
-JSON `"envCheck"` and run BY the v-pkg-driven KIDS install. It is consumed by the
-v-pkg install path, not a parallel bespoke installer, so it stays.
+**`VSLENV` ALSO removed (2026-06-25, owner confirmed "yes").** Initially kept as
+the KIDS env-check hook, but the owner opted to drop the env-check entirely —
+strictly v-pkg, no install-time M machinery. Deleted `src/VSLENV.m` + its module
+page + example program (it had no dedicated test), removed `"envCheck": "VSLENV"`
+from `kids/vsl.build.json`, and dropped `VSLENV` from the routine list. The KIDS
+build now has no environment-check routine; v-pkg install just installs. (If a
+target lacks Kernel/FileMan the install simply fails on the missing APIs rather
+than aborting via XPDQUIT — acceptable for a single-writer, known-target fleet.)
 
-**Result:** KIDS routine list **14** (was 16); the `VSL TAP FIDELITY CADENCE` XPAR
+**Result:** KIDS routine list **13** (was 16); the `VSL TAP FIDELITY CADENCE` XPAR
 param was already gone with [[egress-hash-removed]]'s VSLTAPRUN deletion. Updated
 the DIBRG/quick-start/tap-architecture guides to the v-pkg-only install/back-out
 contract. `make test-bare` green, `examples-run-ydb` 8/8, all drift gates +

@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 14 modules; 105 public labels.
+v-stdlib unversioned; 13 modules; 101 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -13,15 +13,6 @@ VistA configuration adapter over XPAR (Parameter Tools).
 
 - `$$get^VSLCFG(key, default)` — Read parameter `key` at the SYS entity; return `default` when unset.
 - `do set^VSLCFG(key, value)` — Set parameter `key` to `value` at the SYS entity.
-
-## `VSLENV`
-
-the VSL KIDS environment-check routine (the XPDENV hook).
-
-- `do abort^VSLENV()` — (private) a genuine showstopper — Kernel (XU) is not present; abort the install.
-- `$$check^VSLENV(facts)` — Fill facts(engine,version,kernel,tls) from intrinsics + resident Kernel; return 1.
-- `$$kernelVer^VSLENV()` — (private) the Kernel (#9.4 XU) current version, "" if unavailable.
-- `$$tlsConfig^VSLENV()` — (private) the DEFAULT TLS SERVER CONFIG Kernel System Parameter (presence), "" if unset.
 
 ## `VSLFS`
 

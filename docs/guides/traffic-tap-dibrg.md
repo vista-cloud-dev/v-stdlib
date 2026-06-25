@@ -60,9 +60,8 @@ The tap XPAR params:
 
 1. **Driver reachability** — `m vista status --engine <ydb|iris> --transport docker`
    reports running/healthy.
-2. **Environment** — the KIDS env-check (`VSLENV`) runs automatically at Load and
-   Install (XPDENV); it aborts (XPDQUIT) if Kernel (XU) is absent and reports
-   engine / version / Kernel level / TLS-config presence.
+2. **Environment** — confirm the target is a VistA engine (Kernel + FileMan
+   present); the VSL package is VistA-specific.
 3. **Required build** — the VSL build declares a Required Build on the MSL base
    (`MSL*0.1*1`, action *leave global*); the MSL `STD*` library must be present.
 

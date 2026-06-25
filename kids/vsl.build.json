@@ -3,11 +3,9 @@
   "version": "1.0",
   "patch": "3",
   "allowLongNames": true,
-  "envCheck": "VSLENV",
   "components": {
     "routines": [
       "VSLCFG",
-      "VSLENV",
       "VSLFS",
       "VSLHL7TAP",
       "VSLIO",

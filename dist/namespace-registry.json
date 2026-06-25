@@ -13,7 +13,6 @@
     ],
     "routines": [
       "VSLCFG",
-      "VSLENV",
       "VSLFS",
       "VSLHL7TAP",
       "VSLIO",

@@ -8,12 +8,11 @@ generated_from: dist/vsl-manifest.json
 
 Generated, self-verifying runnable example programs — one per module — built from each module's `@example` tags by `tools/gen-examples.py` (`make examples`). DO NOT edit by hand. Each `examples/programs/<MODULE>EX.m` runs as a suite (`do ^<MODULE>EX`) and asserts its own results.
 
-**Executable-example coverage: 94/105 public labels (89%)** across 14 module program(s). The remaining labels carry no *executable* (`write … ; "expected"`, self-contained) example yet — closing that gap to 100% (with `@raises` error cases + sample data + live-VistA runs) is the Living Executable Examples roadmap (E2–E4).
+**Executable-example coverage: 91/101 public labels (90%)** across 13 module program(s). The remaining labels carry no *executable* (`write … ; "expected"`, self-contained) example yet — closing that gap to 100% (with `@raises` error cases + sample data + live-VistA runs) is the Living Executable Examples roadmap (E2–E4).
 
 | Module | Labels | With executable example | Program |
 |---|---|---|---|
 | `VSLCFG` | 2 | 2 | [`VSLCFGEX.m`](programs/VSLCFGEX.m) |
-| `VSLENV` | 4 | 3 | [`VSLENVEX.m`](programs/VSLENVEX.m) |
 | `VSLFS` | 5 | 4 | [`VSLFSEX.m`](programs/VSLFSEX.m) |
 | `VSLHL7TAP` | 8 | 8 | [`VSLHL7TAPEX.m`](programs/VSLHL7TAPEX.m) |
 | `VSLIO` | 8 | 5 | [`VSLIOEX.m`](programs/VSLIOEX.m) |

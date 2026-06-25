@@ -102,9 +102,8 @@ and the live install ran a wrap-on/wrap-off byte-identical proof.
 ## Supporting adapters
 
 `VSLSEC` (identity / security-key checks over Kernel), `VSLFS` (FileMan DBS
-storage), `VSLIO` (Kernel TCP transport), `VSLLOG` (FileMan audit sink),
-`VSLENV` (the KIDS env-check hook, run by the v-pkg-driven install). Each is the
-VistA binding of an engine-neutral `STD*` seam, consumed one-way `v → m`.
+storage), `VSLIO` (Kernel TCP transport), `VSLLOG` (FileMan audit sink). Each is
+the VistA binding of an engine-neutral `STD*` seam, consumed one-way `v → m`.
 
 ## Where next
 
