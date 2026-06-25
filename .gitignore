@@ -14,3 +14,7 @@ coverage.out
 # Python drift-gate generator caches (tools/*.py)
 __pycache__/
 *.pyc
+
+# Live deploy-time pre-image snapshots (v pkg install --auto-snapshot /
+# wrap-rpc install --commit) — engine-specific operational artifacts, not source.
+*.preimage.kids
