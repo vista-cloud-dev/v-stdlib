@@ -117,8 +117,11 @@ this diagnostic gap is step 1.
   older pkgcli that rejected `allowLongNames`). Build artifact = the patched-XWBBRK
   KIDS (`VSL*1.0*3`).
 - **Stock broker backup** (for restore if needed): `XWBBRK.stock.m` was dumped to a
-  scratchpad before patching; if gone, read stock via `v pkg wrap-rpc status` or the
-  `readRoutineSource` path — do not hand-edit the live routine.
+  scratchpad before patching; if gone, read stock off the engine through the driver
+  (`m vista exec` / `m-<engine> exec eval` over a `$TEXT` loop) — do not hand-edit
+  the live routine. (NOTE: `v pkg wrap-rpc status` / `readRoutineSource`, named in
+  older runs of this prompt, were **deleted** — bespoke installers are forbidden;
+  see the `never-use-bespoke-installer` directive.)
 
 ## Key files / context
 

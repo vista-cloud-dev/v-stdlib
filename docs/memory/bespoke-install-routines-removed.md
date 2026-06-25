@@ -40,3 +40,12 @@ contract. `make test-bare` green, `examples-run-ydb` 8/8, all drift gates +
 lint(0-error)+arch green, all generated artifacts regenerated. `VSLTAPBO`'s `params`
 list was the comment-cited source for the tap XPAR names; the single source of
 truth is now `kids/vsl.build.json` `parameterDefinitions`.
+
+**Host-side `wrap-rpc` ALSO deleted (2026-06-25, same owner directive).** The
+companion removal happened in **v-pkg**: the `v pkg wrap-rpc status|install|backout`
+command and `internal/wrapsplice` (the content-anchored `CALLP^XWBBRK` splice) were
+deleted. So the directive now covers **both** sides — no bespoke M install/back-out
+routines here, and no bespoke host patcher there. Installing/backing-out the tap is
+**strictly** `v pkg install` / `v pkg uninstall` of `kids/vsl.build.json`. The
+guides `traffic-tap-dibrg` + the `debug-live-capture-fault` prompt were repointed
+off `wrap-rpc`. Canonical org directive: shared `never-use-bespoke-installer`.

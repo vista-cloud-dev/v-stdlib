@@ -136,9 +136,13 @@ v-pkg uninstall --engine <ydb|iris> --transport docker dist/kids/VSL.kids
 kill ^VSLTAP,^XTMP("VSLTAP")
 ```
 
-If the broker RPC wrap was installed, reverse it the same way — `v pkg wrap-rpc
-backout --commit` (which restores the captured stock pre-image via the generic
-restore path). There is **no** bespoke M back-out routine.
+Reversal is **entirely** the `v pkg uninstall` in step 2 — it removes the shipped
+routines, the `#9.7`/`#9.6` build records, and the `#8989.51` parameter
+definitions. There is **no** bespoke broker-wrap back-out and **no** bespoke M
+back-out routine: bespoke installers/patchers are forbidden org-wide (the old
+`v pkg wrap-rpc` splice was deleted — see the `never-use-bespoke-installer`
+directive). Install and back-out are strictly the generic `v pkg install` /
+`v pkg uninstall` KIDS lifecycle.
 
 ## 6. Rollback
 
