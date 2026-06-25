@@ -250,7 +250,6 @@ tee(rec)	; The named capture seam the VSLRPC chokepoint calls (VSLRPCTAP) — fe
 	; docs/design/s3tap-envelope-schema-lock.md (cache layout v2):
 	;   ^XTMP("VSLTAP","data",seq)        = HEADER (^-pieces; no field may contain ^)
 	;   ^XTMP("VSLTAP","data",seq,"p",i)  = payload chunk i (RAW bytes; i=1..chunk_count)
-	;   ^XTMP("VSLTAP","data",seq,"hc",i) = per-chunk sha256 (FU-2 integrity)
 	;   ^XTMP("VSLTAP","data",seq,"g")    = MERGE snapshot of a GLOBAL ARRAY result (FU-17)
 	; The ring stores RAW payload bytes; the wire encoding (base64/raw) and the
 	; expensive serialize/hash of a global subtree are deferred to the drain (off the
@@ -317,8 +316,14 @@ write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so
 	else  do
 	. set wl=$length(pl),cc=1
 	. set ^XTMP("VSLTAP","data",seq,"p",1)=pl
-	. set hash=$$hashOf(pl)
-	. set ^XTMP("VSLTAP","data",seq,"hc",1)=hash
+	; NO crypto in the capture path: RPC traffic is plain ASCII and the tap only
+	; observes it — it does not harden the broker. The optional integrity anchor
+	; (payload_sha256) is computed ONCE at egress (envelope^VSLS3, the S3 boundary
+	; where PHI controls live), so the in-broker hot path stays dependency-free.
+	; (Hashing here forced a hard STDCRYPTO dependency that ZLINKFILE'd on engines
+	; without m-stdlib and silently self-disabled the whole tap — and it was dead:
+	; the stored hash was never read; the drain recomputes from the raw bytes.)
+	set hash=""
 	set ^XTMP("VSLTAP","data",seq)=$$hdrLine(seq,.rec,kind,wl,cc,enc,hash)
 	; FU-4 post-write fault-injection seam (mirrors write1) — proves the fence once dirtied.
 	if +$$cfg("faultinjectpost",0) set $ecode=",U-VSLTAP-INJECTPOST,"
@@ -326,22 +331,6 @@ write1rec(rec,wrote)	; (private) write one cache-layout-v2 record, DO-invoked so
 	do record^VSLTAPHL(0,wl,0)
 	set wrote=1
 	quit
-	;
-hashOf(data)	; (private) BEST-EFFORT payload integrity hash: sha256 when STDCRYPTO is
-	; available, else "". A missing/unconfigured crypto callout (STDCRYPTO not
-	; installed, or libcrypto not loaded on this engine) must NEVER disable capture —
-	; the payload_sha256 anchor is OPTIONAL provenance, not a capture precondition.
-	; (Before this guard, the unconditional $$sha256^STDCRYPTO ZLINKFILE'd on any
-	; engine without STDCRYPTO, the fence caught it, and the whole tap self-disabled
-	; with reason "fault" — capture silently never worked.) The `payloadhash` knob
-	; (default 1) forces the skip for tests/ops.
-	; doc: @param data    string  the bytes to digest
-	; doc: @returns       string  64-char lowercase hex digest, or "" when off/unavailable
-	; doc: @example   kill ^VSLTAP set ^VSLTAP("cfg","payloadhash")=0 do eq^STDASSERT(.pass,.fail,$$hashOf^VSLTAP("x"),"","payloadhash=0 -> empty digest (best-effort, no crypto needed)") kill ^VSLTAP
-	if '+$$cfg("payloadhash",1) quit ""
-	if $text(available^STDCRYPTO)="" quit ""
-	if '$$available^STDCRYPTO() quit ""
-	quit $$sha256^STDCRYPTO(data)
 	;
 hdrLine(seq,rec,kind,wl,cc,enc,hash)	; (private) assemble the cache-layout-v2 ^-delimited header.
 	; doc: @internal

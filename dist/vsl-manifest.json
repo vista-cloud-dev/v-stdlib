@@ -2492,7 +2492,7 @@
           "description": "The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write\n(write1rec) so the trap's arg-less QUIT is legal. The caller-state fence\n(naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 261
+            "line": 260
           }
         },
         "teeRec": {
@@ -2524,7 +2524,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 279
+            "line": 278
           }
         },
         "size": {
@@ -2547,7 +2547,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 349
+            "line": 354
           }
         },
         "head": {
@@ -2570,7 +2570,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 354
+            "line": 359
           }
         },
         "tail": {
@@ -2593,7 +2593,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 359
+            "line": 364
           }
         },
         "read": {
@@ -2616,7 +2616,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 364
+            "line": 369
           }
         },
         "present": {
@@ -2642,7 +2642,7 @@
           "description": "FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a\nconcurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight\nslot; stopping at the first absent node leaves that slot for the next tick rather\nthan shipping \"\" and trimming a record that is about to land. `$$read` can't tell\nan absent slot from a legitimately-empty record ($get-> \"\" for both); this can.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 369
+            "line": 374
           }
         },
         "isV2": {
@@ -2665,7 +2665,7 @@
           "description": "A legacy v1 string record ($$append) has only the scalar data node — no child.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 380
+            "line": 385
           }
         },
         "hdr": {
@@ -2702,7 +2702,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 388
+            "line": 393
           }
         },
         "chunk": {
@@ -2725,7 +2725,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 418
+            "line": 423
           }
         },
         "drainTo": {
@@ -2757,7 +2757,7 @@
           "description": "Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships\n200 — never from the RPC path. Idempotent; never advances past head.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 423
+            "line": 428
           }
         },
         "disable": {
@@ -2786,7 +2786,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 440
+            "line": 445
           }
         },
         "disabled": {
@@ -2809,7 +2809,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 452
+            "line": 457
           }
         },
         "rearm": {
@@ -2832,7 +2832,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 457
+            "line": 462
           }
         },
         "offWindows": {
@@ -2861,7 +2861,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 466
+            "line": 471
           }
         },
         "state": {
@@ -2888,7 +2888,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 476
+            "line": 481
           }
         },
         "heartbeat": {
@@ -2910,7 +2910,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 489
+            "line": 494
           }
         },
         "healthy": {
@@ -2937,7 +2937,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 494
+            "line": 499
           }
         },
         "purgeNode": {
@@ -2960,7 +2960,7 @@
           "description": "The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of\nFileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No\nFileMan file (§4.1.1). Scheduling the option is an install-time seam.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 508
+            "line": 513
           }
         }
       },

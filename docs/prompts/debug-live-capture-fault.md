@@ -4,9 +4,12 @@
 > `write1rec^VSLTAP` calling `$$sha256^STDCRYPTO` unconditionally while **STDCRYPTO
 > is not installed on vehu** (`%YDB-E-ZLINKFILE, File STDCRYPTO.m not found`;
 > `VSL*1.0*3` shipped only the `VSL*` routines). The append fence caught it →
-> `disable("fault")`. Fix: best-effort `$$hashOf^VSLTAP` (hash only when crypto is
-> usable, else `""`) — a missing crypto dep no longer disables capture. TDD
-> red→green, 136/0. See `docs/memory/live-capture-fault-stdcrypto.md`.
+> `disable("fault")`. Fix: **crypto removed from the capture path entirely** — the
+> tap only observes plain-ASCII RPC traffic, it does not harden the broker, so it
+> adds no hash (`set hash=""`, no `hc` node). The stored capture-time hash was dead
+> (egress `envelope^VSLS3` recomputes `payload_sha256` from raw bytes at the S3
+> boundary, where PHI controls live). TDD red→green, 137/0; `dist/kids/VSL.kids`
+> regenerated. See `docs/memory/live-capture-fault-stdcrypto.md`.
 >
 > **Only the live CPRS smoke remains** (needs a mutating deploy to the shared vehu
 > engine → explicit go-ahead): (1) `v pkg install --auto-snapshot` the fixed

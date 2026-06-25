@@ -1,6 +1,6 @@
 ---
 name: live-capture-fault-stdcrypto
-description: The live RPC-tap capture fault (disabled="fault" on vehu) root-caused to a missing STDCRYPTO dependency; fixed by making the payload hash best-effort.
+description: The live RPC-tap capture fault (disabled="fault" on vehu) root-caused to a missing STDCRYPTO dependency; fixed by removing crypto from the capture path entirely (RPC traffic is plain ASCII; the tap only observes, never hardens).
 metadata:
   type: project
 ---
@@ -17,22 +17,33 @@ dependency. Proven via the driver stack: `m vista exec --engine ydb --transport
 docker 'S X=$$sha256^STDCRYPTO("body")'` → `%YDB-E-ZLINKFILE ... File STDCRYPTO.m
 not found`. The fence (`set $etrap="set ok=0,$ecode='''' quit"` in `appendRec`)
 caught the ZLINKFILE and called `disable("fault")` — fail-safe (broker untouched)
-but silent: capture never worked. (STDCRYPTO also needs `STDHEX` + a YDB libcrypto
-C call-out, so "just install it" is non-trivial and engine-specific.)
+but silent: capture never worked.
 
-**Fix (best-effort hash):** new private `$$hashOf^VSLTAP(data)` — returns the
-sha256 only when crypto is actually usable, else `""`, so a missing/unconfigured
-crypto callout NEVER disables capture (the `payload_sha256` anchor is OPTIONAL
-provenance, not a capture precondition; keeps the tap portable to IRIS / engines
-without the callout). Guards (each its own `IF`, no short-circuit reliance):
-`'+$$cfg("payloadhash",1)` (knob, default on) → `$text(available^STDCRYPTO)=""`
-(routine absent → vehu case) → `'$$available^STDCRYPTO()` (callout not loaded).
-`write1rec:320` now calls `$$hashOf(pl)`.
+**Fix (remove crypto from the capture path entirely).** Per the design decision
+(2026-06-25): the RPC tap **only observes** plain-ASCII broker traffic — it does
+NOT harden the broker or its traffic, so it must not add a crypto "feature" VistA
+itself doesn't have. RPCs are encrypted only once they land in the S3 bucket under
+PHI controls. So `write1rec` no longer hashes at all: `set hash=""`, no `"hc"`
+node. The capture hot path is now dependency-free (portable to IRIS / any engine
+without the m-stdlib callout) and can never self-disable on a missing crypto dep.
 
-**TDD:** `tHashBestEffortDoesNotDisable` (VSLTAPV2TST) — with `payloadhash=0`,
-`$$appendRec` still returns 1, `$$disabled`="", header piece-18 (payload_sha256)
-empty. Red→green; 136/0 across VSLTAPTST/V2/RPCWRAP/FC on m-test-engine (incl. the
-`hashOf` @example bare-tier doc-test).
+**Why this is safe (the stored capture-time hash was DEAD):** nothing downstream
+read it. The integrity anchor `payload_sha256` is (re)computed ONCE at egress —
+`envelope^VSLS3` does `env("payload_sha256")="s:"_$$sha256^STDCRYPTO(raw)` from the
+raw bytes at the S3 boundary, which `VSLTAPFC.verify` checks for round-trip
+fidelity. The capture-time hash + header piece-18 + `hc` node were redundant and
+never consulted. (This supersedes the earlier best-effort `$$hashOf^VSLTAP`
+approach — that helper has been deleted.)
+
+**TDD:** `tCaptureIsCryptoFree` (VSLTAPV2TST) — `$$appendRec` returns 1,
+`$$disabled`="", no `hc` node (`$data(...,"hc")=0`), header piece-18 empty.
+Red→green; **137/0** across VSLTAPTST/V2/RPCWRAP/FC on m-test-engine. `dist/kids/
+VSL.kids` regenerated (drift gate green).
+
+**Egress still hashes (intentional, kept):** `VSLS3.m` keeps the `$$sha256^
+STDCRYPTO` at the S3 boundary — that's where PHI controls and the FU fidelity gate
+live. STDCRYPTO must be available wherever the egress drain runs (the batch
+ship-out host), not on the broker hot path.
 
 **Still owed (live CPRS smoke):** deploy the fixed VSLTAP to vehu (via `v pkg
 install --auto-snapshot` — the new class-aware patch path), re-splice the broker
