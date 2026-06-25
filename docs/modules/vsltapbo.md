@@ -26,7 +26,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `backout` | `do backout^VSLTAPBO()` | Full back-out: dequeue tasks, drop the XPAR params, kill the state. Idempotent. |
 | `cleanParams` | `do cleanParams^VSLTAPBO()` | Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition. |
 | `cleanState` | `do cleanState^VSLTAPBO()` | Kill the rolling capture cache and ALL VSL control state. |
-| `cleanTasks` | `do cleanTasks^VSLTAPBO()` | Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState). |
+| `cleanTasks` | `do cleanTasks^VSLTAPBO()` | Dequeue every recorded TaskMan job (read BEFORE cleanState). |
 | `delParam` | `do delParam^VSLTAPBO(name)` | (private) clear the SYS-level instance, then delete the #8989.51 definition record. |
 | `dequeue` | `do dequeue^VSLTAPBO(ztsk)` | (private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced. |
 | `params` | `$$params^VSLTAPBO(out)` | Fill out(1..N) with the tap's XPAR #8989.51 param names; return N. |
@@ -65,7 +65,7 @@ set ^VSLTAP("cfg","mode")="armed",^XTMP("VSLTAP","data",1)="x" do cleanState^VSL
 
 ### `do cleanTasks^VSLTAPBO()`
 
-Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState).
+Dequeue every recorded TaskMan job (read BEFORE cleanState).
 
 **Example**
 

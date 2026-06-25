@@ -17,7 +17,7 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 17 modules, 124 public labels,
+**Catalogue:** 16 modules, 118 public labels,
 7 error codes.
 
 ## When to use this skill
@@ -60,7 +60,6 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 - **`VSLTAPBO`** — traffic-tap back-out / verify-clean (the G-UNINST gate).
 - **`VSLTAPFC`** — fidelity comparator: byte-equality proof, not assertion.
 - **`VSLTAPHL`** — tap health instrument + standby readiness (the watchdog).
-- **`VSLTAPRUN`** — the periodic fidelity-run task (closes the console loop).
 - **`VSLTASK`** — VistA TaskMan persistent-listener adapter (the process seam).
 
 ## Architectural rules

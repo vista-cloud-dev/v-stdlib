@@ -27,9 +27,9 @@ deployment contract.
 
 | Layer | Artifact | Installed by | Removed by |
 |---|---|---|---|
-| Routines | `VSLTAP`, `VSLRPCTAP`, `VSLHL7TAP`, `VSLTAPHL`, `VSLTAPFC`, `VSLS3`, `VSLTAPBO`, `VSLTAPRUN` (+ the VSL base) | `v-pkg install` (KIDS) | `v-pkg uninstall` (routines + #9.7/#9.6) |
-| Config | 10 XPAR `#8989.51` PARAMETER DEFINITIONs (`$$params^VSLTAPBO`) | KIDS `parameterDefinitions` | **`VSLTAPBO` `cleanParams`** |
-| Tasks | the periodic fidelity-run job (`run^VSLTAPRUN`) | `$$schedule^VSLTAPRUN` | **`VSLTAPBO` `cleanTasks`** |
+| Routines | `VSLTAP`, `VSLRPCTAP`, `VSLHL7TAP`, `VSLTAPHL`, `VSLTAPFC`, `VSLS3`, `VSLTAPBO` (+ the VSL base) | `v-pkg install` (KIDS) | `v-pkg uninstall` (routines + #9.7/#9.6) |
+| Config | XPAR `#8989.51` PARAMETER DEFINITIONs (`$$params^VSLTAPBO`) | KIDS `parameterDefinitions` | **`VSLTAPBO` `cleanParams`** |
+| Tasks | any scheduled TaskMan jobs (recorded in `^VSLTAP("task")`) | runtime | **`VSLTAPBO` `cleanTasks`** |
 | State | `^VSLTAP` control state + `^XTMP("VSLTAP",…)` rolling cache | runtime (arm + capture) | **`VSLTAPBO` `cleanState`** |
 
 **Key fact (risk G-UNINST):** `v-pkg uninstall` is **routine-only** — it removes
@@ -110,7 +110,6 @@ Then arm + start the periodic fidelity run:
 
 ```
 do arm^VSLTAP()                ; operator kill-switch ON
-set tsk=$$schedule^VSLTAPRUN() ; queue the periodic fidelity run (records the task)
 ```
 
 > The tap is **consumer-gated** and **fail-safe-OFF**: with no consumer present
@@ -159,8 +158,7 @@ isolates blast radius. Re-install (§2) after correcting the fault.
 ## 8. Status & owed live validation
 
 The back-out **logic** and `$$verifyClean` are bare-proven dual-engine
-(`VSLTAPBOTST` 12/12); the periodic fidelity-run machinery is bare-proven
-(`VSLTAPRUNTST` 8/8). **Owed:** the live `install → verify → back-out →
+(`VSLTAPBOTST` 12/12). **Owed:** the live `install → verify → back-out →
 verify-clean` on both VistA engines (vehu + foia) over the driver — the real
 G-UNINST exit gate — plus the patch bump and the XPAR→`^VSLTAP("cfg")` seed step
 (so the hot-path knobs and the S3 config take effect from the installed params).

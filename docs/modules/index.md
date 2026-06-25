@@ -6,7 +6,7 @@ generated_from: dist/vsl-manifest.json
 
 # v-stdlib — module catalogue
 
-v-stdlib unversioned; **17 modules**, **125 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
+v-stdlib unversioned; **16 modules**, **118 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
 
 Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` routine from m-stdlib, never the reverse (the m/v waterline). For the engine-neutral primitives see the `m-stdlib` catalogue.
 
@@ -25,8 +25,7 @@ Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` r
 | [`VSLSEC`](vslsec.md) | 5 | VistA identity/authorization adapter (Kernel) |
 | [`VSLTAP`](vsltap.md) | 30 | non-interference traffic-tap core (the safety gate) |
 | [`VSLTAPBO`](vsltapbo.md) | 9 | traffic-tap back-out / verify-clean (the G-UNINST gate) |
-| [`VSLTAPFC`](vsltapfc.md) | 8 | fidelity comparator: byte-equality proof, not assertion |
+| [`VSLTAPFC`](vsltapfc.md) | 7 | fidelity comparator: byte-equality proof, not assertion |
 | [`VSLTAPHL`](vsltaphl.md) | 6 | tap health instrument + standby readiness (the watchdog) |
-| [`VSLTAPRUN`](vsltaprun.md) | 6 | the periodic fidelity-run task (closes the console loop) |
 | [`VSLTASK`](vsltask.md) | 6 | VistA TaskMan persistent-listener adapter (the process seam) |
 

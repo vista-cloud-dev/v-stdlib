@@ -1892,7 +1892,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The discovery leg for the periodic fidelity sampler (VSLTAPRUN\n$$fidelityNow): enumerate recently-shipped objects under the per-station\nprefix so they can be read back and integrity-verified. Same `opt`\nendpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).",
+          "description": "Enumerate shipped objects under a per-station prefix (e.g. to read them\nback for an out-of-band byte-equality check). Same `opt` endpoint override\nas ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).",
           "source": {
             "file": "src/VSLS3.m",
             "line": 247
@@ -1927,7 +1927,7 @@
           "description": "The whole egress path runs in the SEPARATE flush process (VSLTASK calls\nthis) — never the RPC CPU (§4.1.3). It is consumer-gated AND auto-\nfailover-aware: it ships ONLY while the Phase-2 gate is enabled, so a\ndead/slow sink or any interference signal turns it off cleanly (the gate\nrecords the off-window). On a 200 it self-drains the shipped seqs\n(drainTo^VSLTAP); on any other status it leaves the ring for retry.",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 263
+            "line": 262
           }
         },
         "resolveRec": {
@@ -1970,7 +1970,7 @@
           "description": "A v2 record (the FU-5 wrap) is framed from its 18-piece header: a GLOBAL ARRAY\nresult is serialized from the \"g\" MERGE snapshot (FU-17) and base64'd; a scalar\nfrom its \"p\",1 chunk. A legacy v1 string record ($$append — the synthetic\ndemonstrator path) ships as a plain payload under the configured direction. The\nheader's schema_version keeps both readable from one ring (schema-lock §4).",
           "source": {
             "file": "src/VSLS3.m",
-            "line": 306
+            "line": 305
           }
         }
       },
@@ -2306,7 +2306,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path\ngate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP(\"cfg\",…), NOT XPAR (no\nXPAR/FileMan read on the capture path). seed bridges the two: it copies\neach set param into its cfg key once, at install/configure time. The\nfidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not\nmirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
+          "description": "The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path\ngate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP(\"cfg\",…), NOT XPAR (no\nXPAR/FileMan read on the capture path). seed bridges the two: it copies\neach set param into its cfg key once, at install/configure time.\n$text(GET^XPAR)-guarded -> a bare engine is a clean no-op.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLTAP.m",
             "line": 97
@@ -2342,7 +2342,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 119
+            "line": 118
           }
         },
         "captureOn": {
@@ -2368,7 +2368,7 @@
           "description": "is armed and not auto-failed-over, INDEPENDENT of any consumer/sink — a down or\nabsent sink pauses only EGRESS ($$enabled), never capture (the flight-recorder\nkeeps a window of traffic ready for whenever a consumer attaches; it laps to\ndrop_oldest only under sustained pressure). The ONLY things that stop the ring\nare the operator kill-switch ($$off) and auto-failover ($$disable) — fail-safe-OFF.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 145
+            "line": 144
           }
         },
         "enabled": {
@@ -2394,7 +2394,7 @@
           "description": "when this holds; with no consumer the ring still captures ($$captureOn) but the\nPUT pauses (the off-window is recorded, never silent). [FU-9 split the former\nsingle gate into capture (always-on) vs egress (consumer-gated).] The legacy\n`alwayson` flag is SUBSUMED — the ring is always-on by default now — and no\nlonger gates anything (the setter/cfg are kept for backward compatibility).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 158
+            "line": 157
           }
         },
         "append": {
@@ -2427,7 +2427,7 @@
           "description": "The ONLY in-path op (besides the $G gate): one global SET + bounded trim.\nNo LOCK, no serialize, no socket, no I/O, no block (§6.1). Self-fenced:\nANY fault inside the write self-disables and returns 0 — never the caller.\nFlag-based $ETRAP (ISO, dual-engine; NEVER zgoto, the M4 resident-harness\ngotcha). The write runs in a DO-invoked frame (write1) so the trap's\nargument-less QUIT is legal — an arg-less QUIT trap fired in an extrinsic\n($$) frame raises M17 NOTEXTRINSIC (per STDASSERT raises()).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 171
+            "line": 170
           }
         },
         "tee": {
@@ -2459,7 +2459,7 @@
           "description": "$$append is already self-fenced (a DO-framed $ETRAP that self-disables on\nany fault); tee is the stable adapter entry. Either leaves the caller's\nresult / $ECODE / $T untouched.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 235
+            "line": 234
           }
         },
         "appendRec": {
@@ -2491,7 +2491,7 @@
           "description": "The v2 sibling of $$append — same self-disabling $ETRAP, same DO-framed write\n(write1rec) so the trap's arg-less QUIT is legal. The caller-state fence\n(naked-ref/$TEST) lives one level up in capture^VSLRPCTAP (FU-4).",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 260
+            "line": 259
           }
         },
         "teeRec": {
@@ -2523,7 +2523,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 278
+            "line": 277
           }
         },
         "size": {
@@ -2546,7 +2546,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 355
+            "line": 354
           }
         },
         "head": {
@@ -2569,7 +2569,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 360
+            "line": 359
           }
         },
         "tail": {
@@ -2592,7 +2592,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 365
+            "line": 364
           }
         },
         "read": {
@@ -2615,7 +2615,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 370
+            "line": 369
           }
         },
         "present": {
@@ -2641,7 +2641,7 @@
           "description": "FU-8's atomic $INCREMENT advances head one statement BEFORE the data SET, so a\nconcurrent always-on drain (FU-9) can momentarily see head ahead of an in-flight\nslot; stopping at the first absent node leaves that slot for the next tick rather\nthan shipping \"\" and trimming a record that is about to land. `$$read` can't tell\nan absent slot from a legitimately-empty record ($get-> \"\" for both); this can.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 375
+            "line": 374
           }
         },
         "isV2": {
@@ -2664,7 +2664,7 @@
           "description": "A legacy v1 string record ($$append) has only the scalar data node — no child.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 386
+            "line": 385
           }
         },
         "hdr": {
@@ -2701,7 +2701,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 394
+            "line": 393
           }
         },
         "chunk": {
@@ -2724,7 +2724,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 424
+            "line": 423
           }
         },
         "drainTo": {
@@ -2756,7 +2756,7 @@
           "description": "Called by the SEPARATE flush process (VSLS3 $$drain) AFTER a batch ships\n200 — never from the RPC path. Idempotent; never advances past head.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 429
+            "line": 428
           }
         },
         "disable": {
@@ -2785,7 +2785,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 446
+            "line": 445
           }
         },
         "disabled": {
@@ -2808,7 +2808,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 458
+            "line": 457
           }
         },
         "rearm": {
@@ -2831,7 +2831,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 463
+            "line": 462
           }
         },
         "offWindows": {
@@ -2860,7 +2860,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 472
+            "line": 471
           }
         },
         "state": {
@@ -2887,7 +2887,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 482
+            "line": 481
           }
         },
         "heartbeat": {
@@ -2909,7 +2909,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 495
+            "line": 494
           }
         },
         "healthy": {
@@ -2936,7 +2936,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 500
+            "line": 499
           }
         },
         "purgeNode": {
@@ -2959,7 +2959,7 @@
           "description": "The SAC ^XTMP convention (XU/krn_8_0_dg_xtmp_global_ug): a ,0) node of\nFileMan internal dates lets `XQ XUTL $J NODES` auto-purge the cache. No\nFileMan file (§4.1.1). Scheduling the option is an install-time seam.",
           "source": {
             "file": "src/VSLTAP.m",
-            "line": 514
+            "line": 513
           }
         }
       },
@@ -2973,7 +2973,7 @@
     },
     "VSLTAPBO": {
       "synopsis": "v-stdlib — traffic-tap back-out / verify-clean (the G-UNINST gate).",
-      "description": "doc: @exrun bare\n\nPhase 5 / M4 (GA), plan stage 5.1. v-pkg's KIDS uninstall is routine-only\n(it removes the routines + the #9.7/#9.6 build records); it deliberately\nleaves the tap's RUNTIME footprint behind. VSLTAPBO reverses exactly that\nfootprint and then PROVES, by inspection, that nothing is orphaned — the\nreversible-install invariant a fleet rollout depends on (risk G-UNINST):\n\n  1. the scheduled flush / fidelity TaskMan jobs (recorded in ^VSLTAP(\"task\"))\n  2. the tap's XPAR #8989.51 PARAMETER instances + definitions (the config seam)\n  3. the ^XTMP(\"VSLTAP\",…) rolling capture cache (the SAC scratch global)\n  4. the ^VSLTAP control state (cfg / disabled / hb / _offwindows / hl / fc)\n\n*** Layer: v (above the m/v waterline). The state-global cleanup (3,4) is\npure M and runs on a BARE engine; the XPAR (2) and TaskMan (1) legs are\nVistA seams, each fault-fenced so a bare engine survives them and a partial\nVistA absence never blocks the cleanup. Order matters: dequeue tasks (their\nnumbers live in ^VSLTAP) BEFORE the state kill removes the record.\n\nPublic API:\n  do backout()              full back-out: dequeue tasks -> drop params -> kill state\n  $$verifyClean(detail)     1 iff no tap residue; detail(globals/params/tasks) names any\n  do cleanState()           kill ^XTMP(\"VSLTAP\") + ^VSLTAP (the bare-testable core)\n  do cleanParams()          drop the tap #8989.51 XPAR instances + definitions (fenced)\n  do cleanTasks()           dequeue the recorded flush/fidelity TaskMan jobs (fenced)\n  $$params(out)             the canonical tap XPAR param-name list -> count",
+      "description": "doc: @exrun bare\n\nPhase 5 / M4 (GA), plan stage 5.1. v-pkg's KIDS uninstall is routine-only\n(it removes the routines + the #9.7/#9.6 build records); it deliberately\nleaves the tap's RUNTIME footprint behind. VSLTAPBO reverses exactly that\nfootprint and then PROVES, by inspection, that nothing is orphaned — the\nreversible-install invariant a fleet rollout depends on (risk G-UNINST):\n\n  1. any scheduled TaskMan jobs (recorded in ^VSLTAP(\"task\"))\n  2. the tap's XPAR #8989.51 PARAMETER instances + definitions (the config seam)\n  3. the ^XTMP(\"VSLTAP\",…) rolling capture cache (the SAC scratch global)\n  4. the ^VSLTAP control state (cfg / disabled / hb / _offwindows / hl / fc)\n\n*** Layer: v (above the m/v waterline). The state-global cleanup (3,4) is\npure M and runs on a BARE engine; the XPAR (2) and TaskMan (1) legs are\nVistA seams, each fault-fenced so a bare engine survives them and a partial\nVistA absence never blocks the cleanup. Order matters: dequeue tasks (their\nnumbers live in ^VSLTAP) BEFORE the state kill removes the record.\n\nPublic API:\n  do backout()              full back-out: dequeue tasks -> drop params -> kill state\n  $$verifyClean(detail)     1 iff no tap residue; detail(globals/params/tasks) names any\n  do cleanState()           kill ^XTMP(\"VSLTAP\") + ^VSLTAP (the bare-testable core)\n  do cleanParams()          drop the tap #8989.51 XPAR instances + definitions (fenced)\n  do cleanTasks()           dequeue the recorded flush/fidelity TaskMan jobs (fenced)\n  $$params(out)             the canonical tap XPAR param-name list -> count",
       "errors": [],
       "labels": {
         "params": {
@@ -3105,7 +3105,7 @@
         "cleanTasks": {
           "form": "procedure",
           "signature": "do cleanTasks^VSLTAPBO()",
-          "synopsis": "Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState).",
+          "synopsis": "Dequeue every recorded TaskMan job (read BEFORE cleanState).",
           "params": [],
           "returns": null,
           "raises": [],
@@ -3118,7 +3118,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "The scheduled-task numbers live in ^VSLTAP(\"task\",label)=ztsk. The\nfidelity/flush jobs are periodic re-queues (NOT persistent listeners),\nso they dequeue cleanly. Fenced — no TaskMan on a bare engine.",
+          "description": "The scheduled-task numbers live in ^VSLTAP(\"task\",label)=ztsk. These\njobs are periodic re-queues (NOT persistent listeners), so they dequeue\ncleanly. Fenced — no TaskMan on a bare engine.",
           "source": {
             "file": "src/VSLTAPBO.m",
             "line": 118
@@ -3434,7 +3434,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "$$verify/$$reconcile/$$manifest compute fidelity ON CALL against a corpus;\nVWEBT (the console) needs a passive getter, so the periodic comparator (and\nthe make test-s3 round-trip) call persist after a run. Single \"last\" slot:\na newer run replaces the prior one (the console shows the latest result).",
+          "description": "$$reconcile/$$manifest compute fidelity ON CALL against a corpus; a passive\ngetter ($$lastFidelity) needs the result stored, so the make test-s3\nround-trip / e2e harness calls persist after a run. Single \"last\" slot:\na newer run replaces the prior one.",
           "source": {
             "file": "src/VSLTAPFC.m",
             "line": 165
@@ -3678,174 +3678,6 @@
       },
       "source": {
         "file": "src/VSLTAPHL.m",
-        "line": 1
-      },
-      "tier": "core",
-      "example_run": "bare",
-      "example_safety": "read-only"
-    },
-    "VSLTAPRUN": {
-      "synopsis": "v-stdlib — the periodic fidelity-run task (closes the console loop).",
-      "description": "doc: @exrun bare\n\nPhase 5 / M4 (GA), plan stage 5.1. persist^VSLTAPFC + $$lastFidelity exist\nand the VWEBT console reads ^VSLTAP(\"fc\",\"last\"), but in a live install\nNOTHING calls persist — only the test suite writes it — so the console's\nfidelity panel shows `pending` forever. VSLTAPRUN is the schedulable task\nthat closes that loop: on a cadence it reconciles a shipped-vs-source sample\nand calls persist, giving the operator a real, current match %.\n\n*** Layer: v. It consumes the fidelity comparator (VSLTAPFC, v) and the gate\n(VSLTAP, v) and binds TaskMan (^%ZTLOAD, the same #10063 seam VSLTASK uses)\nto re-queue itself. The persist seam ($$reconcilePersist) is pure M and\nbare-proven; the live sampler ($$fidelityNow — LIST shipped objects, read\nthem back, integrity-verify each) is the egress leg that lights the console.\n\nPublic API:\n  do run()                     the scheduled task body (gate -> sample -> persist -> re-queue)\n  $$fidelityNow()              LIST shipped objects -> read back -> integrity-verify -> persist -> matched\n  $$reconcilePersist(corpus,envs)  reconcile a known corpus then persist it -> ok (the e2e-harness seam)\n  $$cadence()                  the run period in seconds (XPAR VSL TAP FIDELITY CADENCE; default 3600)\n  $$schedule()                 queue run^VSLTAPRUN at now+cadence; record the task# -> task#",
-      "errors": [],
-      "labels": {
-        "reconcilePersist": {
-          "form": "extrinsic",
-          "signature": "$$reconcilePersist^VSLTAPRUN(corpus, envs)",
-          "synopsis": "Reconcile the corpus vs the read-back envelopes, persist the result, return ok.",
-          "params": [
-            {
-              "name": "corpus",
-              "type": "array",
-              "doc": "by-ref: corpus(seq) = the source record"
-            },
-            {
-              "name": "envs",
-              "type": "array",
-              "doc": "by-ref: envs(seq)   = the read-back envelope line"
-            }
-          ],
-          "returns": {
-            "type": "bool",
-            "doc": "1 iff the sample reconciles byte-perfect (ok=true persisted)"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "new corpus,envs,rec,opt,save set save=$get(^VSLTAP(\"fc\",\"last\")) set rec(\"direction\")=\"resp\",rec(\"call_id\")=\"500-1-1\",rec(\"seq\")=1,rec(\"payload\")=\"hello world\",corpus(1)=\"hello world\",envs(1)=$$envelope^VSLS3(.rec,.opt) do eq^STDASSERT(.pass,.fail,$$reconcilePersist^VSLTAPRUN(.corpus,.envs),1,\"a byte-perfect 1-record sample reconciles ok=true\") set ^VSLTAP(\"fc\",\"last\")=save"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The one call that writes ^VSLTAP(\"fc\",\"last\") in production — the live\nsampler and the make-test-s3 round-trip both funnel through here so the\nconsole (VWEBT $$lastFidelity^VSLTAPFC) stops showing `pending`.",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 28
-          }
-        },
-        "cadence": {
-          "form": "extrinsic",
-          "signature": "$$cadence^VSLTAPRUN()",
-          "synopsis": "The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.",
-          "params": [],
-          "returns": {
-            "type": "numeric",
-            "doc": "a positive number of seconds between fidelity runs"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "write $$cadence^VSLTAPRUN()  ; 3600"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "$text-guarded — a bare engine has no XPAR, so the default (1h) applies.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 43
-          }
-        },
-        "schedule": {
-          "form": "extrinsic",
-          "signature": "$$schedule^VSLTAPRUN()",
-          "synopsis": "Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out can dequeue it); return it.",
-          "params": [],
-          "returns": {
-            "type": "numeric",
-            "doc": "the queued task number, or 0 when there is no TaskMan (bare/no-queue)"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "write $$schedule^VSLTAPRUN()  ; 0"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "A NON-persistent periodic task (each run re-queues the next) — NOT a\nPSET self-restarting listener (so it is cleanly dequeueable by VSLTAPBO,\nunlike a persistent listener). Records ^VSLTAP(\"task\",\"fidelity\")=task#.\n$text-guarded so a bare engine is a clean no-op.\n@icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 57
-          }
-        },
-        "run": {
-          "form": "procedure",
-          "signature": "do run^VSLTAPRUN()",
-          "synopsis": "The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "new save set save=$get(^VSLTAP(\"fc\",\"last\")) do off^VSLTAP() set ^VSLTAP(\"fc\",\"last\")=\"{\"\"sentinel\"\":1}\" do run^VSLTAPRUN() do eq^STDASSERT(.pass,.fail,$$lastFidelity^VSLTAPFC(),\"{\"\"sentinel\"\":1}\",\"a disabled tap skips the live work and leaves the last result untouched\") set ^VSLTAP(\"fc\",\"last\")=save"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "Respects the Phase-2 gate — when the tap is OFF / auto-disabled / has no\nconsumer it skips the live work entirely (no false fidelity result). The\nwhole body is fault-fenced so a sampling/egress fault self-clears and the\nnext tick is still re-queued.",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 83
-          }
-        },
-        "fidelityNow": {
-          "form": "extrinsic",
-          "signature": "$$fidelityNow^VSLTAPRUN()",
-          "synopsis": "Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.",
-          "params": [],
-          "returns": {
-            "type": "numeric",
-            "doc": "the count of shipped objects that read back as well-formed\nschema-v1 envelopes; -1 if no egress / nothing sampled"
-          },
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [
-            "write $$fidelityNow^VSLTAPRUN()  ; -1"
-          ],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The PRODUCTION readback signal that lights the VWEBT console — it needs no\ngenerated corpus and no separate process. It LISTs the per-station shipped\nobjects under `traffic/<station>/<proto>/` (`$$list^VSLS3`), reads each back,\nand checks every line PARSES as a schema-v1 envelope -> matched/mismatch. This\nproves the ship->store->readback path returns valid objects (it catches gross\nstorage / transport / truncation corruption). NO hash is used — strong byte-\nfidelity is the byte-equality reconcile against the source corpus\n($$reconcile^VSLTAPFC, the §15.2 round-trip), and at-rest integrity is the\nstorage layer's (S3's) job. Fenced; persists ^VSLTAP(\"fc\",\"last\"), which VWEBT\nreads via `$$lastFidelity^VSLTAPFC`.",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 103
-          }
-        },
-        "nextKey": {
-          "form": "procedure",
-          "signature": "do nextKey^VSLTAPRUN(k, seen, listing, ctx, bucket, opt, res)",
-          "synopsis": "(private) step to the previous listed subscript; verify its object if it's a real key.",
-          "params": [],
-          "returns": null,
-          "raises": [],
-          "raised_in_body": [],
-          "examples": [],
-          "since": "",
-          "stable": "",
-          "see_also": [],
-          "deprecated": "",
-          "seam": null,
-          "description": "The caller's FOR bounds the count (quit:seen'<cap), so no cap check here.",
-          "source": {
-            "file": "src/VSLTAPRUN.m",
-            "line": 132
-          },
-          "illustrative": "private iterator over a $$list^VSLS3 listing array — needs a live S3 ctx + bucket + shipped objects to step; exercised end-to-end via $$fidelityNow."
-        }
-      },
-      "source": {
-        "file": "src/VSLTAPRUN.m",
         "line": 1
       },
       "tier": "core",

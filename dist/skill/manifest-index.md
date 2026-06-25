@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 17 modules; 124 public labels.
+v-stdlib unversioned; 16 modules; 118 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -174,7 +174,7 @@ traffic-tap back-out / verify-clean (the G-UNINST gate).
 - `do backout^VSLTAPBO()` — Full back-out: dequeue tasks, drop the XPAR params, kill the state. Idempotent.
 - `do cleanParams^VSLTAPBO()` — Drop every tap XPAR param: clear the SYS instance, delete the #8989.51 definition.
 - `do cleanState^VSLTAPBO()` — Kill the rolling capture cache and ALL VSL control state.
-- `do cleanTasks^VSLTAPBO()` — Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState).
+- `do cleanTasks^VSLTAPBO()` — Dequeue every recorded TaskMan job (read BEFORE cleanState).
 - `do delParam^VSLTAPBO(name)` — (private) clear the SYS-level instance, then delete the #8989.51 definition record.
 - `do dequeue^VSLTAPBO(ztsk)` — (private) unschedule task `ztsk` via the Kernel ZTLOAD programmer API. Fenced.
 - `$$params^VSLTAPBO(out)` — Fill out(1..N) with the tap's XPAR #8989.51 param names; return N.
@@ -203,17 +203,6 @@ tap health instrument + standby readiness (the watchdog).
 - `$$ready^VSLTAPHL()` — Standby readiness probe: 1 iff a gated/idle tap COULD capture if a consumer appeared.
 - `do record^VSLTAPHL(us, bytes, denied)` — Record one capture sample: a denial, or a write (+bytes, +optional latency).
 - `do watchLatency^VSLTAPHL(base, tapped)` — Trip auto-failover OFF when the tapped-vs-baseline delta breaches the bound.
-
-## `VSLTAPRUN`
-
-the periodic fidelity-run task (closes the console loop).
-
-- `$$cadence^VSLTAPRUN()` — The fidelity-run period in seconds: XPAR VSL TAP FIDELITY CADENCE, default 3600.
-- `$$fidelityNow^VSLTAPRUN()` — Sample recently-shipped objects, confirm each reads back as a well-formed envelope, persist the result -> count.
-- `do nextKey^VSLTAPRUN(k, seen, listing, ctx, bucket, opt, res)` — (private) step to the previous listed subscript; verify its object if it's a real key.
-- `$$reconcilePersist^VSLTAPRUN(corpus, envs)` — Reconcile the corpus vs the read-back envelopes, persist the result, return ok.
-- `do run^VSLTAPRUN()` — The scheduled task body: gate -> sample+persist -> re-queue. Fenced (never aborts TaskMan).
-- `$$schedule^VSLTAPRUN()` — Queue run^VSLTAPRUN at now+cadence; record the task# (so back-out can dequeue it); return it.
 
 ## `VSLTASK`
 

@@ -7,7 +7,7 @@ VSLTAPBO	; v-stdlib — traffic-tap back-out / verify-clean (the G-UNINST gate).
 	; footprint and then PROVES, by inspection, that nothing is orphaned — the
 	; reversible-install invariant a fleet rollout depends on (risk G-UNINST):
 	;
-	;   1. the scheduled flush / fidelity TaskMan jobs (recorded in ^VSLTAP("task"))
+	;   1. any scheduled TaskMan jobs (recorded in ^VSLTAP("task"))
 	;   2. the tap's XPAR #8989.51 PARAMETER instances + definitions (the config seam)
 	;   3. the ^XTMP("VSLTAP",…) rolling capture cache (the SAC scratch global)
 	;   4. the ^VSLTAP control state (cfg / disabled / hb / _offwindows / hl / fc)
@@ -115,10 +115,10 @@ delParam(name)	; (private) clear the SYS-level instance, then delete the #8989.5
 	;
 	; ---------- (1) the TaskMan dequeue — a fenced VistA seam ----------
 	;
-cleanTasks()	; Dequeue every recorded flush/fidelity TaskMan job (read BEFORE cleanState).
-	; doc: The scheduled-task numbers live in ^VSLTAP("task",label)=ztsk. The
-	; doc: fidelity/flush jobs are periodic re-queues (NOT persistent listeners),
-	; doc: so they dequeue cleanly. Fenced — no TaskMan on a bare engine.
+cleanTasks()	; Dequeue every recorded TaskMan job (read BEFORE cleanState).
+	; doc: The scheduled-task numbers live in ^VSLTAP("task",label)=ztsk. These
+	; doc: jobs are periodic re-queues (NOT persistent listeners), so they dequeue
+	; doc: cleanly. Fenced — no TaskMan on a bare engine.
 	; doc: @example      do cleanTasks^VSLTAPBO() do true^STDASSERT(.pass,.fail,1,"cleanTasks: the fenced TaskMan leg returns without raising on a bare engine")
 	new $etrap,k
 	set $etrap="set $ecode="""" quit"

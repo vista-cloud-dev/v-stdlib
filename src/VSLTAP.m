@@ -98,9 +98,8 @@ seed()	; Populate ^VSLTAP("cfg",…) from the installed XPAR #8989.51 params (se
 	; doc: The KIDS install creates the tap params (VSLTAPBO $$params); the hot-path
 	; doc: gate ($$cfg) and the VSLS3 ctx seam read ^VSLTAP("cfg",…), NOT XPAR (no
 	; doc: XPAR/FileMan read on the capture path). seed bridges the two: it copies
-	; doc: each set param into its cfg key once, at install/configure time. The
-	; doc: fidelity cadence is read from XPAR directly (VSLTAPRUN), so it is not
-	; doc: mirrored here. $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.
+	; doc: each set param into its cfg key once, at install/configure time.
+	; doc: $text(GET^XPAR)-guarded -> a bare engine is a clean no-op.
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 	; doc: @illustrative  reads the installed XPAR #8989.51 tap params via $$GET^XPAR (live Kernel); on a bare engine $text(GET^XPAR)="" makes it a clean no-op, so a meaningful example needs an installed VistA with the params set.
 	new $etrap,map,n,i

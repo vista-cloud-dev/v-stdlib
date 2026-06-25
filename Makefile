@@ -35,7 +35,7 @@ BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
               tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPFENCETST.m \
               tests/VSLTAPHLTST.m tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m \
               tests/VSLTAPV2TST.m tests/VSLRPCWRAPTST.m \
-              tests/VSLTAPBOTST.m tests/VSLTAPRUNTST.m \
+              tests/VSLTAPBOTST.m \
               tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
 
 # Bare-runnable routine set for the bare coverage gate — every src routine MINUS
@@ -122,9 +122,9 @@ test-s3-matrix:
 # running only the bare suites ($(BARE_TESTS)) — NOT the full src/+tests/ dirs: a
 # VistA-binding suite run on a bare engine aborts and zeroes the whole collection.
 # Threshold is 80% (a documented BARE exception, the analogue of m-stdlib excluding
-# its optional callout modules): the VistA-binding routines and VSLTAPRUN's
-# $text/XPAR-guarded branches only execute on the live tier, so 100% is unreachable
-# on bare. The remaining lines are gated on the live tier.
+# its optional callout modules): the VistA-binding routines' $text/XPAR-guarded
+# branches only execute on the live tier, so 100% is unreachable on bare. The
+# remaining lines are gated on the live tier.
 coverage:
 	$(M) coverage $(ENGINE_FLAGS) --routines $(MSTDLIB)/src --min-percent=80 $(BARE_SRC) $(BARE_TESTS)
 

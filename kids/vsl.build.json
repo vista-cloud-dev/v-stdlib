@@ -21,7 +21,6 @@
       "VSLTAPBO",
       "VSLTAPFC",
       "VSLTAPHL",
-      "VSLTAPRUN",
       "VSLTASK"
     ],
     "parameterDefinitions": [
@@ -59,12 +58,6 @@
         "name": "VSL TAP ALWAYSON",
         "displayText": "Traffic-tap always-on flight-recorder opt-in (capture with no consumer present)",
         "dataType": "yes/no",
-        "entities": [ { "entity": "SYS", "precedence": 1 } ]
-      },
-      {
-        "name": "VSL TAP FIDELITY CADENCE",
-        "displayText": "Periodic fidelity-run period (seconds) read by VSLTAPRUN",
-        "dataType": "numeric",
         "entities": [ { "entity": "SYS", "precedence": 1 } ]
       },
       {

@@ -26,13 +26,19 @@ boundary, not the tap), so the payload digest is removed everywhere.
   which locks the no-digest contract), `tFidelityNowCatchesTamper`+`tamperLine`
   (VSLS3E2ETST).
 
-**`fidelityNow^VSLTAPRUN` redefined (the one judgment call):** in production there
-is no source corpus to byte-compare against, so its per-object check was the
-intrinsic hash. With the hash gone, `tallyLine` now counts a readback object as
-matched iff it PARSES as a well-formed schema-v1 envelope (`$$parse^STDJSON`) —
-the honest crypto-free residual (catches gross storage/truncation corruption, not
-tampering). The STRONG byte-fidelity proof stays the `$$reconcile` byte-equality
-round-trip in the test/CI harness (VSLS3E2ETST §15.2).
+**`VSLTAPRUN` deleted entirely (2026-06-25, owner: "delete fidelityNow, it was
+over-engineered, I never asked for it").** The whole periodic production
+fidelity-run task is gone — `fidelityNow` + its sampler (`nextKey`/`verifyObject`/
+`tallyLine`) + the scheduler that only ran it (`run`/`schedule`/`cadence`/
+`reschedule`/`nextRun`) + `reconcilePersist`. Also removed: the routine from the
+KIDS build (16 routines, was 17), the `VSL TAP FIDELITY CADENCE` XPAR param,
+`tests/VSLTAPRUNTST.m`, the E2E `tFidelityNowVerifiesShipped` test, the
+`docs/modules/vsltaprun.md` page + example program, and the VSLTAPRUN rows in the
+two tap guides. `VSLTAPBO.cleanTasks` is generic (iterates `^VSLTAP("task",*)`) so
+it needed no code change. The STRONG byte-fidelity proof was never in VSLTAPRUN —
+it is the `$$reconcile^VSLTAPFC` byte-equality round-trip in the e2e/CI harness
+(VSLS3E2ETST §15.2), which is retained. `persist`/`lastFidelity`/`manifest` stay
+in VSLTAPFC (used by that round-trip test).
 
 **Capture path (earlier, same day):** `write1rec^VSLTAP` already stopped hashing
 (`set hash=""`, no `hc` node) — see [[live-capture-fault-stdcrypto]]. The capture

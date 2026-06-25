@@ -26,7 +26,6 @@ VSLS3E2ETST	; v-stdlib — end-to-end round-trip fidelity harness (the M2 exit g
 	do start^STDASSERT(.pass,.fail)
 	;
 	do tRoundTripByteExact(.pass,.fail)
-	do tFidelityNowVerifiesShipped(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -108,22 +107,4 @@ seqOf(line)	; (private) the seq field of one envelope line.
 	new t
 	if '$$parse^STDJSON(line,.t) quit ""
 	quit $$valueOf^STDJSON($get(t("seq")))
-	;
-tFidelityNowVerifiesShipped(pass,fail)	;@TEST "fidelityNow: lists shipped objects, confirms each reads back well-formed, persists a real match% for the console"
-	new c,seq,res,n,st,m,t
-	do cfg()
-	; a unique per-run station so the LIST prefix is isolated (no cross-run bleed)
-	set st="fidok"_$job set ^VSLTAP("cfg","s3station")=st
-	do corpus(.c)
-	set seq=""
-	for  do drive(.seq,.c) quit:seq=""
-	set n=$$drain^VSLS3(.res)
-	do eq^STDASSERT(.pass,.fail,n,7,"the 7-record batch shipped to the S3-equivalent")
-	kill ^VSLTAP("fc")
-	set m=$$fidelityNow^VSLTAPRUN()
-	do eq^STDASSERT(.pass,.fail,m,7,"fidelityNow confirmed all 7 shipped objects read back as well-formed envelopes")
-	if '$$parse^STDJSON($$lastFidelity^VSLTAPFC(),.t)
-	do eq^STDASSERT(.pass,.fail,$$type^STDJSON($get(t("ok"))),"true","the console's persisted fidelity is ok=true (round-trip integrity)")
-	do eq^STDASSERT(.pass,.fail,$$valueOf^STDJSON($get(t("mismatch"))),0,"no integrity mismatches on a faithful round-trip")
-	quit
 	;

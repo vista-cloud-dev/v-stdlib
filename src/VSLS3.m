@@ -251,10 +251,9 @@ list(ctx,bucket,prefix,opt,listing)	; LIST object keys under `prefix` via STDS3 
 	; doc: @param opt      array  by-ref: opt("endpoint") — REQUIRED to reach the S3-equivalent
 	; doc: @param listing  array  OUT by-ref: listing(1..n,"key"/"size"/"etag") + ("truncated"/"next")
 	; doc: @returns        int    HTTP status (200 ok); 0 on transport failure
-	; doc: The discovery leg for the periodic fidelity sampler (VSLTAPRUN
-	; doc: $$fidelityNow): enumerate recently-shipped objects under the per-station
-	; doc: prefix so they can be read back and integrity-verified. Same `opt`
-	; doc: endpoint override as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).
+	; doc: Enumerate shipped objects under a per-station prefix (e.g. to read them
+	; doc: back for an out-of-band byte-equality check). Same `opt` endpoint override
+	; doc: as ship/readback. LIST is dual-engine-proven (STDS3MINIOTST).
 	; doc: @illustrative  live S3/MinIO LIST over engine HTTP egress (STDS3 listObjectsV2); proven in STDS3MINIOTST, not on a bare engine.
 	quit $$listObjectsV2^STDS3(.ctx,bucket,$get(prefix),.opt,.listing)
 	;

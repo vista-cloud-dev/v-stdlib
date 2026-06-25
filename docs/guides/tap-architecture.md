@@ -94,9 +94,6 @@ and the live install ran a wrap-on/wrap-off byte-identical proof.
 - **`VSLTAPFC`** — the fidelity comparator: decode a shipped LDJSON envelope back
   to the captured bytes, re-hash, and prove **byte-equality** against the source
   (plus a loss taxonomy — `rpc_error` / `rpc_denied`). Proof, not assertion.
-- **`VSLTAPRUN`** — the periodic TaskMan job that samples recently-shipped
-  objects, integrity-verifies them, and persists the `_fidelity` manifest so the
-  console can read the last result without re-running.
 - **`VSLTAPHL`** — the watchdog: heartbeat liveness, latency percentiles, a
   synthetic round-trip canary, and a standby-readiness probe.
 - **`VSLTAPBO`** — back-out / verify-clean: every install step has an exact

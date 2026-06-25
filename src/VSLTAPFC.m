@@ -166,10 +166,10 @@ persist(res,ts)	; Store the last fidelity run so the console can read it (no liv
 	; doc: @param res  array   by-ref: res("matched"/"mismatch"/"missing"/"extra")
 	; doc: @param ts   string  capture timestamp (default $H)
 	; doc: @returns    void     writes the manifest line to ^VSLTAP("fc","last")
-	; doc: $$verify/$$reconcile/$$manifest compute fidelity ON CALL against a corpus;
-	; doc: VWEBT (the console) needs a passive getter, so the periodic comparator (and
-	; doc: the make test-s3 round-trip) call persist after a run. Single "last" slot:
-	; doc: a newer run replaces the prior one (the console shows the latest result).
+	; doc: $$reconcile/$$manifest compute fidelity ON CALL against a corpus; a passive
+	; doc: getter ($$lastFidelity) needs the result stored, so the make test-s3
+	; doc: round-trip / e2e harness calls persist after a run. Single "last" slot:
+	; doc: a newer run replaces the prior one.
 	; doc: @example   new res,t,save,had set had=$data(^VSLTAP("fc","last")),save=$get(^VSLTAP("fc","last")) set res("matched")=8,res("mismatch")=0,res("missing")=0,res("extra")=0 do persist^VSLTAPFC(.res,"65800,43200") do eq^STDASSERT(.pass,.fail,$$parse^STDJSON($$lastFidelity^VSLTAPFC(),.t)_"|"_$$valueOf^STDJSON(t("matched")),"1|8","persist stores a readable manifest carrying the matched count") if had set ^VSLTAP("fc","last")=save
 	set ^VSLTAP("fc","last")=$$manifest(.res,$get(ts,$horolog))
 	quit
