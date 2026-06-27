@@ -67,46 +67,6 @@ exposes the composed FileMan detail.
 
 ---
 
-## Traffic tap — VSLTAP / VSLRPCTAP / VSLRPCWRAP
-
-The non-interference RPC/HL7 tap. The broker-dispatch wrap
-(`VSLRPCWRAP`) is the only splice into national code; everything below
-it is fault-fenced and bounded so a tap fault can never perturb the
-captured call.
-
-```m
-; The two side-calls the patched CALLP^XWBBRK invokes (req before, resp after):
-do req^VSLRPCWRAP()      ; emit a dir=req record for EVERY RPC (incl. denied)
-do resp^VSLRPCWRAP()     ; emit a dir=resp record on the dispatch-success path
-
-; Gate + capture from your own producer:
-if $$captureOn^VSLTAP() do teeRec^VSLTAP(.rec)    ; gated, fenced, bounded append
-```
-
-`$$captureOn` is the always-on ring gate (armed ∧ not auto-disabled);
-`$$enabled` is the stricter egress gate (capture-on ∧ a sink present).
-Never call `write1`/`append` directly — `tee`/`teeRec` own the fence.
-
----
-
-## S3 egress — VSLS3
-
-Drain the in-memory ring to S3 (or an S3-equivalent) as one batched
-LDJSON object, then trim what shipped. Envelopes are schema-v1.
-
-```m
-new ctx,res
-do  set ctx=$$ctx^VSLS3(.ctx,.opt)         ; creds + endpoint from the ^VSLTAP config seam
-if $$drain^VSLS3(.res) do drainTo^VSLTAP(res("last"))   ; ship batch, then trim shipped prefix
-```
-
-`$$envelope^VSLS3(.rec,.opt)` frames one record; `$$key^VSLS3` builds
-the `traffic/<station>/<proto>/Y/M/D/<seq>` object key. The actual
-HTTP PUT/GET goes through `STDS3` (m-stdlib) — VSLS3 owns only the
-VistA-side framing + config.
-
----
-
 ## TaskMan persistent listener — VSLTASK
 
 Headless-queue a self-restarting listener through Kernel TaskMan

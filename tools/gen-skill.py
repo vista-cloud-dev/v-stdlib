@@ -80,7 +80,6 @@ def _build_skill_md(manifest: dict, errors: dict) -> str:
         '"VSL"',
         '"VSLCFG"',
         '"VSLSEC"',
-        '"VSLTAP"',
         '"$$get^VSLCFG"',
         '"$$bySecid^VSLSEC"',
         '"^VSL"',
@@ -95,8 +94,8 @@ def _build_skill_md(manifest: dict, errors: dict) -> str:
     lines.append("  routines (layer v) that bind Kernel / FileMan / XPAR / Broker")
     lines.append("  surfaces to the engine-neutral m-stdlib (`STD*`) base, one-way")
     lines.append("  `v -> m` per the m/v waterline. Covers XPAR config, security-key")
-    lines.append("  checks, the RPC/HL7 traffic tap, S3 egress, TaskMan, and KIDS")
-    lines.append("  build helpers. Load when writing VistA-layer M code that calls any")
+    lines.append("  checks, FileMan storage, file I/O, audit-sink logging, TaskMan,")
+    lines.append("  and KIDS build helpers. Load when writing VistA-layer M code that calls any")
     lines.append(f"  VSL* module. Triggers: {', '.join(triggers)}.")
     lines.append("---")
     lines.append("")
@@ -153,7 +152,7 @@ def _build_skill_md(manifest: dict, errors: dict) -> str:
     lines.append(
         "| [`patterns.md`](patterns.md) | "
         "Looking for a copy-paste idiom for a frequent task "
-        "(XPAR config read, security-key check, the traffic-tap entry points). |"
+        "(XPAR config read, security-key check, FileMan storage, TaskMan). |"
     )
     lines.append(
         "| [`manifest-index.md`](manifest-index.md) | "
@@ -192,9 +191,9 @@ def _build_skill_md(manifest: dict, errors: dict) -> str:
         "- **VistA-specific.** v-stdlib needs Kernel / FileMan / KIDS; the"
     )
     lines.append(
-        "  tap + S3 + auth tier (VSLTAP/VSLRPCTAP/VSLS3/VSLSEC) is bare-engine"
+        "  security token path (VSLSEC) is bare-engine green, the rest"
     )
-    lines.append("  green, the rest needs a live VistA.")
+    lines.append("  (VSLCFG/VSLFS/VSLIO/VSLLOG/VSLTASK) needs a live VistA.")
     lines.append(
         "- **Each module is a flat routine; you `do`-call or `$$`-call public"
     )

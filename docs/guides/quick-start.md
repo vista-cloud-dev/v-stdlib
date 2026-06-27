@@ -11,16 +11,17 @@ doc_type: [GUIDE]
 
 `VSL*` is the **VistA-specific** standard library (layer `v`) — it binds Kernel /
 FileMan / XPAR / Broker to the engine-neutral [`m-stdlib`](https://github.com/vista-cloud-dev/m-stdlib)
-(`STD*`) base, one-way `v → m`. The headline feature is the **RPC + HL7 → S3
-traffic tap**; see [`tap-architecture.md`](tap-architecture.md) for the design
-and [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) for deploy / back-out.
+(`STD*`) base, one-way `v → m`.
+
+> The prior RPC + HL7 → S3 traffic tap has been **quarantined** (see
+> [`../../quarantine/`](../../quarantine/)) pending its greenfield rewrite as
+> `v-rpc-tap` against the live `CALLP^XWBPRS` path. This guide covers the
+> current six-module library.
 
 ## 1. Two tiers — what needs VistA, what doesn't
 
-- **Bare-engine green** (no Kernel/FileMan): the tap + S3 + auth core —
-  `VSLTAP`, `VSLRPCTAP`, `VSLRPCWRAP`, `VSLS3`, `VSLTAPFC`, `VSLTAPHL`,
-  `VSLHL7TAP`, `VSLSEC` (token path). These run on a plain `m-test-engine` /
-  `m-test-iris`.
+- **Bare-engine green** (no Kernel/FileMan): `VSLSEC` (the token path) + the
+  smoke suite — these run on a plain `m-test-engine` / `m-test-iris`.
 - **VistA-dependent**: `VSLCFG` (XPAR), `VSLFS` (FileMan), `VSLIO` (Kernel TCP),
   `VSLLOG`, `VSLTASK` — need a live VistA (Kernel + FileMan).
 
@@ -31,7 +32,7 @@ and [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md) for deploy / back-out.
 ```bash
 cd ~/vista-cloud-dev/v-stdlib
 make check-fast                                   # fmt + lint + arch + drift gates (engine-free)
-make test-bare ENGINE=ydb DOCKER=m-test-engine    # the bare-engine tap/S3/auth tier
+make test-bare ENGINE=ydb DOCKER=m-test-engine    # the bare-engine (no-VistA) suite set
 make test ENGINE=ydb DOCKER=m-test-engine         # full set (needs a VistA-equipped engine)
 ```
 
@@ -55,17 +56,16 @@ For copy-paste idioms across the VSL modules see the skill pattern library
 ([`../../dist/skill/patterns.md`](../../dist/skill/patterns.md)), and a runnable
 demo under [`../../examples/`](../../examples/).
 
-## 4. The traffic tap (the headline feature)
+## 4. Install (the VSL KIDS build)
 
-The tap captures broker RPC + HL7 traffic and ships it to S3 as LDJSON, with
-**non-interference** as the prime invariant (it never perturbs the captured
-call). It is shipped as the **VSL KIDS build** (`dist/kids/VSL.kids`) and is
-installed/backed-out **strictly via v-pkg** (`v-pkg install`/`uninstall`,
+The library ships as the **VSL KIDS build** (`dist/kids/VSL.kids`), installed
+and backed-out **strictly via v-pkg** (`v-pkg install`/`uninstall`,
 snapshot/restore class-aware) — no bespoke installer.
 
-- **Understand it:** [`tap-architecture.md`](tap-architecture.md) — data flow +
-  the safety model.
-- **Deploy / back out:** [`traffic-tap-dibrg.md`](traffic-tap-dibrg.md).
+> The prior RPC/HL7→S3 tap (its `tap-architecture.md` / `traffic-tap-dibrg.md`
+> runbooks and engine code) now lives under [`../../quarantine/`](../../quarantine/).
+> Its replacement is the greenfield `v-rpc-tap` (a separate `VSL RPC TAP`
+> package; see the `docs` repo `proposals/v-rpc-tap-scalable.md`).
 
 ## 5. Where next
 

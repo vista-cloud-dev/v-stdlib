@@ -25,12 +25,12 @@ jobs:
       engine-targets: ""
 
   # ── Engine-bound HARD gate (YDB) ────────────────────────────────────────────
-  # The bare-engine-green suite set (the traffic-tap + S3 + auth tier, incl. the
-  # VSLTAPBENCH non-interference gate) + the Option-A round-trip (VSLS3E2ETST)
-  # against a live MinIO. Self-contained: the reusable m-ci.yml can't host a
-  # sibling-MSL checkout + a second engine + MinIO, so this job provisions them
-  # (mirroring m-ci.yml's build-`m` / start-engine steps). `make test-s3-matrix`
-  # runs BOTH engines locally; CI hard-gates YDB and fail-soft-surfaces IRIS below.
+  # The bare-engine-green suite set + the bare living-examples arm on a live YDB
+  # engine. Self-contained: the reusable m-ci.yml can't host a sibling-MSL
+  # checkout + engine, so this job provisions them (mirroring m-ci.yml's build-`m`
+  # / start-engine steps).
+  # NOTE: the prior S3 round-trip (VSLS3E2ETST + MinIO testbed) was quarantined
+  # with the rest of the prior tap subsystem (see quarantine/).
   engine-ydb:
     runs-on: ubuntu-latest
     env:
@@ -57,7 +57,7 @@ jobs:
             https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib"
           echo "MSTDLIB=$RUNNER_TEMP/m-stdlib" >> "$GITHUB_ENV"
 
-      - name: Start the YDB engine (m-test-engine 0.2.0 — stdhttp callout for S3 egress)
+      - name: Start the YDB engine (m-test-engine 0.2.0)
         run: |
           docker run -d --name m-test-engine ghcr.io/m-dev-tools/m-test-engine:0.2.0
           echo "waiting for m-test-engine to report healthy…"
@@ -67,14 +67,8 @@ jobs:
           done
           test "$(docker inspect -f '{{.State.Health.Status}}' m-test-engine)" = healthy
 
-      - name: Stand up the MinIO testbed (connects m-test-engine to the s3 net)
-        run: scripts/s3-testbed.sh up
-
       - name: Bare-engine suites (YDB)
         run: make test-bare ENGINE=ydb DOCKER=m-test-engine
-
-      - name: Option-A round-trip → MinIO (YDB)
-        run: make test-s3 ENGINE=ydb DOCKER=m-test-engine
 
       - name: Living examples — bare YDB arm (E4, hard gate)
         # Executes examples/programs/*EX.m on m-test-engine via the driver stack,
@@ -84,15 +78,13 @@ jobs:
       - name: Tear down
         if: always()
         run: |
-          scripts/s3-testbed.sh down || true
           docker rm -f m-test-engine || true
 
   # ── Engine-bound FAIL-SOFT gate (IRIS, PRs only) ─────────────────────────────
-  # Surfaces IRIS portability of the tap suites + round-trip without blocking a
-  # merge (org posture: IRIS is best-effort in CI — the iris-portability job in
-  # m-ci.yml is also continue-on-error). A fresh iris-community is NOT the curated
-  # local m-test-iris, so a red run here is informative, not a gate. The full
-  # both-engine matrix is the local `make ci` gate.
+  # Surfaces IRIS portability of the bare suites without blocking a merge (org
+  # posture: IRIS is best-effort in CI — the iris-portability job in m-ci.yml is
+  # also continue-on-error). A fresh iris-community is NOT the curated local
+  # m-test-iris, so a red run here is informative, not a gate.
   engine-iris:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
@@ -130,23 +122,16 @@ jobs:
           done
           docker inspect -f '{{.State.Health.Status}}' m-test-iris
 
-      - name: Stand up the MinIO testbed (connects m-test-iris to the s3 net)
-        run: scripts/s3-testbed.sh up
-
       - name: Bare-engine suites (IRIS)
         run: make test-bare ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m --namespace USER'
-
-      - name: Option-A round-trip → MinIO (IRIS)
-        run: make test-s3 ENGINE_FLAGS='--engine iris --docker m-test-iris --chset m --namespace USER'
 
       - name: Living examples — bare IRIS arm (E4, fail-soft)
         # Executes the dual-scope examples on m-test-iris via the driver stack.
         # This job is continue-on-error (org IRIS posture), so a red surfaces
-        # softly. @exrun ydb (VSLRPCWRAP) + @exrun live modules are skipped here.
+        # softly. @exrun live modules are skipped here.
         run: make examples-run-iris
 
       - name: Tear down
         if: always()
         run: |
-          scripts/s3-testbed.sh down || true
           docker rm -f m-test-iris || true

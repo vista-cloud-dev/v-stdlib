@@ -8,22 +8,13 @@
     ]
   },
   "discovered": {
-    "globals": [
-      "VSLTAP"
-    ],
+    "globals": [],
     "routines": [
       "VSLCFG",
       "VSLFS",
-      "VSLHL7TAP",
       "VSLIO",
       "VSLLOG",
-      "VSLRPCTAP",
-      "VSLRPCWRAP",
-      "VSLS3",
       "VSLSEC",
-      "VSLTAP",
-      "VSLTAPFC",
-      "VSLTAPHL",
       "VSLTASK"
     ]
   }

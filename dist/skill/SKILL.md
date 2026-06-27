@@ -6,9 +6,9 @@ description: >
   routines (layer v) that bind Kernel / FileMan / XPAR / Broker
   surfaces to the engine-neutral m-stdlib (`STD*`) base, one-way
   `v -> m` per the m/v waterline. Covers XPAR config, security-key
-  checks, the RPC/HL7 traffic tap, S3 egress, TaskMan, and KIDS
-  build helpers. Load when writing VistA-layer M code that calls any
-  VSL* module. Triggers: "v-stdlib", "VSL", "VSLCFG", "VSLSEC", "VSLTAP", "$$get^VSLCFG", "$$bySecid^VSLSEC", "^VSL".
+  checks, FileMan storage, file I/O, audit-sink logging, TaskMan,
+  and KIDS build helpers. Load when writing VistA-layer M code that calls any
+  VSL* module. Triggers: "v-stdlib", "VSL", "VSLCFG", "VSLSEC", "$$get^VSLCFG", "$$bySecid^VSLSEC", "^VSL".
 ---
 
 # v-stdlib — pattern library and quick reference (unversioned)
@@ -17,7 +17,7 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 13 modules, 101 public labels,
+**Catalogue:** 6 modules, 29 public labels,
 6 error codes.
 
 ## When to use this skill
@@ -39,7 +39,7 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 
 | File | Use when |
 |---|---|
-| [`patterns.md`](patterns.md) | Looking for a copy-paste idiom for a frequent task (XPAR config read, security-key check, the traffic-tap entry points). |
+| [`patterns.md`](patterns.md) | Looking for a copy-paste idiom for a frequent task (XPAR config read, security-key check, FileMan storage, TaskMan). |
 | [`manifest-index.md`](manifest-index.md) | You know the module name and want the full label list with synopses; or grepping for a function by name. |
 | [`error-codes.md`](error-codes.md) | An $ETRAP fired with a `,U-VSL...-,` code and you need to know which module / label set it. |
 
@@ -47,16 +47,9 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 
 - **`VSLCFG`** — VistA configuration adapter over XPAR (Parameter Tools).
 - **`VSLFS`** — VistA FileMan storage adapter (FileMan DBS record store).
-- **`VSLHL7TAP`** — HL7 store-tail adapter (decoupled, zero in-line).
 - **`VSLIO`** — VistA TCP transport adapter over the Kernel device handler.
 - **`VSLLOG`** — VistA FileMan audit-sink adapter (the S3 audit seam).
-- **`VSLRPCTAP`** — RPC tap adapter at the VSLRPC chokepoint (the fenced tee).
-- **`VSLRPCWRAP`** — the XWB broker-dispatch wrap glue (FU-5 / G-RPCHOOK).
-- **`VSLS3`** — S3 egress sink: LDJSON envelope + the §11 bucket layout.
 - **`VSLSEC`** — VistA identity/authorization adapter (Kernel).
-- **`VSLTAP`** — non-interference traffic-tap core (the safety gate).
-- **`VSLTAPFC`** — fidelity comparator: byte-equality proof, not assertion.
-- **`VSLTAPHL`** — tap health instrument + standby readiness (the watchdog).
 - **`VSLTASK`** — VistA TaskMan persistent-listener adapter (the process seam).
 
 ## Architectural rules
@@ -66,8 +59,8 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
   one. VistA vocabulary (FileMan, KIDS, XPAR, Broker) lives here,
   never below the line in m-stdlib.
 - **VistA-specific.** v-stdlib needs Kernel / FileMan / KIDS; the
-  tap + S3 + auth tier (VSLTAP/VSLRPCTAP/VSLS3/VSLSEC) is bare-engine
-  green, the rest needs a live VistA.
+  security token path (VSLSEC) is bare-engine green, the rest
+  (VSLCFG/VSLFS/VSLIO/VSLLOG/VSLTASK) needs a live VistA.
 - **Each module is a flat routine; you `do`-call or `$$`-call public
   labels.** No global registries, no init hooks, no DI.
 

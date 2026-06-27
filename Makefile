@@ -30,12 +30,10 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 # CI gate (`make ci`). The VistA-dependent suites (VSLCFG/VSLFS/VSLIO/
 # VSLLOG/VSLTASK — they need #-files + Kernel APIs and report 0/0 on a bare
 # engine) are NOT here; run them via `make test` on a VistA-equipped engine.
-# VSLS3E2ETST is the live round-trip — it runs in `make test-s3-matrix`, not here.
-BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
-              tests/VSLTAPTST.m tests/VSLRPCTAPTST.m tests/VSLTAPFENCETST.m \
-              tests/VSLTAPHLTST.m tests/VSLTAPFCTST.m tests/VSLTAPBENCHTST.m \
-              tests/VSLTAPV2TST.m tests/VSLRPCWRAPTST.m \
-              tests/VSLHL7TAPTST.m tests/VSLS3TST.m tests/VSLS3DRAINTST.m
+# NOTE: the prior RPC/HL7-tap + S3 suites were quarantined (see quarantine/) —
+# they will be replaced by the greenfield v-rpc-tap effort and are no longer
+# part of the active library or its gates.
+BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m
 
 # Bare-runnable routine set for the bare coverage gate — every src routine MINUS
 # the VistA-binding ones (tagged `; doc: @exrun live`: VSLCFG/VSLFS/
@@ -46,10 +44,7 @@ BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m \
 LIVE_SRC := $(shell grep -lE '@exrun[[:space:]]+live' src/*.m 2>/dev/null)
 BARE_SRC := $(filter-out $(LIVE_SRC),$(wildcard src/*.m))
 
-# The MinIO testbed for the live round-trip (vendored — see scripts/s3-testbed.sh).
-S3_TESTBED := scripts/s3-testbed.sh
-
-.PHONY: all check fmt fmt-check lint arch test test-bare test-s3 test-s3-matrix coverage clean \
+.PHONY: all check fmt fmt-check lint arch test test-bare coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
@@ -79,43 +74,19 @@ arch:
 
 # Engine-bound: stage STDASSERT (+ harness) from m-stdlib so VSL*TST suites
 # resolve ^STDASSERT. Pass --engine ydb|iris and --docker <container>.
-# NOTE: the integration harness tests/VSLS3E2ETST.m needs a live MinIO sink +
-# engine HTTP egress — run it via `make test-s3`, not here (carved, like
-# m-stdlib's STDS3MINIOTST).
 test:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(TESTS)
 
-# Engine-bound but VistA-FREE: the bare-engine-green suite set ($(BARE_TESTS)) —
-# the traffic-tap + S3 + auth tier. Green on a plain m-test-engine / m-test-iris
-# with no VistA. This is what `make ci` runs per engine.
+# Engine-bound but VistA-FREE: the bare-engine-green suite set ($(BARE_TESTS)).
+# Green on a plain m-test-engine / m-test-iris with no VistA. This is what
+# `make ci` runs per engine.
 test-bare:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(BARE_TESTS)
 
-# Integration: the end-to-end round-trip fidelity harness (spec §15.2) against a
-# LIVE S3-equivalent (MinIO/LocalStack). NOT in `make test`/`make ci` — it needs
-# engine HTTP egress (G-HTTP-YDB: bake stdhttp.so+libcurl into m-test-engine;
-# G-HTTP-IRIS-GET: STDHTTP %Net signed-bodyless-GET fix). Bring up the m-stdlib
-# s3-testbed MinIO first (shared docker network, host m-s3-minio:9000), e.g.
-#   ( cd $(MSTDLIB) && scripts/s3-testbed.sh up )
-# then: make test-s3 ENGINE=iris DOCKER=m-test-iris
-test-s3:
-	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m
-
-# The Option-A round-trip MATRIX gate (spec §15.2, plan stage 3.4): the live
-# byte-exact harness VSLS3E2ETST run against MinIO on BOTH engines (the A ×
-# {YDB,IRIS} matrix). Self-contained — stands up the MinIO testbed, runs each
-# engine, and tears it down on the way out (trap, even on failure). A HARD gate:
-# fails if either engine's corpus→tap→drain→ship→read-back→reconcile is not
-# byte-exact. Part of `make ci`. Needs docker (MinIO + the two test engines).
-test-s3-matrix:
-	@rc=0; \
-	trap '$(S3_TESTBED) down' EXIT; \
-	$(S3_TESTBED) up || exit 1; \
-	echo "── Option A round-trip · YDB ──"; \
-	$(M) test --engine ydb  --docker m-test-engine --chset m --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m || rc=1; \
-	echo "── Option A round-trip · IRIS ──"; \
-	$(M) test --engine iris --docker m-test-iris            --routines $(SRC) --routines $(MSTDLIB)/src tests/VSLS3E2ETST.m || rc=1; \
-	exit $$rc
+# NOTE: the prior S3 round-trip targets (`test-s3` / `test-s3-matrix`, harness
+# VSLS3E2ETST + scripts/s3-testbed.sh) were quarantined with the rest of the
+# prior tap subsystem (see quarantine/). The greenfield v-rpc-tap effort egresses
+# host-side and will bring its own validation.
 
 # Bare-tier line coverage. Measures the bare-runnable routines ($(BARE_SRC)) while
 # running only the bare suites ($(BARE_TESTS)) — NOT the full src/+tests/ dirs: a
@@ -359,7 +330,6 @@ ci:
 	$(MAKE) check-fast
 	$(MAKE) test-bare ENGINE=ydb  DOCKER=m-test-engine
 	$(MAKE) test-bare ENGINE=iris DOCKER=m-test-iris
-	$(MAKE) test-s3-matrix
 
 clean:
 	rm -f test-results.tap *.lcov coverage.out

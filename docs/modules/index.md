@@ -6,7 +6,7 @@ generated_from: dist/vsl-manifest.json
 
 # v-stdlib — module catalogue
 
-v-stdlib unversioned; **13 modules**, **101 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
+v-stdlib unversioned; **6 modules**, **29 public labels**. Generated from `dist/vsl-manifest.json` by `tools/write-module-frontmatter.py` (`make frontmatter`) — do not edit by hand.
 
 Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` routine from m-stdlib, never the reverse (the m/v waterline). For the engine-neutral primitives see the `m-stdlib` catalogue.
 
@@ -14,15 +14,8 @@ Every `VSL*` routine is **layer v** (VistA-specific): it MAY consume an `STD*` r
 |---|---|---|
 | [`VSLCFG`](vslcfg.md) | 2 | VistA configuration adapter over XPAR (Parameter Tools) |
 | [`VSLFS`](vslfs.md) | 5 | VistA FileMan storage adapter (FileMan DBS record store) |
-| [`VSLHL7TAP`](vslhl7tap.md) | 8 | HL7 store-tail adapter (decoupled, zero in-line) |
 | [`VSLIO`](vslio.md) | 8 | VistA TCP transport adapter over the Kernel device handler |
 | [`VSLLOG`](vsllog.md) | 3 | VistA FileMan audit-sink adapter (the S3 audit seam) |
-| [`VSLRPCTAP`](vslrpctap.md) | 4 | RPC tap adapter at the VSLRPC chokepoint (the fenced tee) |
-| [`VSLRPCWRAP`](vslrpcwrap.md) | 6 | the XWB broker-dispatch wrap glue (FU-5 / G-RPCHOOK) |
-| [`VSLS3`](vsls3.md) | 11 | S3 egress sink: LDJSON envelope + the §11 bucket layout |
 | [`VSLSEC`](vslsec.md) | 5 | VistA identity/authorization adapter (Kernel) |
-| [`VSLTAP`](vsltap.md) | 30 | non-interference traffic-tap core (the safety gate) |
-| [`VSLTAPFC`](vsltapfc.md) | 7 | fidelity comparator: byte-equality proof, not assertion |
-| [`VSLTAPHL`](vsltaphl.md) | 6 | tap health instrument + standby readiness (the watchdog) |
 | [`VSLTASK`](vsltask.md) | 6 | VistA TaskMan persistent-listener adapter (the process seam) |
 
