@@ -48,6 +48,15 @@ This proposal defines that missing layer as **two coordinated deliverables**:
    module. This is the "suite of vertical applications, each a Go CLI over a VistA
    module" shape requested.
 
+**One binary, mixed surfaces.** Not every vertical wants the same client:
+form-heavy provisioning and live dashboards are better as a **rich web UI**, while
+scriptable, incident-context operations are better as **CLI/TUI**. So each vertical
+carries a **client-type** assignment by an explicit rubric (§7.1), and the whole
+host side is a **single registry-driven Go binary** — a busybox-style multiplexer
+(§7.2) whose one declarative registry of verticals generates the CLI, the TUI, and
+the web surfaces alike, keeping the suite syntactically and semantically coherent
+as it grows.
+
 The work is sequenced by **automatability**: the cleanly API-backed spine
 (**XPAR · XQALERT · %ZTLOAD · ^XUSEC**) ships first and is fully dual-engine
 testable; the no-Supported-API domains (user/device edit over `#200`/`#3.5`,
@@ -293,26 +302,120 @@ plain-noun rule: a domain wraps an insider subsystem in a name a developer can
 guess; the VA product name never appears in a command/flag). Each domain is a thin
 cobra command calling its `VSL*` module via `mdriver.Client`.
 
-| `v` domain | Verbs (indicative) | Engine module | Tier |
-|---|---|---|---|
-| `v job` | `ls show requeue run rm status` | VSLJOB | 1 |
-| `v alert` | `ls show clear clear-all forward` | VSLALERT | 1 |
-| `v config` | `get enum set ls` | VSLPARM | 1 |
-| `v key` | `held holders grant revoke rename` | VSLKEY | 1 |
-| `v error` | `summary tail show purge` | VSLERR | 1 |
-| `v user` | `ls find show status deactivate reactivate create edit` | VSLUSER | 2 |
-| `v device` | `ls show edit status` | VSLDEV | 2 |
-| `v audit` | `signon failed summary` | VSLAUD | 2 |
-| `v hl7` | `links queues stats` | VSLHLO | 3 |
-| `v status` | `sessions counts` | VSLSTAT | 3 |
+| `v` domain | Verbs (indicative) | Engine module | Tier | Client (primary) |
+|---|---|---|---|---|
+| `v job` | `ls show requeue run rm status` | VSLJOB | 1 | CLI/TUI |
+| `v alert` | `ls show clear clear-all forward` | VSLALERT | 1 | CLI/TUI |
+| `v config` | `get enum set ls` | VSLPARM | 1 | CLI/TUI |
+| `v key` | `held holders grant revoke rename` | VSLKEY | 1 | CLI/TUI |
+| `v error` | `summary tail show purge` | VSLERR | 1 | CLI/TUI |
+| `v user` | `ls find show status deactivate reactivate create edit` | VSLUSER | 2 | Web (+CLI) |
+| `v device` | `ls show edit status` | VSLDEV | 2 | Web (+CLI) |
+| `v audit` | `signon failed summary` | VSLAUD | 2 | Web (+CLI) |
+| `v hl7` | `links queues stats` | VSLHLO | 3 | Web (+CLI) |
+| `v status` | `sessions counts` | VSLSTAT | 3 | Web (+CLI) |
 
-**Packaging decision (open — §10 Q1).** Two viable shapes for the Go side:
-**(A)** add these domains to the existing `v-cli` repo (one umbrella binary, org's
-established pattern); **(B)** a dedicated **`v-admin`** repo (a separate binary, or
-domains imported into `v`). Recommendation: **(A)** — domains in `v-cli` — for a
-single discoverable `v` surface and shared `clikit`; split out only if the admin
-surface grows past what one repo comfortably holds. Either way the Go work is a
-**companion effort in its own repo/session**, not in `v-stdlib`.
+The **Client** column is the *primary* surface each vertical is built for first,
+derived by the rubric in §7.1; the registry (§7.2) makes every verb CLI-reachable
+regardless, so "Web" never means "not scriptable."
+
+**Packaging decision (open — §10 Q2).** Because the host side is **one
+registry-driven binary** (§7.2), this is a question of *which repo hosts the
+registry*, not how many programs ship — there is one `v` busybox either way.
+**(A)** the existing `v-cli` repo (org's established umbrella, shared `clikit`) vs
+**(B)** a dedicated **`v-admin`** repo. Recommendation: **(A)** — one discoverable
+`v` surface; split out only if the admin surface outgrows one repo. Either way the
+Go work is a **companion effort in its own repo/session**, not in `v-stdlib`.
+
+### 7.1 Client-surface criteria — web vs CLI/TUI
+
+Not every admin operation wants the same front end. Score each vertical on six
+axes; the dominant axes pick the **primary** surface. The registry (§7.2)
+guarantees *every* verb is also CLI-addressable for automation, so **"Web" never
+means "not scriptable"** — it means the recommended, primary surface is the web UI.
+
+| Axis | Pushes to **Web** | Pushes to **CLI/TUI** |
+|---|---|---|
+| **Edit complexity** | many fields, DD validation, subtype branching, multi-step | single value / few flags |
+| **Visualization** | dashboards, trends, topology/maps | flat tabular |
+| **Real-time** | continuous live monitoring | point-in-time snapshot |
+| **Scriptability** | — | cron / pipeline / CI / bulk (mandatory) |
+| **Mutation risk + review** | high-risk, needs guarded review/approve UI | low-risk, reversible |
+| **Operator context** | scheduled review at a desk, less-technical admin | incident response at a terminal / SSH |
+
+**Derived assignment:**
+- **Web-first:** `v user` (form-heavy `#200` provisioning, high review), `v device`
+  (subtype-sensitive `#3.5` editor), `v audit` (compliance review + access-pattern
+  visualization), `v hl7` (link topology + live throughput), `v status` (real-time
+  who's-on / resource dashboard).
+- **CLI/TUI-first:** `v job` (scriptable task ops + a live TUI monitor), `v error`
+  (terminal-context tail + trend, incident response), `v config` (scriptable
+  params), `v key` (scriptable grants + access-review), `v alert` (scriptable bulk
+  clear).
+
+The split is principled, not arbitrary: **mutation-heavy forms and visual/real-time
+monitors → web; scriptable, incident-context operations → CLI/TUI.** Secondary
+surfaces are cheap to add from the same registry later (a web trend view for
+`v error`, a CLI quick-check for `v status`); the **Client** column names the
+surface each vertical is built for *first*.
+
+### 7.2 The vertical registry — one Go binary, busybox-style
+
+To stay coherent as it expands, the host side is **not** ten independent CLIs plus a
+separate web app. It is **one statically-linked Go binary** whose entire surface is
+generated from a **single declarative registry of verticals** — busybox
+multiplexing applied to VistA administration.
+
+```go
+// The single source of truth for every vertical. CLI, TUI, and web are derived.
+type Vertical struct {
+    Domain string     // plain noun, lint-gated: "job", "user", ...
+    Module string     // engine binding: "VSLJOB"
+    Tier   int        // 1..3 build order
+    Client ClientType // CLITUI | Web — the PRIMARY surface (§7.1)
+    Verbs  []Verb
+}
+type Verb struct {
+    Name   string // "ls", "requeue", "create"
+    Label  string // VSL label it invokes: "list^VSLJOB" (drift-gated)
+    Safety Safety // Read | Mutate
+    Args   []Arg
+}
+var Registry = []Vertical{ /* job, alert, config, key, error, user, device, audit, hl7, status */ }
+```
+
+One dispatcher serves all surfaces from `Registry`:
+- **CLI (busybox):** `v <domain> <verb> [args]` resolves the verb, marshals args,
+  runs `Verb.Label` on the engine via `mdriver.Client`, renders the result — every
+  verb of every vertical reachable (the universal-CLI guarantee).
+- **TUI:** `v <domain>` with no verb / `v top` opens a registry-rendered live view
+  for `CLITUI` verticals.
+- **Web:** `v serve` starts an HTTP server that, for every `Client == Web` vertical,
+  mounts a JSON API (`GET /api/<domain>/<verb>` for `Read`, `POST` for `Mutate`
+  behind a confirm token) and serves an **embedded SPA** — the same single binary,
+  no second deployable. (Precedent: the retired Admin Web Suite's pivot — a single
+  Go binary embedding a Web-Components SPA, reaching the engine only via
+  `mdriver.Client`; its rendering pattern is reused, its scope is not.)
+
+**Registry-driven gates** (the org `source-tag → registry → red-gate` discipline,
+applied to the host surface — the "v CLI command surface" the org `CLAUDE.md`
+already names as a generated, drift-gated artifact):
+- **G-host-1 — verb↔label:** every `Verb.Label` must exist in `v-stdlib`'s
+  `dist/vsl-manifest.json`; a host command cannot bind a nonexistent VSL label.
+  Drift red-gates. This manifest contract is what keeps the two repos coherent
+  across the waterline.
+- **G-host-2 — plain-noun lint:** every `Domain` / `Verb.Name` passes the `v` CLI
+  plain-language gate (no VA product names in the command surface).
+- **G-host-3 — safety:** the dispatcher refuses to run a `Mutate` verb without a
+  confirm token + `VSLLOG` audit; `Read` verbs are structurally side-effect-free.
+- **G-host-4 — single-surface:** the registry is the *only* place a vertical is
+  declared; CLI, TUI, and web are all derived — a gate rejects any hand-rolled
+  command or HTTP route outside it.
+
+This is what makes the suite expand coherently: a new vertical is **one registry
+entry + its `VSL*` module**, and all three surfaces light up with zero bespoke
+wiring. Adding `v capacity` later is a registry append, not a new program; whether
+it renders as CLI or web is just its `Client` field.
 
 ---
 
@@ -323,17 +426,24 @@ Sequenced by automatability and dependency (leaf-first: engine module before its
 
 - **Phase 0 — foundation.** Confirm the `VSL<admin>` ⇄ `v <domain>` vertical
   pattern end-to-end with **one** thin slice: `VSLJOB.list` + `v job ls`
-  (read-only, Supported API, dual-engine). Establishes the cobra↔`mdriver.Client`↔
-  `m vista exec` round-trip, the result-envelope shape, and the registry/gate
-  triple for the whole suite.
+  (read-only, Supported API, dual-engine). Stand up the **vertical registry +
+  busybox dispatcher** (§7.2) with `serve` scaffolded (G-host gates wired) so the
+  web surface is purely additive later. Establishes the registry↔`mdriver.Client`↔
+  `m vista exec` round-trip, the result-envelope shape, and the gate triple for the
+  whole suite.
 - **Phase 1 — API-backed spine.** VSLJOB, VSLALERT, VSLPARM, VSLKEY, VSLERR +
-  their `v` domains. All dual-engine testable (vehu + foia-t12). Mutating verbs
-  behind confirm + `VSLLOG` audit.
-- **Phase 2 — FileMan-DBS friction layer.** VSLUSER, VSLDEV, VSLAUD. Read verbs
-  first (`ls`/`inquire`/`status`/`signon`); mutating user/device verbs last,
-  DD-validated, with the strongest confirm + audit (R-USER, R-DEV).
-- **Phase 3 — monitors.** VSLHLO, VSLSTAT — read-only; resolve the engine-specific
-  portability work for VSLSTAT before exposing it.
+  their `v` domains (all `CLI/TUI`). All dual-engine testable (vehu + foia-t12).
+  Mutating verbs behind confirm + `VSLLOG` audit.
+- **Phase 2 — FileMan-DBS friction layer.** VSLUSER, VSLDEV, VSLAUD (all `Web`).
+  Read verbs first (`ls`/`inquire`/`status`/`signon`); mutating user/device verbs
+  last, DD-validated, with the strongest confirm + audit (R-USER, R-DEV).
+- **Phase 3 — monitors.** VSLHLO, VSLSTAT (`Web`) — read-only; resolve the
+  engine-specific portability work for VSLSTAT before exposing it.
+- **Web surface (cross-cutting; lands with its verticals).** `v serve` + the
+  embedded SPA come online as each **Web**-type vertical's engine module ships
+  (user/device/audit in Phase 2, hl7/status in Phase 3). Because every surface is
+  generated from the registry, no web code is needed until a web-type vertical
+  exists — then it is additive, behind the auth/TLS gate (R-WEB).
 - **Phase 4 — polish.** Output formats (table/JSON), `--format` parity across
   domains, completion, docs/skill generation, optional `VSLCAP`/capacity if
   demanded.
@@ -364,6 +474,13 @@ Each phase closes per the org Increment Protocol (memory + tracker + commit), ru
 - **PHI / least-disclosure.** User, sign-on, and alert data are PHI-adjacent.
   Default to IEN/name-minimal output; require an explicit flag for fuller detail;
   audit reads of sensitive logs.
+- **R-WEB (web-surface security).** A web admin surface must have authn/authz + TLS
+  before it touches PHI. Mitigation: gate `v serve` behind the token auth path (the
+  M6.5 VSL/MSL auth stack — validate a signed token, not a PIV card) and real TLS;
+  this depends on closing the **VSLIO TLS gap** (`$$INIT^XUTLS`, ICR 7616). Until
+  then `v serve` is dev/loopback-only and the CLI/TUI surfaces (already over the
+  driver seam) are the production path — another reason web is additive, not
+  blocking.
 - **No bespoke installer.** Any engine-side install of these modules is **strictly**
   `v pkg install`/`uninstall` of a drift-gated KIDS build — never a bespoke patcher
   ([[never-use-bespoke-installer]]). The suite ships as ordinary `VSL*` routines in
@@ -380,15 +497,22 @@ Each phase closes per the org Increment Protocol (memory + tracker + commit), ru
 
 ## 10. Open questions
 
-1. **Go packaging (§7).** Domains in `v-cli` (recommended) vs a dedicated
-   `v-admin` repo? Owner decision.
-2. **`v config` overlap.** VSLPARM (admin, multi-entity) vs VSLCFG (app STDENV
+1. **Web stack (§7.2).** Reuse the retired Admin Web Suite's
+   Web-Components-SPA-embedded-in-a-Go-binary pattern for `v serve`, or a different
+   embed? Recommend: reuse the pattern — one binary, one auth path.
+2. **Registry / binary home (§7).** Which repo hosts the vertical registry + `v`
+   busybox — `v-cli` (recommended) or a dedicated `v-admin`? One binary either way.
+3. **Client-type edge cases (§7.1).** Are any "CLI/TUI" verticals worth a secondary
+   web view at v1 (e.g. an `v error` trend dashboard, a `v key` holder-matrix), or
+   defer all secondary surfaces? Recommend: defer; ship each vertical's primary
+   surface first.
+4. **`v config` overlap.** VSLPARM (admin, multi-entity) vs VSLCFG (app STDENV
    seam, SYS-only) — keep both (different audiences) or have `v config` call
    VSLPARM exclusively and leave VSLCFG purely as an internal seam? Recommend: keep
    both, `v config` → VSLPARM.
-3. **Create/edit ambition for v1.** Full `#200` provisioning parity, or a
+5. **Create/edit ambition for v1.** Full `#200` provisioning parity, or a
    documented field subset first (recommended)?
-4. **Capacity domain.** Build `VSLCAP`/`v capacity` now or defer until a concrete
+6. **Capacity domain.** Build `VSLCAP`/`v capacity` now or defer until a concrete
    reporting ask exists (recommended: defer)?
 
 ---

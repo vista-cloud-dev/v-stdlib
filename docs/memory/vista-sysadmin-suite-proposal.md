@@ -30,6 +30,24 @@ VSLSEC downward). Each vertical = one VSL module + one `v <domain>`.
   read-only; restart is interactive-only upstream → not exposed), **VSLSTAT**
   (who's-on/resource — ENGINE-SPECIFIC YDB vs IRIS, portability risk).
 
+**Client surface (added 2026-06-27 rev 2):** each vertical carries a **Client
+(primary)** column, assigned by a 6-axis rubric (§7.1: edit-complexity,
+visualization, real-time, scriptability, mutation-risk+review, operator-context).
+**Web-first** = `v user`/`v device` (form-heavy #200/#3.5 editors) + `v audit`/
+`v hl7`/`v status` (compliance review / live dashboards). **CLI/TUI-first** = `v job`/
+`v error` (incident-context) + `v config`/`v key`/`v alert` (scriptable). Rule:
+mutation-heavy forms + visual/real-time monitors → Web; scriptable/incident ops →
+CLI/TUI. **The host side is ONE registry-driven Go binary — busybox-style** (§7.2):
+a single declarative `Registry []Vertical{Domain,Module,Tier,Client,Verbs[]}`
+generates CLI + TUI + web (`v serve`, embedded SPA per the retired Admin-Web-Suite
+pattern) — no separate web app, no per-vertical bespoke wiring. "Web" never means
+"not scriptable" — every verb is CLI-reachable. **G-host gates** (tag→registry→
+red-gate applied to host): G1 verb↔label vs `dist/vsl-manifest.json` (the waterline
+contract across the 2 repos), G2 plain-noun lint, G3 mutate=confirm+VSLLOG-audit,
+G4 single-surface (registry is the only declaration site). R-WEB: `v serve` needs
+token-auth (M6.5 stack) + TLS (blocked on VSLIO `$$INIT^XUTLS`/ICR 7616) → web is
+additive/loopback-only until then; CLI/TUI is the production path.
+
 **Explicitly out of scope:** KIDS install (already `v pkg`/v-pkg); the RPC tap
 (separate greenfield `v-rpc-tap`); read-only navigation/knowledge tools (those are
 the **VistA-Copilot** org, not vista-cloud-dev — this suite *actuates a live engine*,
