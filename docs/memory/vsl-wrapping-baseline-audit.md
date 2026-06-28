@@ -20,10 +20,15 @@ never reached the contract edges. "Comprehensive coverage" for a VistA wrapper i
 the 7-category model in the doc — happy-path green is necessary, not sufficient.
 
 ## Four OPEN defects (verified; true until fixed — keep until each lands)
-1. **VSLSEC default-duz UNDEF** — single-arg `$$hasKey(key)`/`$$user()` raise UNDEF
-   on BOTH engines: `$$pduz(duz)` evaluates an omitted formal by value before its
-   `$get` (`src/VSLSEC.m` `pduz`). Fix: `$$pduz($get(duz))` / `.duz`. Suite masks it
-   (always passes explicit duz).
+1. **VSLSEC default-duz UNDEF — ✅ FIXED 2026-06-28.** single-arg
+   `$$hasKey(key)`/`$$user()` raised UNDEF on BOTH engines: `$$pduz(duz)` evaluated an
+   omitted formal by value before its `$get`. Fix: call sites pass `$$pduz($get(duz))`.
+   Added regression tests + an engine-split `$$safeRun` helper in VSLSECTST so a
+   "does-not-raise" assertion fails **cleanly** instead of aborting the suite 0/0
+   (the plain `eq^STDASSERT` of a raising call aborts the whole suite — confirmed on
+   both engines). `VSLSECTST` 17/17 dual-engine. **Test-design lesson:** to assert a
+   call does NOT raise, capture via XECUTE under the engine-split trap (IRIS
+   try/catch, YDB `$ETRAP`+ZGOTO — never arg-less QUIT around a `$$` frame).
 2. **VSLIO RED on IRIS — ✅ FIXED 2026-06-28.** `VSLIOTST` was 9/10 exit 3 on foia
    (green on vehu): `$$write` had no `$ZVERSION["IRIS"` flush arm → client→server
    bytes dropped on IRIS. Fix: `if $zversion["IRIS" write *-3` after the write

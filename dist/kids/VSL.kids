@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*10^
+**KIDS**:VSL*1.0*11^
 
 **INSTALL NAME**
-VSL*1.0*10
+VSL*1.0*11
 "BLD",1,0)
-VSL*1.0*10^VSL^0^0
+VSL*1.0*11^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -1229,7 +1229,7 @@ hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key
 "RTN","VSLSEC",55,0)
 	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
 "RTN","VSLSEC",56,0)
-	quit ''$data(^XUSEC(key,$$pduz(duz)))
+	quit ''$data(^XUSEC(key,$$pduz($get(duz))))
 "RTN","VSLSEC",57,0)
 	;
 "RTN","VSLSEC",58,0)
@@ -1255,7 +1255,7 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 "RTN","VSLSEC",68,0)
 	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
 "RTN","VSLSEC",69,0)
-	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
+	quit $$get^VSLFS(200,$$pduz($get(duz))_",",".01","")
 "RTN","VSLSEC",70,0)
 	;
 "RTN","VSLSEC",71,0)

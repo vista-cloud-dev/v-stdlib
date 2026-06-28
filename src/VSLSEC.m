@@ -53,7 +53,7 @@ hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key
 	; doc: @illustrative  the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion
 	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
 	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
-	quit ''$data(^XUSEC(key,$$pduz(duz)))
+	quit ''$data(^XUSEC(key,$$pduz($get(duz))))
 	;
 duz()	; The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 	; doc: @returns          numeric  the ambient DUZ (0 when no signon context is set)
@@ -66,7 +66,7 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
-	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
+	quit $$get^VSLFS(200,$$pduz($get(duz))_",",".01","")
 	;
 bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
