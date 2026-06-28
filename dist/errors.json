@@ -1,4 +1,10 @@
 {
+  "U-VSL-CFG-SET": {
+    "labels": [
+      "set"
+    ],
+    "module": "VSLCFG"
+  },
   "U-VSL-FS-DIERR": {
     "labels": [
       "set"

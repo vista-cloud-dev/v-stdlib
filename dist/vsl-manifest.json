@@ -3,8 +3,10 @@
   "modules": {
     "VSLCFG": {
       "synopsis": "v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic extrinsics:\n  $$get^VSLCFG(key,default)   — read a SYS-level parameter value, else default\n  $$set^VSLCFG(key,value)     — set a parameter value at the SYS entity\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263).",
-      "errors": [],
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic API:\n  $$get^VSLCFG(key,default)          — read the SYS-level instance, else default\n  $$getEffective^VSLCFG(key,default) — read the effective value across the\n                                       parameter's entity precedence (GET^XPAR\n                                       \"ALL\"), else default\n  $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)\n  $$lastError^VSLCFG()               — last XPAR failure detail, else \"\"\n\n$$get reads ONLY the SYS instance ($$GET^XPAR(\"SYS\",...)) — the faithful flat\nSTDENV analog. $$getEffective resolves the value XPAR would actually use in\ncontext (first-found across the parameter's own precedence chain via the \"ALL\"\nentity). Use $$getEffective when you want \"what value applies here?\", $$get\nwhen you specifically want the SYS-level setting.\n\n*** ERROR CONTRACT — loud on a failed write, never a silent lost set ***\nEN^XPAR returns its error by reference as a scalar `0` (no error) or\n`#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a\nnon-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,\n$ECODE, with the detail in ^TMP($job,\"vslcfg\",\"err\") for $$lastError. Reads of\nan unset parameter are NOT errors ($$get/$$getEffective return the default).\nThe flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR\nalike.",
+      "errors": [
+        "U-VSL-CFG-SET"
+      ],
       "labels": {
         "get": {
           "form": "extrinsic",
@@ -40,13 +42,49 @@
           "description": "@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 18
+            "line": 37
+          }
+        },
+        "getEffective": {
+          "form": "extrinsic",
+          "signature": "$$getEffective^VSLCFG(key, default)",
+          "synopsis": "Read the effective value across the parameter's entity precedence; else `default`.",
+          "params": [
+            {
+              "name": "key",
+              "type": "string",
+              "doc": "XPAR parameter name (PARAMETER DEFINITION #8989.51)"
+            },
+            {
+              "name": "default",
+              "type": "string",
+              "doc": "value returned when the parameter is unset at every level"
+            }
+          ],
+          "returns": {
+            "type": "string",
+            "doc": "the first value found in the parameter's precedence chain, or `default`"
+          },
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(\"ZZVSLCFGNOSUCH\",\"fb\"),\"fb\",\"getEffective: unset parameter returns the default\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "The \"ALL\" entity tells XPAR to walk the precedence multiple defined on the\nparameter (#8989.51) and return the first level that has a value — what the\nvalue would actually resolve to in context. Contrast $$get, which reads only SYS.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
+          "source": {
+            "file": "src/VSLCFG.m",
+            "line": 48
           }
         },
         "set": {
           "form": "procedure",
           "signature": "do set^VSLCFG(key, value)",
-          "synopsis": "Set parameter `key` to `value` at the SYS entity.",
+          "synopsis": "Set parameter `key` to `value` at the SYS entity; raise on a failed write.",
           "params": [
             {
               "name": "key",
@@ -61,12 +99,17 @@
           ],
           "returns": {
             "type": "void",
-            "doc": "side-effecting; no return value"
+            "doc": "side-effecting; no return value (loud on failure)"
           },
-          "raises": [],
+          "raises": [
+            {
+              "code": "U-VSL-CFG-SET",
+              "doc": "the XPAR write failed (detail in $$lastError)"
+            }
+          ],
           "raised_in_body": [],
           "examples": [
-            "new k,i,r,d set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT,k=\"\",d=0 for  set k=$order(^XTV(8989.51,\"B\",k)) quit:k=\"\"!d  set i=+$order(^XTV(8989.51,\"B\",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))=\"F\",$$GET^XPAR(\"SYS\",k,1)=\"\" do EN^XPAR(\"SYS\",k,1,\"ZZP\",.r) set r=$$GET^XPAR(\"SYS\",k,1) do EN^XPAR(\"SYS\",k,1,\"@\") if r=\"ZZP\" do set^VSLCFG(k,\"hi\") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,\"MISS\"),\"hi\",\"set: stores a SYS value that $$get reads back\") do EN^XPAR(\"SYS\",k,1,\"@\") set d=1"
+            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,\"do set^VSLCFG(\"\"ZZNOSUCHVSLCFGPARAM\"\",\"\"x\"\")\",\"U-VSL-CFG\",\"set: an undefined parameter raises U-VSL-CFG-...\")"
           ],
           "since": "",
           "stable": "",
@@ -76,7 +119,32 @@
           "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 29
+            "line": 61
+          }
+        },
+        "lastError": {
+          "form": "extrinsic",
+          "signature": "$$lastError^VSLCFG()",
+          "synopsis": "The last VSLCFG error message (the composed XPAR failure detail).",
+          "params": [],
+          "returns": {
+            "type": "string",
+            "doc": "^TMP($job,\"vslcfg\",\"err\"), or \"\" if none"
+          },
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "new prior,r set prior=$get(^TMP($job,\"vslcfg\",\"err\")),^TMP($job,\"vslcfg\",\"err\")=\"set: x\" set r=$$lastError^VSLCFG() set ^TMP($job,\"vslcfg\",\"err\")=prior do eq^STDASSERT(.pass,.fail,r,\"set: x\",\"lastError: returns the stashed XPAR detail\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "",
+          "source": {
+            "file": "src/VSLCFG.m",
+            "line": 77
           }
         }
       },
@@ -1102,6 +1170,12 @@
     }
   },
   "errors": {
+    "U-VSL-CFG-SET": {
+      "module": "VSLCFG",
+      "labels": [
+        "set"
+      ]
+    },
     "U-VSL-FS-DIERR": {
       "module": "VSLFS",
       "labels": [

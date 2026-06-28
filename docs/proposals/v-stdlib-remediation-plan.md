@@ -20,6 +20,21 @@ plan** plus a **sysadmin-facing extension roadmap**.
 > `$$user^VSLSEC` public API has been fixed and re-verified (12/12 live on
 > `vehu`). Everything below R1 is proposed, not yet done.
 
+## Status tracker (R1–R8)
+
+Live status of every remediation item. Update this row when an item lands.
+
+| ID | Sev | Area | Summary | Status |
+|---|---|---|---|---|
+| R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | ✅ DONE (12/12 live, commit `19b96b3`) |
+| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; 7/7 live ydb; IRIS owed) |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ⬜ TODO (gates suite write verbs) |
+| R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
+| R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
+| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | ⬜ TODO (empty-body gate = highest ROI) |
+| R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*5`) | ⬜ TODO (docs-repo session) |
+| R8 | Hygiene | git | uncommitted staged deletion on `main` | ✅ DONE (pruned in `19b96b3`) |
+
 ## Contents
 
 - [Verdict](#verdict)
@@ -108,13 +123,27 @@ Two defects, both real:
    adapter," it is really a SYS-scope reader. A sysadmin asking "what is the
    effective value in this context?" gets the wrong answer.
 
-**Proposed:**
-- Add `$$lastError^VSLCFG` + capture the `EN^XPAR` error array; raise
-  `,U-VSL-CFG-SET,` on a real XPAR failure (match the VSLFS/VSLLOG posture).
-- Add `$$getEffective^VSLCFG(key,default)` over `$$GET^XPAR(entity,key)` with
-  full precedence resolution, and an entity-aware `$$set`/`list`. Keep the
-  existing SYS-only `$$get` (it is the faithful `STDENV` flat-read analog) but
-  document the distinction in the header.
+**Done (commit pending):**
+- `$$set` is now loud — it reads `EN^XPAR`'s scalar error return (`0` vs
+  `#^errortext`, where `#` is the VA FileMan DIALOG #.84 entry; grounded against
+  the Kernel Toolkit DG, ICR #2263) **and** flag-traps a hard `EN^XPAR` fault,
+  mapping either to a clean `,U-VSL-CFG-SET,` `$ECODE` with the detail in
+  `^TMP($job,"vslcfg","err")`. Added `$$lastError^VSLCFG` (matches the
+  VSLFS/VSLLOG/VSLTASK posture; flag-based `$ETRAP`, never zgoto).
+- Added `$$getEffective^VSLCFG(key,default)` over `$$GET^XPAR("ALL",key,1)` —
+  XPAR walks the parameter's own precedence multiple (#8989.51) and returns the
+  first level that has a value, i.e. what the value actually resolves to in
+  context. The existing SYS-only `$$get` is kept (the faithful `STDENV` flat-read
+  analog) and the header now documents the `$$get` vs `$$getEffective` distinction.
+- Tests: `VSLCFGTST` adds `tGetEffectiveResolvesSys` + `tSetFailureIsLoud`;
+  **7/7 live on vehu (ydb)**. IRIS (foia) arm owed — no foia container was up;
+  the code uses only engine-neutral XPAR APIs + the IRIS-portable `$ETRAP`
+  pattern, so it is expected green there.
+
+**Deferred to `VSLPARM`** (do NOT build a second time in VSLCFG): entity-aware
+`$$set`/`list` (`GETLST^XPAR`/`ENVAL^XPAR`, ICR #2263) belong in the suite's
+`VSLPARM` module, which subsumes VSLCFG. R2 fixes the two real defects (silent
+failure, SYS-only read) without growing VSLCFG into VSLPARM's territory.
 
 ### R3 — MAJOR: `VSLLOG` is not really an audit log
 
@@ -300,7 +329,7 @@ deferred until the audit substrate (R3) exists.
 | ID | Sev | Area | Finding | Status |
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | **Fixed + verified 12/12 live** |
-| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | Proposed |
+| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, 7/7 live ydb** |
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | Proposed |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |

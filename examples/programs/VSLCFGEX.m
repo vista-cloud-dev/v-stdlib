@@ -7,6 +7,8 @@ VSLCFGEX ; Living examples for VSLCFG — generated from @example tags.
         ;
         do tExampleGet(.pass,.fail)
         do tExampleGet2(.pass,.fail)
+        do tExampleGetEffective(.pass,.fail)
+        do tExampleLastError(.pass,.fail)
         do tExampleSet(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
@@ -20,7 +22,15 @@ tExampleGet2(pass,fail)         ;@TEST "example: VSLCFG.get"
         new k,i,r,d set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,k="",d=0 for  set k=$order(^XTV(8989.51,"B",k)) quit:k=""!d  set i=+$order(^XTV(8989.51,"B",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))="F",$$GET^XPAR("SYS",k,1)="" do EN^XPAR("SYS",k,1,"ZZP",.r) set r=$$GET^XPAR("SYS",k,1) do EN^XPAR("SYS",k,1,"@") if r="ZZP" do set^VSLCFG(k,"hi") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,"MISS"),"hi","get: $$set then $$get round-trips a SYS value") do EN^XPAR("SYS",k,1,"@") set d=1
         quit
         ;
+tExampleGetEffective(pass,fail) ;@TEST "example: VSLCFG.getEffective"
+        do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","getEffective: unset parameter returns the default")
+        quit
+        ;
+tExampleLastError(pass,fail)    ;@TEST "example: VSLCFG.lastError"
+        new prior,r set prior=$get(^TMP($job,"vslcfg","err")),^TMP($job,"vslcfg","err")="set: x" set r=$$lastError^VSLCFG() set ^TMP($job,"vslcfg","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: x","lastError: returns the stashed XPAR detail")
+        quit
+        ;
 tExampleSet(pass,fail)          ;@TEST "example: VSLCFG.set"
-        new k,i,r,d set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,k="",d=0 for  set k=$order(^XTV(8989.51,"B",k)) quit:k=""!d  set i=+$order(^XTV(8989.51,"B",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))="F",$$GET^XPAR("SYS",k,1)="" do EN^XPAR("SYS",k,1,"ZZP",.r) set r=$$GET^XPAR("SYS",k,1) do EN^XPAR("SYS",k,1,"@") if r="ZZP" do set^VSLCFG(k,"hi") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,"MISS"),"hi","set: stores a SYS value that $$get reads back") do EN^XPAR("SYS",k,1,"@") set d=1
+        set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")","U-VSL-CFG","set: an undefined parameter raises U-VSL-CFG-...")
         quit
         ;

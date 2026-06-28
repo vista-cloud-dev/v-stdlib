@@ -13,6 +13,8 @@ VSLCFGTST	; v-stdlib — VSLCFG (XPAR config adapter) test suite.
 	;
 	do tSetGetSysPrecedence(.pass,.fail)
 	do tGetDefaultWhenUnset(.pass,.fail)
+	do tGetEffectiveResolvesSys(.pass,.fail)
+	do tSetFailureIsLoud(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -33,6 +35,22 @@ tGetDefaultWhenUnset(pass,fail)	;@TEST "$$get returns the default for a paramete
 	quit:key=""
 	do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(key,"fallback"),"fallback","unset returns default")
 	do teardown(key)
+	quit
+	;
+tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective resolves a SYS-set value through the parameter's entity precedence (GET^XPAR ALL)"
+	new key
+	do setup(.key)
+	quit:key=""
+	do set^VSLCFG(key,"howdy")
+	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),"howdy","effective read finds the SYS value via ALL precedence")
+	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","effective read of an unset parameter returns the default")
+	do teardown(key)
+	quit
+	;
+tSetFailureIsLoud(pass,fail)	;@TEST "a failed $$set maps to a clean ,U-VSL-CFG-..., $ECODE with the detail in $$lastError"
+	set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT
+	do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")","U-VSL-CFG","$$set into an undefined parameter raises U-VSL-CFG-...")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLCFG()'="","lastError carries the XPAR failure detail")
 	quit
 	;
 	; ---------- fixtures ----------
