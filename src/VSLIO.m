@@ -17,6 +17,7 @@ VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 	;
 	; Public API (raw bytes; the handle is the opened device, $$connect's return):
 	;   $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0
+	;                                          (timeout in seconds; default 30)
 	;   $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count
 	;   $$write^VSLIO(id,buf)                — raw write -> 1/0
 	;   $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1
@@ -44,7 +45,7 @@ VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 connect(host,port,timeout)	; Open an outbound TCP connection; return the device handle, else 0.
 	; doc: @param   host     string   host/IP to connect to (IPADDRESS)
 	; doc: @param   port     numeric  remote TCP port (SOCKET)
-	; doc: @param   timeout  numeric  open timeout in seconds (default 10)
+	; doc: @param   timeout  numeric  open timeout in seconds (default 30)
 	; doc: @returns string   the opened device (handle) on POP=0, else 0
 	; doc: @icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system
 	; doc: WARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).

@@ -1,5 +1,5 @@
 VSLCFGTST	; v-stdlib — VSLCFG (XPAR config adapter) test suite.
-	; Exercises VSLCFG against a live VistA's XPAR (Parameter Tools). GREEN 3/3 on
+	; Exercises VSLCFG against a live VistA's XPAR (Parameter Tools). GREEN 7/7 on
 	; BOTH engines via the driver stack (m/v waterline — the ONLY path):
 	;   m test --engine ydb  --docker vehu     --chset m \
 	;     --routines src --routines <m-stdlib>/src tests/VSLCFGTST.m
@@ -37,12 +37,17 @@ tGetDefaultWhenUnset(pass,fail)	;@TEST "$$get returns the default for a paramete
 	do teardown(key)
 	quit
 	;
-tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective resolves a SYS-set value through the parameter's entity precedence (GET^XPAR ALL)"
-	new key
+tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective returns the ALL-precedence resolution (+ default), distinct from $$get's SYS-only read"
+	new key,exp
 	do setup(.key)
 	quit:key=""
 	do set^VSLCFG(key,"howdy")
-	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),"howdy","effective read finds the SYS value via ALL precedence")
+	; getEffective wraps $$GET^XPAR("ALL") (entity-precedence resolution) + the default.
+	; When SYS is in this param's precedence (engine/param-dependent — some SYS-settable
+	; params, e.g. BPS USRSCR on foia, omit SYS from precedence so ALL returns "") the
+	; resolution is "howdy"; otherwise the default. Assert it matches that resolution.
+	set exp=$$GET^XPAR("ALL",key,1) set:exp="" exp="MISS"
+	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),exp,"effective read returns the ALL-precedence resolution (default when none)")
 	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","effective read of an unset parameter returns the default")
 	do teardown(key)
 	quit

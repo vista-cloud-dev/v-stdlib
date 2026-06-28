@@ -322,7 +322,7 @@
           ],
           "returns": {
             "type": "bool",
-            "doc": "1 (idempotent — a DIERR is recorded, not raised)"
+            "doc": "1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)"
           },
           "raises": [],
           "raised_in_body": [],
@@ -332,7 +332,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
+          "description": "This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
           "source": {
             "file": "src/VSLFS.m",
             "line": 89
@@ -375,7 +375,7 @@
           "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 101
+            "line": 102
           },
           "illustrative": "resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName"
         },
@@ -420,7 +420,7 @@
           "description": "@icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 112
+            "line": 113
           },
           "illustrative": "lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords"
         },
@@ -446,7 +446,7 @@
           "description": "",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 133
+            "line": 134
           }
         }
       },
@@ -460,7 +460,7 @@
     },
     "VSLIO": {
       "synopsis": "v-stdlib — VistA TCP transport adapter over the Kernel device handler.",
-      "description": "doc: @exrun live\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the Kernel device-handler\ninput variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ\ntargets as locals-before-def; they are the documented ^%ZISTCP I/O\nconvention. Same suppression as STDJSON/STDHTTP/STDNET.\n\nBinds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:\noutbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It\nexposes the CLIENT subset of STDNET's signature (connect/read/write/close)\n— VistA has NO Supported Kernel listen/accept (server) API (Kernel Device\nHandler DG; inbound is the listener-process/JOB pattern), so the SERVER side\nof a connection stays in the portable STDNET seam, never duplicated here.\nThe adapter contains ONLY the VistA binding; framing/buffering stays in\nSTD* and is called up (m/v waterline).\n\nPublic API (raw bytes; the handle is the opened device, $$connect's return):\n  $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0\n  $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count\n  $$write^VSLIO(id,buf)                — raw write -> 1/0\n  $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1\n  $$lastError^VSLIO()                  — last error message, else \"\"\n\n*** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***\nThis adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,\nusing a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)\nis NOT wired: it requires engine TLS infrastructure absent on the test\nengines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs\nentry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and\n$$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError\ncarrying remediation) rather than fall back to plaintext. This is a GATING\ncleanup before the MSL/VSL stack is complete — see STDNET's TLS gap\n(m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.\n\nThe last error message is stashed at ^TMP($job,\"vslio\",\"err\") for $$lastError.\nErrors set $ECODE to one of:\n  ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)",
+      "description": "doc: @exrun live\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the Kernel device-handler\ninput variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ\ntargets as locals-before-def; they are the documented ^%ZISTCP I/O\nconvention. Same suppression as STDJSON/STDHTTP/STDNET.\n\nBinds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:\noutbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It\nexposes the CLIENT subset of STDNET's signature (connect/read/write/close)\n— VistA has NO Supported Kernel listen/accept (server) API (Kernel Device\nHandler DG; inbound is the listener-process/JOB pattern), so the SERVER side\nof a connection stays in the portable STDNET seam, never duplicated here.\nThe adapter contains ONLY the VistA binding; framing/buffering stays in\nSTD* and is called up (m/v waterline).\n\nPublic API (raw bytes; the handle is the opened device, $$connect's return):\n  $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0\n                                         (timeout in seconds; default 30)\n  $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count\n  $$write^VSLIO(id,buf)                — raw write -> 1/0\n  $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1\n  $$lastError^VSLIO()                  — last error message, else \"\"\n\n*** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***\nThis adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,\nusing a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)\nis NOT wired: it requires engine TLS infrastructure absent on the test\nengines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs\nentry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and\n$$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError\ncarrying remediation) rather than fall back to plaintext. This is a GATING\ncleanup before the MSL/VSL stack is complete — see STDNET's TLS gap\n(m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.\n\nThe last error message is stashed at ^TMP($job,\"vslio\",\"err\") for $$lastError.\nErrors set $ECODE to one of:\n  ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)",
       "errors": [
         "U-VSLIO-NOTLS"
       ],
@@ -483,7 +483,7 @@
             {
               "name": "timeout",
               "type": "numeric",
-              "doc": "open timeout in seconds (default 10)"
+              "doc": "open timeout in seconds (default 30)"
             }
           ],
           "returns": {
@@ -503,7 +503,7 @@
           "description": "@icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system\nWARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 44
+            "line": 45
           }
         },
         "read": {
@@ -547,7 +547,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 60
+            "line": 61
           },
           "illustrative": "needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server)."
         },
@@ -582,7 +582,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 74
+            "line": 75
           },
           "illustrative": "needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho."
         },
@@ -612,7 +612,7 @@
           "description": "@icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 85
+            "line": 86
           },
           "illustrative": "needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho."
         },
@@ -638,7 +638,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 96
+            "line": 97
           }
         },
         "tlsAvailable": {
@@ -663,7 +663,7 @@
           "description": "Check before any secure use; $$tlsHelp has remediation.",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 103
+            "line": 104
           }
         },
         "tlsHelp": {
@@ -688,7 +688,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 109
+            "line": 110
           }
         },
         "connectTls": {
@@ -739,7 +739,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 114
+            "line": 115
           }
         }
       },
@@ -1236,7 +1236,7 @@
             {
               "name": "when",
               "type": "string",
-              "doc": "$H start time (optional; default now). MUST be <=5-digit $H or \"@\""
+              "doc": "TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or \"@\" for ASAP — not a bare day number."
             }
           ],
           "returns": {

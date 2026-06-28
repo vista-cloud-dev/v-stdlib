@@ -50,7 +50,7 @@ Open an outbound TCP connection; return the device handle, else 0.
 
 - `host` _(string)_ — host/IP to connect to (IPADDRESS)
 - `port` _(numeric)_ — remote TCP port (SOCKET)
-- `timeout` _(numeric)_ — open timeout in seconds (default 10)
+- `timeout` _(numeric)_ — open timeout in seconds (default 30)
 
 **Returns** _string_ — the opened device (handle) on POP=0, else 0
 

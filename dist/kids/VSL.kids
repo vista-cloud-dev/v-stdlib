@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*7^
+**KIDS**:VSL*1.0*8^
 
 **INSTALL NAME**
-VSL*1.0*7
+VSL*1.0*8
 "BLD",1,0)
-VSL*1.0*7^VSL^0^0
+VSL*1.0*8^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -211,7 +211,7 @@ raiseSet(key,detail)	; (private) stash the detail, then raise the clean ,U-VSL-C
 "RTN","VSLCFG",87,0)
 	quit
 "RTN","VSLFS")
-0^170^0^0
+0^171^0^0
 "RTN","VSLFS",1,0)
 VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 "RTN","VSLFS",2,0)
@@ -395,165 +395,167 @@ kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE;
 "RTN","VSLFS",91,0)
 	; doc: @param   iens     string   IENS of the record to delete
 "RTN","VSLFS",92,0)
-	; doc: @returns          bool     1 (idempotent — a DIERR is recorded, not raised)
+	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
 "RTN","VSLFS",93,0)
-	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
 "RTN","VSLFS",94,0)
-	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
+	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 "RTN","VSLFS",95,0)
-	new FDA,ERR
+	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
 "RTN","VSLFS",96,0)
-	set FDA(file,iens,".01")="@"
+	new FDA,ERR
 "RTN","VSLFS",97,0)
-	do FILE^DIE("","FDA","ERR")
+	set FDA(file,iens,".01")="@"
 "RTN","VSLFS",98,0)
-	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
+	do FILE^DIE("","FDA","ERR")
 "RTN","VSLFS",99,0)
-	quit 1
+	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
 "RTN","VSLFS",100,0)
-	;
+	quit 1
 "RTN","VSLFS",101,0)
-find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+	;
 "RTN","VSLFS",102,0)
-	; doc: @param   file     numeric  FileMan file number
+find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
 "RTN","VSLFS",103,0)
-	; doc: @param   value    string   the lookup value to match (exact)
-"RTN","VSLFS",104,0)
-	; doc: @param   index    string   the cross-reference to search (default "B")
-"RTN","VSLFS",105,0)
-	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
-"RTN","VSLFS",106,0)
-	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
-"RTN","VSLFS",107,0)
-	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
-"RTN","VSLFS",108,0)
-	new y,ERR
-"RTN","VSLFS",109,0)
-	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
-"RTN","VSLFS",110,0)
-	quit $select(+y>0:y_",",1:"")
-"RTN","VSLFS",111,0)
-	;
-"RTN","VSLFS",112,0)
-list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
-"RTN","VSLFS",113,0)
 	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",104,0)
+	; doc: @param   value    string   the lookup value to match (exact)
+"RTN","VSLFS",105,0)
+	; doc: @param   index    string   the cross-reference to search (default "B")
+"RTN","VSLFS",106,0)
+	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
+"RTN","VSLFS",107,0)
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+"RTN","VSLFS",108,0)
+	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
+"RTN","VSLFS",109,0)
+	new y,ERR
+"RTN","VSLFS",110,0)
+	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
+"RTN","VSLFS",111,0)
+	quit $select(+y>0:y_",",1:"")
+"RTN","VSLFS",112,0)
+	;
+"RTN","VSLFS",113,0)
+list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
 "RTN","VSLFS",114,0)
-	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",115,0)
-	; doc: @param   index    string   traversal cross-reference (default "B")
+	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
 "RTN","VSLFS",116,0)
-	; doc: @returns          numeric  the number of records listed
+	; doc: @param   index    string   traversal cross-reference (default "B")
 "RTN","VSLFS",117,0)
-	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	; doc: @returns          numeric  the number of records listed
 "RTN","VSLFS",118,0)
-	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 "RTN","VSLFS",119,0)
-	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
+	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
 "RTN","VSLFS",120,0)
-	new ERR,cnt,seq,ien
+	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
 "RTN","VSLFS",121,0)
-	kill ^TMP("DILIST",$job)
+	new ERR,cnt,seq,ien
 "RTN","VSLFS",122,0)
-	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
-"RTN","VSLFS",123,0)
-	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
-"RTN","VSLFS",124,0)
-	set cnt=+$get(^TMP("DILIST",$job,0))
-"RTN","VSLFS",125,0)
-	set seq=$order(^TMP("DILIST",$job,2,""))
-"RTN","VSLFS",126,0)
-	for  quit:seq=""  do
-"RTN","VSLFS",127,0)
-	. set ien=$get(^TMP("DILIST",$job,2,seq))
-"RTN","VSLFS",128,0)
-	. if ien'="" set out(ien_",")=""
-"RTN","VSLFS",129,0)
-	. set seq=$order(^TMP("DILIST",$job,2,seq))
-"RTN","VSLFS",130,0)
 	kill ^TMP("DILIST",$job)
-"RTN","VSLFS",131,0)
-	quit cnt
-"RTN","VSLFS",132,0)
-	;
-"RTN","VSLFS",133,0)
-lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
-"RTN","VSLFS",134,0)
-	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
-"RTN","VSLFS",135,0)
-	; doc: @example   new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
-"RTN","VSLFS",136,0)
-	quit $get(^TMP($job,"vslfs","err"))
-"RTN","VSLFS",137,0)
-	;
-"RTN","VSLFS",138,0)
-	; ---------- internals ----------
-"RTN","VSLFS",139,0)
-	;
-"RTN","VSLFS",140,0)
-raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
-"RTN","VSLFS",141,0)
-	do stashDierr(who,.ERR)
-"RTN","VSLFS",142,0)
-	set $ecode=",U-VSL-FS-DIERR,"
-"RTN","VSLFS",143,0)
-	quit
-"RTN","VSLFS",144,0)
-	;
-"RTN","VSLFS",145,0)
-stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
-"RTN","VSLFS",146,0)
-	new m,nl,seq
-"RTN","VSLFS",147,0)
-	set nl=$char(10)
-"RTN","VSLFS",148,0)
-	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
-"RTN","VSLFS",149,0)
-	set seq=$order(ERR("DIERR",""))
-"RTN","VSLFS",150,0)
+"RTN","VSLFS",123,0)
+	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
+"RTN","VSLFS",124,0)
+	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
+"RTN","VSLFS",125,0)
+	set cnt=+$get(^TMP("DILIST",$job,0))
+"RTN","VSLFS",126,0)
+	set seq=$order(^TMP("DILIST",$job,2,""))
+"RTN","VSLFS",127,0)
 	for  quit:seq=""  do
+"RTN","VSLFS",128,0)
+	. set ien=$get(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",129,0)
+	. if ien'="" set out(ien_",")=""
+"RTN","VSLFS",130,0)
+	. set seq=$order(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",131,0)
+	kill ^TMP("DILIST",$job)
+"RTN","VSLFS",132,0)
+	quit cnt
+"RTN","VSLFS",133,0)
+	;
+"RTN","VSLFS",134,0)
+lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
+"RTN","VSLFS",135,0)
+	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+"RTN","VSLFS",136,0)
+	; doc: @example   new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
+"RTN","VSLFS",137,0)
+	quit $get(^TMP($job,"vslfs","err"))
+"RTN","VSLFS",138,0)
+	;
+"RTN","VSLFS",139,0)
+	; ---------- internals ----------
+"RTN","VSLFS",140,0)
+	;
+"RTN","VSLFS",141,0)
+raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
+"RTN","VSLFS",142,0)
+	do stashDierr(who,.ERR)
+"RTN","VSLFS",143,0)
+	set $ecode=",U-VSL-FS-DIERR,"
+"RTN","VSLFS",144,0)
+	quit
+"RTN","VSLFS",145,0)
+	;
+"RTN","VSLFS",146,0)
+stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
+"RTN","VSLFS",147,0)
+	new m,nl,seq
+"RTN","VSLFS",148,0)
+	set nl=$char(10)
+"RTN","VSLFS",149,0)
+	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
+"RTN","VSLFS",150,0)
+	set seq=$order(ERR("DIERR",""))
 "RTN","VSLFS",151,0)
-	. do:seq=+seq addText(seq,.ERR,.m,nl)
+	for  quit:seq=""  do
 "RTN","VSLFS",152,0)
-	. set seq=$order(ERR("DIERR",seq))
+	. do:seq=+seq addText(seq,.ERR,.m,nl)
 "RTN","VSLFS",153,0)
-	set ^TMP($job,"vslfs","err")=m
+	. set seq=$order(ERR("DIERR",seq))
 "RTN","VSLFS",154,0)
-	quit
+	set ^TMP($job,"vslfs","err")=m
 "RTN","VSLFS",155,0)
-	;
-"RTN","VSLFS",156,0)
-addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
-"RTN","VSLFS",157,0)
-	new ln
-"RTN","VSLFS",158,0)
-	set ln=$order(ERR("DIERR",seq,"TEXT",""))
-"RTN","VSLFS",159,0)
-	for  quit:ln=""  do
-"RTN","VSLFS",160,0)
-	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
-"RTN","VSLFS",161,0)
-	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
-"RTN","VSLFS",162,0)
 	quit
-"RTN","VSLFS",163,0)
+"RTN","VSLFS",156,0)
 	;
+"RTN","VSLFS",157,0)
+addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
+"RTN","VSLFS",158,0)
+	new ln
+"RTN","VSLFS",159,0)
+	set ln=$order(ERR("DIERR",seq,"TEXT",""))
+"RTN","VSLFS",160,0)
+	for  quit:ln=""  do
+"RTN","VSLFS",161,0)
+	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",162,0)
+	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",163,0)
+	quit
 "RTN","VSLFS",164,0)
-resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
+	;
 "RTN","VSLFS",165,0)
-	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
+resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
 "RTN","VSLFS",166,0)
-	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
+	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
 "RTN","VSLFS",167,0)
-	new n
+	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
 "RTN","VSLFS",168,0)
-	if $extract(iens,1)'="+" quit iens
+	new n
 "RTN","VSLFS",169,0)
-	set n=+$piece($extract(iens,2,$length(iens)),",")
+	if $extract(iens,1)'="+" quit iens
 "RTN","VSLFS",170,0)
+	set n=+$piece($extract(iens,2,$length(iens)),",")
+"RTN","VSLFS",171,0)
 	quit $get(IEN(n))_","
 "RTN","VSLIO")
-0^143^0^0
+0^144^0^0
 "RTN","VSLIO",1,0)
 VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 "RTN","VSLIO",2,0)
@@ -593,252 +595,254 @@ VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 "RTN","VSLIO",19,0)
 	;   $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0
 "RTN","VSLIO",20,0)
-	;   $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count
+	;                                          (timeout in seconds; default 30)
 "RTN","VSLIO",21,0)
-	;   $$write^VSLIO(id,buf)                — raw write -> 1/0
+	;   $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count
 "RTN","VSLIO",22,0)
-	;   $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1
+	;   $$write^VSLIO(id,buf)                — raw write -> 1/0
 "RTN","VSLIO",23,0)
-	;   $$lastError^VSLIO()                  — last error message, else ""
+	;   $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1
 "RTN","VSLIO",24,0)
-	;
+	;   $$lastError^VSLIO()                  — last error message, else ""
 "RTN","VSLIO",25,0)
-	; *** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***
+	;
 "RTN","VSLIO",26,0)
-	; This adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,
+	; *** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***
 "RTN","VSLIO",27,0)
-	; using a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)
+	; This adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,
 "RTN","VSLIO",28,0)
-	; is NOT wired: it requires engine TLS infrastructure absent on the test
+	; using a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)
 "RTN","VSLIO",29,0)
-	; engines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs
+	; is NOT wired: it requires engine TLS infrastructure absent on the test
 "RTN","VSLIO",30,0)
-	; entry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and
+	; engines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs
 "RTN","VSLIO",31,0)
-	; $$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError
+	; entry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and
 "RTN","VSLIO",32,0)
-	; carrying remediation) rather than fall back to plaintext. This is a GATING
+	; $$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError
 "RTN","VSLIO",33,0)
-	; cleanup before the MSL/VSL stack is complete — see STDNET's TLS gap
+	; carrying remediation) rather than fall back to plaintext. This is a GATING
 "RTN","VSLIO",34,0)
-	; (m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.
+	; cleanup before the MSL/VSL stack is complete — see STDNET's TLS gap
 "RTN","VSLIO",35,0)
-	;
+	; (m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.
 "RTN","VSLIO",36,0)
-	; The last error message is stashed at ^TMP($job,"vslio","err") for $$lastError.
+	;
 "RTN","VSLIO",37,0)
-	; Errors set $ECODE to one of:
+	; The last error message is stashed at ^TMP($job,"vslio","err") for $$lastError.
 "RTN","VSLIO",38,0)
-	;   ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)
+	; Errors set $ECODE to one of:
 "RTN","VSLIO",39,0)
-	;
+	;   ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)
 "RTN","VSLIO",40,0)
-	quit
+	;
 "RTN","VSLIO",41,0)
-	;
+	quit
 "RTN","VSLIO",42,0)
-	; ---------- outbound TCP client (the VistA binding) ----------
+	;
 "RTN","VSLIO",43,0)
-	;
+	; ---------- outbound TCP client (the VistA binding) ----------
 "RTN","VSLIO",44,0)
-connect(host,port,timeout)	; Open an outbound TCP connection; return the device handle, else 0.
+	;
 "RTN","VSLIO",45,0)
-	; doc: @param   host     string   host/IP to connect to (IPADDRESS)
+connect(host,port,timeout)	; Open an outbound TCP connection; return the device handle, else 0.
 "RTN","VSLIO",46,0)
-	; doc: @param   port     numeric  remote TCP port (SOCKET)
+	; doc: @param   host     string   host/IP to connect to (IPADDRESS)
 "RTN","VSLIO",47,0)
-	; doc: @param   timeout  numeric  open timeout in seconds (default 10)
+	; doc: @param   port     numeric  remote TCP port (SOCKET)
 "RTN","VSLIO",48,0)
-	; doc: @returns string   the opened device (handle) on POP=0, else 0
+	; doc: @param   timeout  numeric  open timeout in seconds (default 30)
 "RTN","VSLIO",49,0)
-	; doc: @icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system
+	; doc: @returns string   the opened device (handle) on POP=0, else 0
 "RTN","VSLIO",50,0)
-	; doc: WARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).
+	; doc: @icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system
 "RTN","VSLIO",51,0)
-	; doc: @example   do true^STDASSERT(.pass,.fail,$$connect^VSLIO("127.0.0.1",65000,2)=0,"connect to a closed port returns 0 (POP positive)")
+	; doc: WARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).
 "RTN","VSLIO",52,0)
-	new IO,POP,pio,dev
+	; doc: @example   do true^STDASSERT(.pass,.fail,$$connect^VSLIO("127.0.0.1",65000,2)=0,"connect to a closed port returns 0 (POP positive)")
 "RTN","VSLIO",53,0)
-	set pio=$io
+	new IO,POP,pio,dev
 "RTN","VSLIO",54,0)
-	do CALL^%ZISTCP(host,port,$get(timeout,30))
-"RTN","VSLIO",55,0)
-	if +$get(POP) use pio quit 0
-"RTN","VSLIO",56,0)
-	set dev=IO
-"RTN","VSLIO",57,0)
-	use pio
-"RTN","VSLIO",58,0)
-	quit dev
-"RTN","VSLIO",59,0)
-	;
-"RTN","VSLIO",60,0)
-read(id,maxlen,timeout,buf)	; Raw-read up to maxlen bytes from a handle.
-"RTN","VSLIO",61,0)
-	; doc: @param   id       string   a handle from $$connect (the device)
-"RTN","VSLIO",62,0)
-	; doc: @param   maxlen   numeric  maximum bytes to read
-"RTN","VSLIO",63,0)
-	; doc: @param   timeout  numeric  seconds to wait for data
-"RTN","VSLIO",64,0)
-	; doc: @param   buf      string   by-ref; receives the bytes read
-"RTN","VSLIO",65,0)
-	; doc: @returns numeric  bytes read (0 on timeout/EOF)
-"RTN","VSLIO",66,0)
-	; doc: @illustrative  needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server).
-"RTN","VSLIO",67,0)
-	new x,pio
-"RTN","VSLIO",68,0)
-	set buf="",pio=$io
-"RTN","VSLIO",69,0)
-	use id read x#maxlen:timeout
-"RTN","VSLIO",70,0)
-	use pio
-"RTN","VSLIO",71,0)
-	set buf=x
-"RTN","VSLIO",72,0)
-	quit $length(x)
-"RTN","VSLIO",73,0)
-	;
-"RTN","VSLIO",74,0)
-write(id,buf)	; Raw-write `buf` to a connected handle.
-"RTN","VSLIO",75,0)
-	; doc: @param   id       string   a handle from $$connect (the device)
-"RTN","VSLIO",76,0)
-	; doc: @param   buf      string   bytes to write (raw, no delimiter)
-"RTN","VSLIO",77,0)
-	; doc: @returns bool     1 on success
-"RTN","VSLIO",78,0)
-	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
-"RTN","VSLIO",79,0)
-	new pio
-"RTN","VSLIO",80,0)
 	set pio=$io
-"RTN","VSLIO",81,0)
-	use id write buf
-"RTN","VSLIO",82,0)
+"RTN","VSLIO",55,0)
+	do CALL^%ZISTCP(host,port,$get(timeout,30))
+"RTN","VSLIO",56,0)
+	if +$get(POP) use pio quit 0
+"RTN","VSLIO",57,0)
+	set dev=IO
+"RTN","VSLIO",58,0)
 	use pio
-"RTN","VSLIO",83,0)
-	quit 1
-"RTN","VSLIO",84,0)
+"RTN","VSLIO",59,0)
+	quit dev
+"RTN","VSLIO",60,0)
 	;
-"RTN","VSLIO",85,0)
-close(id)	; Close an outbound connection opened by $$connect.
-"RTN","VSLIO",86,0)
+"RTN","VSLIO",61,0)
+read(id,maxlen,timeout,buf)	; Raw-read up to maxlen bytes from a handle.
+"RTN","VSLIO",62,0)
 	; doc: @param   id       string   a handle from $$connect (the device)
-"RTN","VSLIO",87,0)
-	; doc: @returns bool     1 (idempotent)
-"RTN","VSLIO",88,0)
-	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
-"RTN","VSLIO",89,0)
-	; doc: @illustrative  needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho.
-"RTN","VSLIO",90,0)
-	new IO,pio
-"RTN","VSLIO",91,0)
-	set pio=$io,IO=id
-"RTN","VSLIO",92,0)
-	do CLOSE^%ZISTCP
-"RTN","VSLIO",93,0)
+"RTN","VSLIO",63,0)
+	; doc: @param   maxlen   numeric  maximum bytes to read
+"RTN","VSLIO",64,0)
+	; doc: @param   timeout  numeric  seconds to wait for data
+"RTN","VSLIO",65,0)
+	; doc: @param   buf      string   by-ref; receives the bytes read
+"RTN","VSLIO",66,0)
+	; doc: @returns numeric  bytes read (0 on timeout/EOF)
+"RTN","VSLIO",67,0)
+	; doc: @illustrative  needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server).
+"RTN","VSLIO",68,0)
+	new x,pio
+"RTN","VSLIO",69,0)
+	set buf="",pio=$io
+"RTN","VSLIO",70,0)
+	use id read x#maxlen:timeout
+"RTN","VSLIO",71,0)
 	use pio
-"RTN","VSLIO",94,0)
+"RTN","VSLIO",72,0)
+	set buf=x
+"RTN","VSLIO",73,0)
+	quit $length(x)
+"RTN","VSLIO",74,0)
+	;
+"RTN","VSLIO",75,0)
+write(id,buf)	; Raw-write `buf` to a connected handle.
+"RTN","VSLIO",76,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",77,0)
+	; doc: @param   buf      string   bytes to write (raw, no delimiter)
+"RTN","VSLIO",78,0)
+	; doc: @returns bool     1 on success
+"RTN","VSLIO",79,0)
+	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
+"RTN","VSLIO",80,0)
+	new pio
+"RTN","VSLIO",81,0)
+	set pio=$io
+"RTN","VSLIO",82,0)
+	use id write buf
+"RTN","VSLIO",83,0)
+	use pio
+"RTN","VSLIO",84,0)
 	quit 1
+"RTN","VSLIO",85,0)
+	;
+"RTN","VSLIO",86,0)
+close(id)	; Close an outbound connection opened by $$connect.
+"RTN","VSLIO",87,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",88,0)
+	; doc: @returns bool     1 (idempotent)
+"RTN","VSLIO",89,0)
+	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
+"RTN","VSLIO",90,0)
+	; doc: @illustrative  needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho.
+"RTN","VSLIO",91,0)
+	new IO,pio
+"RTN","VSLIO",92,0)
+	set pio=$io,IO=id
+"RTN","VSLIO",93,0)
+	do CLOSE^%ZISTCP
+"RTN","VSLIO",94,0)
+	use pio
 "RTN","VSLIO",95,0)
-	;
+	quit 1
 "RTN","VSLIO",96,0)
-lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
+	;
 "RTN","VSLIO",97,0)
-	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
+lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 "RTN","VSLIO",98,0)
-	; doc: @example   new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
+	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
 "RTN","VSLIO",99,0)
-	quit $get(^TMP($job,"vslio","err"))
+	; doc: @example   new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
 "RTN","VSLIO",100,0)
-	;
+	quit $get(^TMP($job,"vslio","err"))
 "RTN","VSLIO",101,0)
-	; ---------- TLS (known gap — loud, never silent) ----------
+	;
 "RTN","VSLIO",102,0)
-	;
+	; ---------- TLS (known gap — loud, never silent) ----------
 "RTN","VSLIO",103,0)
-tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
+	;
 "RTN","VSLIO",104,0)
-	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
+tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
 "RTN","VSLIO",105,0)
-	; doc: Check before any secure use; $$tlsHelp has remediation.
+	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
 "RTN","VSLIO",106,0)
-	; doc: @example   write $$tlsAvailable^VSLIO()  ; 0
+	; doc: Check before any secure use; $$tlsHelp has remediation.
 "RTN","VSLIO",107,0)
-	quit 0
+	; doc: @example   write $$tlsAvailable^VSLIO()  ; 0
 "RTN","VSLIO",108,0)
-	;
-"RTN","VSLIO",109,0)
-tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
-"RTN","VSLIO",110,0)
-	; doc: @returns string  multi-line: why there is no TLS + how to remedy
-"RTN","VSLIO",111,0)
-	; doc: @example   do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
-"RTN","VSLIO",112,0)
-	quit $$noTlsMsg()
-"RTN","VSLIO",113,0)
-	;
-"RTN","VSLIO",114,0)
-connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
-"RTN","VSLIO",115,0)
-	; doc: @param   host     string   host/IP (ignored — not implemented)
-"RTN","VSLIO",116,0)
-	; doc: @param   port     numeric  TCP port (ignored — not implemented)
-"RTN","VSLIO",117,0)
-	; doc: @param   timeout  numeric  seconds (ignored — not implemented)
-"RTN","VSLIO",118,0)
-	; doc: @param   config   string   named TLS config (ignored — not implemented)
-"RTN","VSLIO",119,0)
-	; doc: @returns string   never returns a handle; always raises
-"RTN","VSLIO",120,0)
-	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
-"RTN","VSLIO",121,0)
-	; doc: @example   do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
-"RTN","VSLIO",122,0)
-	do raiseNoTls("connectTls")
-"RTN","VSLIO",123,0)
 	quit 0
+"RTN","VSLIO",109,0)
+	;
+"RTN","VSLIO",110,0)
+tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
+"RTN","VSLIO",111,0)
+	; doc: @returns string  multi-line: why there is no TLS + how to remedy
+"RTN","VSLIO",112,0)
+	; doc: @example   do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
+"RTN","VSLIO",113,0)
+	quit $$noTlsMsg()
+"RTN","VSLIO",114,0)
+	;
+"RTN","VSLIO",115,0)
+connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
+"RTN","VSLIO",116,0)
+	; doc: @param   host     string   host/IP (ignored — not implemented)
+"RTN","VSLIO",117,0)
+	; doc: @param   port     numeric  TCP port (ignored — not implemented)
+"RTN","VSLIO",118,0)
+	; doc: @param   timeout  numeric  seconds (ignored — not implemented)
+"RTN","VSLIO",119,0)
+	; doc: @param   config   string   named TLS config (ignored — not implemented)
+"RTN","VSLIO",120,0)
+	; doc: @returns string   never returns a handle; always raises
+"RTN","VSLIO",121,0)
+	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
+"RTN","VSLIO",122,0)
+	; doc: @example   do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
+"RTN","VSLIO",123,0)
+	do raiseNoTls("connectTls")
 "RTN","VSLIO",124,0)
-	;
+	quit 0
 "RTN","VSLIO",125,0)
-	; ---------- internals ----------
+	;
 "RTN","VSLIO",126,0)
-	;
+	; ---------- internals ----------
 "RTN","VSLIO",127,0)
-noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
-"RTN","VSLIO",128,0)
-	new m,nl
-"RTN","VSLIO",129,0)
-	set nl=$char(10)
-"RTN","VSLIO",130,0)
-	set m="VSLIO-NOTLS: VSLIO opens RAW PLAINTEXT TCP — TLS is NOT wired (a known, tracked gap)."
-"RTN","VSLIO",131,0)
-	set m=m_nl_"Do NOT use it for secure transport: a plaintext socket would silently expose credentials/PHI."
-"RTN","VSLIO",132,0)
-	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
-"RTN","VSLIO",133,0)
-	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
-"RTN","VSLIO",134,0)
-	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
-"RTN","VSLIO",135,0)
-	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
-"RTN","VSLIO",136,0)
-	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
-"RTN","VSLIO",137,0)
-	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
-"RTN","VSLIO",138,0)
-	quit m
-"RTN","VSLIO",139,0)
 	;
+"RTN","VSLIO",128,0)
+noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
+"RTN","VSLIO",129,0)
+	new m,nl
+"RTN","VSLIO",130,0)
+	set nl=$char(10)
+"RTN","VSLIO",131,0)
+	set m="VSLIO-NOTLS: VSLIO opens RAW PLAINTEXT TCP — TLS is NOT wired (a known, tracked gap)."
+"RTN","VSLIO",132,0)
+	set m=m_nl_"Do NOT use it for secure transport: a plaintext socket would silently expose credentials/PHI."
+"RTN","VSLIO",133,0)
+	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
+"RTN","VSLIO",134,0)
+	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
+"RTN","VSLIO",135,0)
+	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
+"RTN","VSLIO",136,0)
+	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
+"RTN","VSLIO",137,0)
+	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
+"RTN","VSLIO",138,0)
+	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
+"RTN","VSLIO",139,0)
+	quit m
 "RTN","VSLIO",140,0)
-raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not silent).
+	;
 "RTN","VSLIO",141,0)
-	set ^TMP($job,"vslio","err")=who_": "_$$noTlsMsg()
+raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not silent).
 "RTN","VSLIO",142,0)
-	set $ecode=",U-VSLIO-NOTLS,"
+	set ^TMP($job,"vslio","err")=who_": "_$$noTlsMsg()
 "RTN","VSLIO",143,0)
+	set $ecode=",U-VSLIO-NOTLS,"
+"RTN","VSLIO",144,0)
 	quit
 "RTN","VSLLOG")
 0^132^0^0
@@ -1463,7 +1467,7 @@ schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; ret
 "RTN","VSLTASK",63,0)
 	; doc: @param   desc     string   a human description (optional)
 "RTN","VSLTASK",64,0)
-	; doc: @param   when     string   $H start time (optional; default now). MUST be <=5-digit $H or "@"
+	; doc: @param   when     string   TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or "@" for ASAP — not a bare day number.
 "RTN","VSLTASK",65,0)
 	; doc: @returns          numeric  the queued task number
 "RTN","VSLTASK",66,0)

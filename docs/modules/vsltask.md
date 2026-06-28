@@ -86,7 +86,7 @@ Headless-queue a persistent listener at `entry`; return its task number.
 
 - `entry` _(string)_ — the task entry reference (TAG^ROUTINE)
 - `desc` _(string)_ — a human description (optional)
-- `when` _(string)_ — $H start time (optional; default now). MUST be <=5-digit $H or "@"
+- `when` _(string)_ — TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or "@" for ASAP — not a bare day number.
 
 **Returns** _numeric_ — the queued task number
 

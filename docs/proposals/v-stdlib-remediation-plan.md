@@ -27,10 +27,10 @@ Live status of every remediation item. Update this row when an item lands.
 | ID | Sev | Area | Summary | Status |
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | ✅ DONE (12/12 live, commit `19b96b3`) |
-| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; 7/7 live ydb; IRIS owed) |
+| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; **dual-engine 7/7** — IRIS arm closed 2026-06-28 by a fixture fix: XPAR "ALL" ≠ SYS-settable) |
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ✅ **DONE** — **R3a** dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range filters) over the new **VSLFS finder verbs (R-EXT-6: `$$find`/`$$list`)**. Dual-engine green (VSLFSTST 12/12, VSLLOGTST 15/15, vehu+foia-t12). Unblocked by v-pkg **B.2-a**. File # is test-range #999001 until B.2-b |
-| R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
-| R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
+| R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ✅ DONE — doc + header now say 30 (match code) |
+| R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ✅ DONE — `when` reworded to the full-$H/ZTDTH form; `$$kill` doc states the asymmetry is deliberate + points delete-or-fail callers at `$$lastError` |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | ✅ DONE — all 7 `docs/vsl-msl/` docs marked `status: superseded` with a delta banner pointing to this repo as the source of truth (docs repo commit `b1b49fb`); link-check clean |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | ✅ DONE (pruned in `19b96b3`) |
@@ -123,7 +123,7 @@ Two defects, both real:
    adapter," it is really a SYS-scope reader. A sysadmin asking "what is the
    effective value in this context?" gets the wrong answer.
 
-**Done (commit pending):**
+**Done ✅ (dual-engine, IRIS arm closed 2026-06-28):**
 - `$$set` is now loud — it reads `EN^XPAR`'s scalar error return (`0` vs
   `#^errortext`, where `#` is the VA FileMan DIALOG #.84 entry; grounded against
   the Kernel Toolkit DG, ICR #2263) **and** flag-traps a hard `EN^XPAR` fault,
@@ -136,9 +136,18 @@ Two defects, both real:
   context. The existing SYS-only `$$get` is kept (the faithful `STDENV` flat-read
   analog) and the header now documents the `$$get` vs `$$getEffective` distinction.
 - Tests: `VSLCFGTST` adds `tGetEffectiveResolvesSys` + `tSetFailureIsLoud`;
-  **7/7 live on vehu (ydb)**. IRIS (foia) arm owed — no foia container was up;
-  the code uses only engine-neutral XPAR APIs + the IRIS-portable `$ETRAP`
-  pattern, so it is expected green there.
+  **7/7 dual-engine — vehu (ydb) + foia-t12 (iris), IRIS arm closed 2026-06-28.**
+
+> **✅ R2 IRIS arm closed (2026-06-28):** the foia arm was NOT free —
+> `tGetEffectiveResolvesSys` was 6/7 on foia (green on vehu). Root cause is a real
+> XPAR property, not a VSLCFG bug: a parameter can accept a **SYS instance** yet
+> **omit SYS from its PRECEDENCE multiple**, so `$$GET^XPAR("ALL",p,1)` returns `""`
+> — and *which* params do this differs by engine/instance. The test now asserts
+> `$$getEffective` equals the **actual** `$$GET^XPAR("ALL")` resolution (+ default),
+> proving the wrapper + default contract without depending on the dynamically-picked
+> param's precedence. (An over-tightened fixture that probed many params for an
+> ALL-resolver instead **aborted the IRIS suite 0/0** — a probed param faulted XPAR
+> mid-probe; reverted to the quick SYS pick.) See memory `r2-vslcfg-loud-effective`.
 
 **Deferred to `VSLPARM`** (do NOT build a second time in VSLCFG): entity-aware
 `$$set`/`list` (`GETLST^XPAR`/`ENVAL^XPAR`, ICR #2263) belong in the suite's
@@ -189,6 +198,11 @@ Add `$$query^VSLLOG` (date/event filters) over the VSLFS finder (R-EXT-6).
 correctly (loud `,U-VSLIO-NOTLS,`, never a silent plaintext fallback) and stays
 tracked as the existing gating item — no change beyond the doc.
 
+> **✅ R4 DONE (2026-06-28):** `@param timeout` doc corrected to `default 30`
+> (matching the code), and the `$$connect` signature + `(timeout in seconds;
+> default 30)` note added to the public-API header. Doc-only; regenerated the
+> module page. The TLS gating item is unchanged.
+
 ### R5 — MINOR: `VSLTASK` `when` doc imprecise; `VSLFS.$$kill` asymmetry
 
 - `VSLTASK.schedule` doc: *"MUST be ≤5-digit $H or `@`"*. The default is
@@ -198,6 +212,15 @@ tracked as the existing gating item — no change beyond the doc.
   documented but trap-able asymmetry (a failed delete reads as success).
   Consider a `$$kill` variant (or flag) that raises, for callers that need
   delete-or-fail. Low priority.
+
+> **✅ R5 DONE (2026-06-28):** doc-only, both items. `VSLTASK.schedule`'s `when`
+> param reworded — the misleading "≤5-digit $H" replaced with "a full `$H` value
+> (`days,secs`, e.g. `$HOROLOG`), or `@` for ASAP — not a bare day number; default
+> `$HOROLOG` = now." `VSLFS.$$kill`'s swallow-vs-raise asymmetry is now documented
+> in its header (`@returns bool 1 always (idempotent)` + the explicit note that
+> callers needing delete-or-fail must check `$$lastError^VSLFS()` after `$$kill`).
+> The raising `$$kill` *variant* stays deferred (low priority). Regenerated module
+> pages.
 
 ### R6 — STRUCTURAL: triple-duplicated assertions, over-long example lines, tooling overhead
 
@@ -345,14 +368,17 @@ dependency edges between the two documents.
    structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range) over the
    VSLFS finder. Dual-engine green. Unblocks every suite write verb; co-design the
    DD with the suite's `VSLAUD`.
-5. **R2** — fix `VSLCFG` (loud + effective resolution), folded into `VSLPARM`.
+5. **R2 — DONE** — fix `VSLCFG` (loud `$$set` + `$$getEffective` resolution);
+   **7/7 dual-engine, IRIS arm closed 2026-06-28.** Entity-aware verbs folded into
+   the suite's `VSLPARM`.
 6. **`VSLFS` finder verbs (R-EXT-6) — DONE** (`$$find`/`$$list` + `$$get` internal
    flag, dual-engine 12/12). Feeds R3b's `$$query` and the suite's Tier-2 wrappers
    and `v db`.
 7. Then hand off to **`vista-sysadmin-suite.md`** Tier 1 → 2 → 3 (read verbs first
    within each tier; gated writes only after R3).
-8. **R4 / R5 / R8** — minor contract docs + hygiene, folded into the next touch of
-   each module.
+8. **R4 / R5 — DONE** — minor contract docs (VSLIO timeout default, VSLTASK `when`
+   wording, VSLFS `$$kill` asymmetry note), folded into the module touch of
+   2026-06-28. **R8** — remaining hygiene, folded into the next touch of each module.
 
 Read-only, low-risk, highest-daily-value capabilities first; dangerous writes
 deferred until the audit substrate (R3) exists.
@@ -364,10 +390,10 @@ deferred until the audit substrate (R3) exists.
 | ID | Sev | Area | Finding | Status |
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | **Fixed + verified 12/12 live** |
-| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, 7/7 live ydb** |
+| R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, dual-engine 7/7 (IRIS arm closed 2026-06-28)** |
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **DONE** — R3a dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; R3b `$$query` over the new VSLFS finder verbs (R-EXT-6). Dual-engine green (12/12 + 15/15); unblocked by v-pkg B.2-a |
-| R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
-| R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
+| R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | **Done — doc + header = 30 (match code)** |
+| R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | **Done — `when` reworded; `$$kill` asymmetry documented + `$$lastError` path** |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | **Done** — 7 docs marked `superseded` + delta banner → this repo (docs commit `b1b49fb`) |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | Fold into next commit |

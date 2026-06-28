@@ -61,7 +61,7 @@ persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it o
 schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; return its task number.
 	; doc: @param   entry    string   the task entry reference (TAG^ROUTINE)
 	; doc: @param   desc     string   a human description (optional)
-	; doc: @param   when     string   $H start time (optional; default now). MUST be <=5-digit $H or "@"
+	; doc: @param   when     string   TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or "@" for ASAP — not a bare day number.
 	; doc: @returns          numeric  the queued task number
 	; doc: @raises  U-VSL-TASK-ARG    no entry reference supplied
 	; doc: @raises  U-VSL-TASK-QUEUE  the TaskMan queue / persist failed

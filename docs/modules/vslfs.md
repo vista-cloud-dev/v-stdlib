@@ -91,7 +91,7 @@ Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
 - `file` _(numeric)_ — FileMan file number
 - `iens` _(string)_ — IENS of the record to delete
 
-**Returns** _bool_ — 1 (idempotent — a DIERR is recorded, not raised)
+**Returns** _bool_ — 1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
 
 ### `$$lastError^VSLFS()`
 

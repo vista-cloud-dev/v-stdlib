@@ -25,10 +25,24 @@
   the whole Parameter Tools family incl. GETLST/ENVAL).
 
 ## Verification
-`VSLCFGTST` 7/7 live on vehu (ydb) via the driver stack (`tGetEffectiveResolvesSys`
-+ `tSetFailureIsLoud` added). Regenerated KIDS/manifest/icr/examples/skill/page;
-`make check-fast` green. **IRIS (foia) arm OWED** — no foia container was up;
-code is engine-neutral XPAR + IRIS-portable `$ETRAP`, expected green.
+`VSLCFGTST` **7/7 dual-engine** (vehu YDB + foia-t12 IRIS) via the driver stack
+(`tGetEffectiveResolvesSys` + `tSetFailureIsLoud` added). Regenerated
+KIDS/manifest/icr/examples/skill/page; `make check-fast` green.
+
+## DURABLE GOTCHA — XPAR "ALL" precedence ≠ "SYS-settable" (the IRIS-arm catch, 2026-06-28)
+The IRIS arm was NOT free: `tGetEffectiveResolvesSys` was **6/7 on foia** (passed on
+vehu). Root cause is a real XPAR property, not a VSLCFG bug: a parameter can accept a
+**SYS instance** (`EN^XPAR("SYS",p,1,…)` round-trips) yet **omit SYS from its
+PRECEDENCE multiple**, so `$$GET^XPAR("ALL",p,1)` returns `""`. Which params do this
+**differs by engine/instance** — e.g. the first free-text SYS-settable param the test
+fixture picked was `BPS USRSCR` on foia, whose precedence excludes SYS (ALL=""), while
+vehu's pick had SYS in precedence. **Lesson:** never assert "set SYS → ALL resolves it"
+against a *dynamically-discovered* param — it's engine-fragile. The fixture now keeps
+the quick SYS-settable pick, and the test asserts `$$getEffective` equals the **actual**
+`$$GET^XPAR("ALL")` resolution (+ default) — proving the wrapper + default contract
+without depending on the picked param's precedence. (An over-tightened fixture that
+probed many params for an ALL-resolver instead **aborted the suite 0/0 on IRIS** —
+some param faulted `EN^XPAR`/`GET^XPAR` mid-probe; reverted.)
 
 ## Deferred (not built)
 Entity-aware `$$set`/`$$list` (`GETLST^XPAR`/`ENVAL^XPAR`) → the suite's

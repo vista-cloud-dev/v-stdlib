@@ -89,7 +89,8 @@ exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads withou
 kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
 	; doc: @param   file     numeric  FileMan file number
 	; doc: @param   iens     string   IENS of the record to delete
-	; doc: @returns          bool     1 (idempotent — a DIERR is recorded, not raised)
+	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
+	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
 	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
 	new FDA,ERR
