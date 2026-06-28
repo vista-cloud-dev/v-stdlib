@@ -40,4 +40,4 @@ read 0/0 (suite abort); re-running gave stable 7/7. Also: an external **nightly
 cadence** automation deleted `quarantine/` from the working tree mid-session
 (none of the `make` targets do — verified); restored with `git restore`.
 
-See [[vslsec-user-regression-fix]], [[vista-sysadmin-suite-proposal]].
+See [[vslsec-user-regression-fix]] + the sysadmin-suite proposal `docs/proposals/vista-sysadmin-suite.md`.

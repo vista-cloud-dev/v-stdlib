@@ -35,7 +35,7 @@ malformed pin (missing ref) → RED; MSL unreachable → SKIP green; synced pin
 → GREEN. Wired into `make gates` + CI `engine-free-targets`.
 
 **Note — two different seam-snapshots in this repo, don't conflate:**
-`dist/seam-snapshot.json` = v-stdlib's OWN `VSL*` seams (empty, the T0b.3
-mirror); `dist/msl-seam-pin.json` = the MSL contract v-stdlib CONSUMES. See
-[[t0b3-drift-gates]]. The first real MSL seam (`STDENV`) arrives at T1.1 — at
+`dist/seam-snapshot.json` = v-stdlib's OWN `VSL*` seams (the four-drift-gate
+mirror of m-stdlib's, `VSL*` glob); `dist/msl-seam-pin.json` = the MSL contract
+v-stdlib CONSUMES. The first real MSL seam (`STDENV`) arrives at T1.1 — at
 which point `make pin` re-syncs and the gate asserts the real signature.

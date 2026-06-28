@@ -37,4 +37,4 @@ plan supplies the **prerequisite edges**: R3 (real audit DD) gates every suite
 write verb (co-design with VSLAUD); R2 (VSLCFG loud+effective) folds into VSLPARM;
 a VSLFS finder feeds the Tier-2 wrappers + `v db`. Don't duplicate the suite.
 
-See [[vista-sysadmin-suite-proposal]], [[m6.5-vslsec-secid-binding]], [[m4-vslsec-vsllog]].
+See the proposal `docs/proposals/vista-sysadmin-suite.md` (above), [[m6.5-vslsec-secid-binding]], [[m4-vslsec-vsllog]].

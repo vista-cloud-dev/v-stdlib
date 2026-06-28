@@ -9,7 +9,7 @@ metadata:
 
 **DONE 2026-06-23**, v-stdlib `main`. Implements the org ADR
 `docs/background/docs-governance-two-regimes-adr.md` (in the `docs` repo).
-Found while scoping stdlib-docs Phase 5 (see [[stdlib-docs-phase4]]).
+Found while scoping stdlib-docs Phase 5 (see [[stdlib-docs-pipeline]]).
 
 **Context.** The doc-framework prose validator (run via `docs-validate.yml`) was
 governing v-stdlib's machine-generated `docs/modules/` pages — wrong schema class,
