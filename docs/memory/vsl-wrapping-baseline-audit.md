@@ -24,11 +24,13 @@ the 7-category model in the doc — happy-path green is necessary, not sufficien
    on BOTH engines: `$$pduz(duz)` evaluates an omitted formal by value before its
    `$get` (`src/VSLSEC.m` `pduz`). Fix: `$$pduz($get(duz))` / `.duz`. Suite masks it
    (always passes explicit duz).
-2. **VSLIO RED on IRIS** — `VSLIOTST` 9/10 exit 3 on foia (green on vehu): `$$write`
-   has no `$ZVERSION["IRIS"` flush arm → client→server bytes dropped on IRIS.
-   Corrects the old [[m2-vslio]] "needs no $ZVERSION arm / IRIS soft-skips" claim
-   (now stale: `$$available^STDNET()=1` on IRIS). **Committed RED on a supported
-   engine — the dual-engine gate is not actually green today.**
+2. **VSLIO RED on IRIS — ✅ FIXED 2026-06-28.** `VSLIOTST` was 9/10 exit 3 on foia
+   (green on vehu): `$$write` had no `$ZVERSION["IRIS"` flush arm → client→server
+   bytes dropped on IRIS. Fix: `if $zversion["IRIS" write *-3` after the write
+   (mirrors `$$writeIris^STDNET`); now **10/10 on both engines**. Also corrected the
+   stale [[m2-vslio]] "needs no $ZVERSION arm / IRIS soft-skips" claim
+   (`$$available^STDNET()=1` on IRIS now). Lesson stands: an engine-divergent I/O arm
+   that a stale soft-skip never runs on IRIS is exactly where a portability bug hides.
 3. **VSLFS E-flag** — `$$set` doc says "external value" but `UPDATE^DIE` has no `E`
    flag → files INTERNAL (corpus + [[r3a-vsllog-audit-dd]]). Only free-text `.01`
    round-trips; DATE/POINTER/SET would file wrong silently.

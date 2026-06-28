@@ -6,8 +6,10 @@ VSLIOTST	; v-stdlib — VSLIO (VistA TCP transport over ^%ZISTCP) test suite.
 	;   m test --engine iris --docker foia-t12 --namespace VISTA \
 	;     --routines src --routines <m-stdlib>/src tests/VSLIOTST.m
 	; The loopback (tier 1 POP=0 + tier 2 echo) uses a raw STDNET listener for the
-	; SERVER side (VistA has no Supported listen/accept API) — STDNET is YottaDB-
-	; only today, so the loopback soft-skips on IRIS; the connect-failure and
+	; SERVER side (VistA has no Supported listen/accept API). STDNET now runs on
+	; BOTH engines, so the loopback runs on both (VSLIO $$write flushes with
+	; WRITE *-3 on IRIS); the $$available^STDNET() guard only soft-skips where the
+	; listener is genuinely absent (e.g. a bare engine). The connect-failure and
 	; TLS-gap tests run on both engines.
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
@@ -27,7 +29,7 @@ tConnectFailureReportsPop(pass,fail)	;@TEST "CALL^%ZISTCP to a closed port repor
 	;
 tLoopbackEcho(pass,fail)	;@TEST "VSLIO CALL^%ZISTCP connects (POP=0) and echoes a byte through ^%ZISTCP (loopback)"
 	new srv,cli,conn,port,buf,n
-	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"STDNET listener unavailable here (IRIS) - loopback skipped") quit
+	if '$$available^STDNET() do true^STDASSERT(.pass,.fail,1,"STDNET listener unavailable here (bare engine) - loopback skipped") quit
 	set srv=$$listen^STDNET(0)
 	set port=$$boundport^STDNET(srv)
 	set cli=$$connect^VSLIO("127.0.0.1",port,5)

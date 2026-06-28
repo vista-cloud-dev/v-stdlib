@@ -76,10 +76,13 @@ write(id,buf)	; Raw-write `buf` to a connected handle.
 	; doc: @param   id       string   a handle from $$connect (the device)
 	; doc: @param   buf      string   bytes to write (raw, no delimiter)
 	; doc: @returns bool     1 on success
+	; doc: On IRIS the TCP device buffers in default wait mode; flush with WRITE *-3
+	; doc: (mirrors $$writeIris^STDNET). YDB/GT.M flushes on WRITE, so it needs no arm.
 	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
 	new pio
 	set pio=$io
 	use id write buf
+	if $zversion["IRIS" write *-3
 	use pio
 	quit 1
 	;

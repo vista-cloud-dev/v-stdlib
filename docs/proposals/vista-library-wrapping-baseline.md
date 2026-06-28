@@ -48,6 +48,13 @@ straight over. Each is verified below.
 > R5a ("`@` for ASAP"). The audit caught its own house's error — exactly what an
 > adversarial, corpus-grounded pass is for.
 
+> **✅ UPDATE — defect (2) FIXED (2026-06-28).** `$$write^VSLIO` now flushes with
+> `write *-3` on IRIS (`if $zversion["IRIS"`, mirroring `$$writeIris^STDNET`);
+> `VSLIOTST` is **10/10 on BOTH engines** (`vehu` exit 0, `foia-t12` exit 0) and the
+> stale "STDNET is YDB-only / loopback soft-skips on IRIS" suite comment is
+> corrected. The dual-engine gate is green again. Defects (1) VSLSEC, (3) VSLFS,
+> (4) VSLTASK remain open.
+
 The throughline: **wrapped-API coverage is honestly *classified*, but TEST coverage
 under-specifies the contracts** (prefix-only `$ECODE` matches, circular assertions,
 explicit-arg-only paths, transform-invariant fixtures) — and that is precisely

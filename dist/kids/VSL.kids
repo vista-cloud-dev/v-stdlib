@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*9^
+**KIDS**:VSL*1.0*10^
 
 **INSTALL NAME**
-VSL*1.0*9
+VSL*1.0*10
 "BLD",1,0)
-VSL*1.0*9^VSL^0^0
+VSL*1.0*10^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -555,7 +555,7 @@ resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else ech
 "RTN","VSLFS",172,0)
 	quit $get(IEN(n))_","
 "RTN","VSLIO")
-0^144^0^0
+0^147^0^0
 "RTN","VSLIO",1,0)
 VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 "RTN","VSLIO",2,0)
@@ -713,136 +713,142 @@ write(id,buf)	; Raw-write `buf` to a connected handle.
 "RTN","VSLIO",78,0)
 	; doc: @returns bool     1 on success
 "RTN","VSLIO",79,0)
-	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
+	; doc: On IRIS the TCP device buffers in default wait mode; flush with WRITE *-3
 "RTN","VSLIO",80,0)
-	new pio
+	; doc: (mirrors $$writeIris^STDNET). YDB/GT.M flushes on WRITE, so it needs no arm.
 "RTN","VSLIO",81,0)
-	set pio=$io
+	; doc: @illustrative  needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho.
 "RTN","VSLIO",82,0)
-	use id write buf
+	new pio
 "RTN","VSLIO",83,0)
-	use pio
+	set pio=$io
 "RTN","VSLIO",84,0)
-	quit 1
+	use id write buf
 "RTN","VSLIO",85,0)
-	;
+	if $zversion["IRIS" write *-3
 "RTN","VSLIO",86,0)
-close(id)	; Close an outbound connection opened by $$connect.
-"RTN","VSLIO",87,0)
-	; doc: @param   id       string   a handle from $$connect (the device)
-"RTN","VSLIO",88,0)
-	; doc: @returns bool     1 (idempotent)
-"RTN","VSLIO",89,0)
-	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
-"RTN","VSLIO",90,0)
-	; doc: @illustrative  needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho.
-"RTN","VSLIO",91,0)
-	new IO,pio
-"RTN","VSLIO",92,0)
-	set pio=$io,IO=id
-"RTN","VSLIO",93,0)
-	do CLOSE^%ZISTCP
-"RTN","VSLIO",94,0)
 	use pio
-"RTN","VSLIO",95,0)
+"RTN","VSLIO",87,0)
 	quit 1
+"RTN","VSLIO",88,0)
+	;
+"RTN","VSLIO",89,0)
+close(id)	; Close an outbound connection opened by $$connect.
+"RTN","VSLIO",90,0)
+	; doc: @param   id       string   a handle from $$connect (the device)
+"RTN","VSLIO",91,0)
+	; doc: @returns bool     1 (idempotent)
+"RTN","VSLIO",92,0)
+	; doc: @icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system
+"RTN","VSLIO",93,0)
+	; doc: @illustrative  needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho.
+"RTN","VSLIO",94,0)
+	new IO,pio
+"RTN","VSLIO",95,0)
+	set pio=$io,IO=id
 "RTN","VSLIO",96,0)
-	;
+	do CLOSE^%ZISTCP
 "RTN","VSLIO",97,0)
-lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
+	use pio
 "RTN","VSLIO",98,0)
-	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
+	quit 1
 "RTN","VSLIO",99,0)
-	; doc: @illustrative  $$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check
+	;
 "RTN","VSLIO",100,0)
-	quit $get(^TMP($job,"vslio","err"))
+lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 "RTN","VSLIO",101,0)
-	;
+	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
 "RTN","VSLIO",102,0)
-	; ---------- TLS (known gap — loud, never silent) ----------
+	; doc: @illustrative  $$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check
 "RTN","VSLIO",103,0)
-	;
+	quit $get(^TMP($job,"vslio","err"))
 "RTN","VSLIO",104,0)
-tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
+	;
 "RTN","VSLIO",105,0)
-	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
+	; ---------- TLS (known gap — loud, never silent) ----------
 "RTN","VSLIO",106,0)
-	; doc: Check before any secure use; $$tlsHelp has remediation.
+	;
 "RTN","VSLIO",107,0)
-	; doc: @example   write $$tlsAvailable^VSLIO()  ; 0
+tlsAvailable()	; 0 — VSLIO has no wired TLS (engine TLS infra + XU*8.0*787 absent).
 "RTN","VSLIO",108,0)
-	quit 0
+	; doc: @returns bool  always 0 today: raw plaintext only (a known, tracked gap)
 "RTN","VSLIO",109,0)
-	;
+	; doc: Check before any secure use; $$tlsHelp has remediation.
 "RTN","VSLIO",110,0)
-tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
+	; doc: @example   write $$tlsAvailable^VSLIO()  ; 0
 "RTN","VSLIO",111,0)
-	; doc: @returns string  multi-line: why there is no TLS + how to remedy
-"RTN","VSLIO",112,0)
-	; doc: @example   do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
-"RTN","VSLIO",113,0)
-	quit $$noTlsMsg()
-"RTN","VSLIO",114,0)
-	;
-"RTN","VSLIO",115,0)
-connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
-"RTN","VSLIO",116,0)
-	; doc: @param   host     string   host/IP (ignored — not implemented)
-"RTN","VSLIO",117,0)
-	; doc: @param   port     numeric  TCP port (ignored — not implemented)
-"RTN","VSLIO",118,0)
-	; doc: @param   timeout  numeric  seconds (ignored — not implemented)
-"RTN","VSLIO",119,0)
-	; doc: @param   config   string   named TLS config (ignored — not implemented)
-"RTN","VSLIO",120,0)
-	; doc: @returns string   never returns a handle; always raises
-"RTN","VSLIO",121,0)
-	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
-"RTN","VSLIO",122,0)
-	; doc: @example   do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
-"RTN","VSLIO",123,0)
-	do raiseNoTls("connectTls")
-"RTN","VSLIO",124,0)
 	quit 0
+"RTN","VSLIO",112,0)
+	;
+"RTN","VSLIO",113,0)
+tlsHelp()	; Human-readable remediation for the TLS gap (diagnostics/logs).
+"RTN","VSLIO",114,0)
+	; doc: @returns string  multi-line: why there is no TLS + how to remedy
+"RTN","VSLIO",115,0)
+	; doc: @example   do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries the remediation message")
+"RTN","VSLIO",116,0)
+	quit $$noTlsMsg()
+"RTN","VSLIO",117,0)
+	;
+"RTN","VSLIO",118,0)
+connectTls(host,port,timeout,config)	; UNIMPLEMENTED — raises, never opens plaintext.
+"RTN","VSLIO",119,0)
+	; doc: @param   host     string   host/IP (ignored — not implemented)
+"RTN","VSLIO",120,0)
+	; doc: @param   port     numeric  TCP port (ignored — not implemented)
+"RTN","VSLIO",121,0)
+	; doc: @param   timeout  numeric  seconds (ignored — not implemented)
+"RTN","VSLIO",122,0)
+	; doc: @param   config   string   named TLS config (ignored — not implemented)
+"RTN","VSLIO",123,0)
+	; doc: @returns string   never returns a handle; always raises
+"RTN","VSLIO",124,0)
+	; doc: @raises  U-VSLIO-NOTLS  TLS not wired (known gap; see $$tlsHelp)
 "RTN","VSLIO",125,0)
-	;
+	; doc: @example   do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
 "RTN","VSLIO",126,0)
-	; ---------- internals ----------
+	do raiseNoTls("connectTls")
 "RTN","VSLIO",127,0)
-	;
+	quit 0
 "RTN","VSLIO",128,0)
-noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
-"RTN","VSLIO",129,0)
-	new m,nl
-"RTN","VSLIO",130,0)
-	set nl=$char(10)
-"RTN","VSLIO",131,0)
-	set m="VSLIO-NOTLS: VSLIO opens RAW PLAINTEXT TCP — TLS is NOT wired (a known, tracked gap)."
-"RTN","VSLIO",132,0)
-	set m=m_nl_"Do NOT use it for secure transport: a plaintext socket would silently expose credentials/PHI."
-"RTN","VSLIO",133,0)
-	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
-"RTN","VSLIO",134,0)
-	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
-"RTN","VSLIO",135,0)
-	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
-"RTN","VSLIO",136,0)
-	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
-"RTN","VSLIO",137,0)
-	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
-"RTN","VSLIO",138,0)
-	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
-"RTN","VSLIO",139,0)
-	quit m
-"RTN","VSLIO",140,0)
 	;
+"RTN","VSLIO",129,0)
+	; ---------- internals ----------
+"RTN","VSLIO",130,0)
+	;
+"RTN","VSLIO",131,0)
+noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
+"RTN","VSLIO",132,0)
+	new m,nl
+"RTN","VSLIO",133,0)
+	set nl=$char(10)
+"RTN","VSLIO",134,0)
+	set m="VSLIO-NOTLS: VSLIO opens RAW PLAINTEXT TCP — TLS is NOT wired (a known, tracked gap)."
+"RTN","VSLIO",135,0)
+	set m=m_nl_"Do NOT use it for secure transport: a plaintext socket would silently expose credentials/PHI."
+"RTN","VSLIO",136,0)
+	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
+"RTN","VSLIO",137,0)
+	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
+"RTN","VSLIO",138,0)
+	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
+"RTN","VSLIO",139,0)
+	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
+"RTN","VSLIO",140,0)
+	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
 "RTN","VSLIO",141,0)
-raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not silent).
+	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
 "RTN","VSLIO",142,0)
-	set ^TMP($job,"vslio","err")=who_": "_$$noTlsMsg()
+	quit m
 "RTN","VSLIO",143,0)
-	set $ecode=",U-VSLIO-NOTLS,"
+	;
 "RTN","VSLIO",144,0)
+raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not silent).
+"RTN","VSLIO",145,0)
+	set ^TMP($job,"vslio","err")=who_": "_$$noTlsMsg()
+"RTN","VSLIO",146,0)
+	set $ecode=",U-VSLIO-NOTLS,"
+"RTN","VSLIO",147,0)
 	quit
 "RTN","VSLLOG")
 0^132^0^0

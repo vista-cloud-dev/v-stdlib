@@ -573,7 +573,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "",
+          "description": "On IRIS the TCP device buffers in default wait mode; flush with WRITE *-3\n(mirrors $$writeIris^STDNET). YDB/GT.M flushes on WRITE, so it needs no arm.",
           "source": {
             "file": "src/VSLIO.m",
             "line": 75
@@ -606,7 +606,7 @@
           "description": "@icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 86
+            "line": 89
           },
           "illustrative": "needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho."
         },
@@ -630,7 +630,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 97
+            "line": 100
           },
           "illustrative": "$$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check"
         },
@@ -656,7 +656,7 @@
           "description": "Check before any secure use; $$tlsHelp has remediation.",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 104
+            "line": 107
           }
         },
         "tlsHelp": {
@@ -681,7 +681,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 110
+            "line": 113
           }
         },
         "connectTls": {
@@ -732,7 +732,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 115
+            "line": 118
           }
         }
       },

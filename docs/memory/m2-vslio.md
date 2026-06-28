@@ -1,6 +1,6 @@
 ---
 name: m2-vslio
-description: VSL/MSL M2 Lane B DONE — VSLIO binds the STDNET socket seam to VistA's Kernel device handler (outbound TCP via CALL^%ZISTCP, ICR #2118). Re-pinned msl_ref v0.7.0→v0.8.0. Tier1 POP=0 + tier2 echo GREEN on vehu(YDB); CALL^%ZISTCP wired on both engines; tier3 TLS loud-blocked. ⚠️ 2026-06-28 audit: VSLIO now RED on IRIS (9/10) — $$write lacks a $ZVERSION["IRIS" flush arm; the old "IRIS loopback soft-skips" is stale ($$available^STDNET()=1 on IRIS now). See in-file CORRECTION + vista-library-wrapping-baseline.md.
+description: VSL/MSL M2 Lane B DONE — VSLIO binds the STDNET socket seam to VistA's Kernel device handler (outbound TCP via CALL^%ZISTCP, ICR #2118). Re-pinned msl_ref v0.7.0→v0.8.0. Tier1 POP=0 + tier2 echo GREEN on vehu(YDB); CALL^%ZISTCP wired on both engines; tier3 TLS loud-blocked. 2026-06-28 audit found+FIXED an IRIS write bug: $$write now flushes with `write *-3` on IRIS ($zversion["IRIS"), VSLIOTST 10/10 both engines; the old "IRIS loopback soft-skips / no $ZVERSION arm" claim is corrected. See in-file CORRECTION + vista-library-wrapping-baseline.md.
 metadata:
   type: project
 ---
@@ -44,14 +44,14 @@ the socket. `CLOSE^%ZISTCP` reads `IO` (set `IO`=handle first) and calls
 `#closezistcp-…` (check-icr + check-citations green). Engine-portable: `^%ZISTCP`
 branches by OS internally (CGTM/CONT), so VSLIO needs no `$ZVERSION` arm.
 
-> **⚠️ CORRECTION (2026-06-28 baseline audit) — this claim is now WRONG.** The
-> dual-engine audit found `VSLIOTST` **RED on IRIS (9/10, exit 3)** while green on
-> YDB: `$$write` (`use id write buf` / `use pio`) has **no `$ZVERSION["IRIS"` flush
-> arm**, so client→server bytes are silently dropped on IRIS. `^%ZISTCP` *connect*
-> is portable, but the *write* path is not — VSLIO DOES need an IRIS arm and is
-> currently **committed RED on a supported engine**. The "loopback soft-skips on
-> IRIS / STDNET is YDB-only" acceptance below is also stale: `$$available^STDNET()=1`
-> on IRIS now, so that arm runs (and fails). See
+> **⚠️ CORRECTION (2026-06-28 baseline audit) — the original claim was WRONG; now
+> FIXED.** The dual-engine audit found `VSLIOTST` **RED on IRIS (9/10, exit 3)**:
+> `$$write` had **no `$ZVERSION["IRIS"` flush arm**, so client→server bytes were
+> silently dropped on IRIS. `^%ZISTCP` *connect* is portable, but the *write* path
+> was not. **Fixed 2026-06-28:** `$$write` now does `if $zversion["IRIS" write *-3`
+> (mirrors `$$writeIris^STDNET`); `VSLIOTST` is **10/10 on both engines**. The
+> "loopback soft-skips on IRIS / STDNET is YDB-only" acceptance below was also stale
+> (`$$available^STDNET()=1` on IRIS now) and the suite comment is corrected. See
 > `docs/proposals/vista-library-wrapping-baseline.md` defect (2).
 
 ## Acceptance (tiered, both engines over the driver)
