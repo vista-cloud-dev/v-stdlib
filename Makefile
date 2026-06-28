@@ -46,7 +46,7 @@ BARE_SRC := $(filter-out $(LIVE_SRC),$(wildcard src/*.m))
 
 .PHONY: all check fmt fmt-check lint arch test test-bare coverage clean \
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
-        pin check-msl-pin check-engine-access kids check-kids gates \
+        pin check-msl-pin check-engine-access check-fallthrough kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
         docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check examples-coverage \
         examples-run examples-run-ydb examples-run-iris examples-run-live
@@ -148,6 +148,16 @@ check-msl-pin:
 # engine-stack-guard hook. Org CLAUDE.md §"m/v waterline" -> "Engine access".
 check-engine-access:
 	@python3 tools/check_engine_access.py --check
+
+# Label fall-through / empty-body gate (remediation plan R6, R1's follow-up).
+# Red when any src/*.m label can fall through into the next label — an empty
+# body (only doc/comments) or a last line that isn't an unconditional
+# quit/goto/halt. This is the mechanical guard for the R1 class of bug: a
+# generated doc-edit silently deleted the only executable line of $$user^VSLSEC,
+# so it fell through into bySecid and every call raised, and no engine-bound gate
+# caught it. Engine-free — it reads the `.m` text (string/paren aware).
+check-fallthrough:
+	@python3 tools/check-fallthrough.py --check
 
 # ── VSL T1.3: the VSL KIDS base build (drift-gated artifact) ──────────
 # kids/vsl.build.json declares the VSL layer as an installable KIDS build:
@@ -307,7 +317,7 @@ examples-run-live:
 # Aggregate of the engine-free drift gates (the four own-tier gates + the
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
-gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-kids \
+gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-fallthrough check-kids \
        manifest-check manifest-golden skill-check docs-check docs-bodies-check check-frontmatter examples-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI

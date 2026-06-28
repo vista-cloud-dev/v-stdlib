@@ -31,7 +31,7 @@ Live status of every remediation item. Update this row when an item lands.
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ⬜ TODO (gates suite write verbs) |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
-| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | ⬜ TODO (empty-body gate = highest ROI) |
+| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*5`) | ⬜ TODO (docs-repo session) |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | ✅ DONE (pruned in `19b96b3`) |
 
@@ -202,8 +202,14 @@ tracked as the existing gating item — no change beyond the doc.
   meta-machinery dwarfs the library and is itself a bug surface (it caused R1).
 
 **Proposed:**
-- Add the **empty-body / fall-through gate** from R1's follow-up — the single
-  highest-ROI mechanical guard, since it would have caught R1 at commit time.
+- ✅ **DONE** — the **empty-body / fall-through gate** from R1's follow-up
+  (`tools/check-fallthrough.py`, in `make gates`/`check-fast`). The single
+  highest-ROI mechanical guard, since it would have caught R1 at commit time:
+  fed the exact R1-broken `VSLSEC` it flags `$$user` as "empty body — falls
+  through to the next label". Engine-free, string/paren-aware (an embedded
+  `quit` in a `$etrap` string, a postconditional `quit:cond`, and an `if`-gated
+  quit are all correctly rejected as terminators); 49/49 labels clean today;
+  10-case `--self-test`.
 - Decide one source of truth for assertions. Preferred: the **test suites are
   canonical**; `@example` tags carry only short, genuinely self-contained
   one-liners (the rest become `@illustrative` pointers to the suite). This
@@ -308,7 +314,7 @@ dependency edges between the two documents.
 ## Recommended sequence
 
 1. **R1** — `$$user` fix (DONE, in this change).
-2. **R6 empty-body/fall-through gate** — cheap, and it would have caught R1.
+2. **R6 empty-body/fall-through gate** — DONE (`tools/check-fallthrough.py`).
 3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit, docs session).
 4. **R3** — real `VSLLOG` audit DD (unblocks every suite write verb; co-design
    with the suite's `VSLAUD`).
@@ -333,6 +339,6 @@ deferred until the audit substrate (R3) exists.
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | Proposed |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
-| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | Proposed |
+| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*5`) | Proposed |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | Fold into next commit |
