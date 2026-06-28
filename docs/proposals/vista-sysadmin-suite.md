@@ -20,6 +20,28 @@ related_modules: [VSLCFG, VSLSEC, VSLTASK, VSLFS]
 
 ---
 
+## Contents
+
+- [1. Executive summary](#1-executive-summary)
+- [2. Current state — `v-stdlib` is seam adapters, not admin verticals](#2-current-state--v-stdlib-is-seam-adapters-not-admin-verticals)
+- [3. What a VistA sysadmin needs (grounded in the gold corpus)](#3-what-a-vista-sysadmin-needs-grounded-in-the-gold-corpus)
+- [4. Gap analysis — need → coverage → action](#4-gap-analysis--need--coverage--action)
+- [5. Architecture — the M-engine / Go-CLI vertical](#5-architecture--the-m-engine--go-cli-vertical)
+- [6. Proposed engine modules (`VSL*`)](#6-proposed-engine-modules-vsl)
+  - [Tier 1 — API-backed spine](#tier-1--api-backed-spine-dual-engine-testable-build-first)
+  - [Tier 2 — FileMan-DBS wrappers](#tier-2--fileman-dbs-wrappers-no-supported-api-upstream-build-second)
+  - [Tier 3 — monitors](#tier-3--monitors-upstream-partly-interactive-flag-limits)
+- [7. Proposed host surface (`v` CLI domains)](#7-proposed-host-surface-v-cli-domains)
+  - [7.1 Client-surface criteria — web vs CLI/TUI](#71-client-surface-criteria--web-vs-clitui)
+  - [7.2 The vertical registry — one Go binary, busybox-style](#72-the-vertical-registry--one-go-binary-busybox-style)
+- [8. Phased roadmap](#8-phased-roadmap)
+- [9. Cross-cutting concerns & risks](#9-cross-cutting-concerns--risks)
+- [10. Open questions](#10-open-questions)
+- [11. Out of scope](#11-out-of-scope)
+- [12. References (vdocs GOLD corpus)](#12-references-vdocs-gold-corpus)
+
+---
+
 ## 1. Executive summary
 
 A VistA system administrator spends the day on a small, stable set of operational
