@@ -32,7 +32,7 @@ Live status of every remediation item. Update this row when an item lands.
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
-| R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*5`) | ⬜ TODO (docs-repo session) |
+| R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | ✅ DONE — all 7 `docs/vsl-msl/` docs marked `status: superseded` with a delta banner pointing to this repo as the source of truth (docs repo commit `b1b49fb`); link-check clean |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | ✅ DONE (pruned in `19b96b3`) |
 
 ## Contents
@@ -245,10 +245,17 @@ saga or its 2026-06-27 quarantine. The retrospective's headline "next move" (the
 seven web clients) points at proposals **retired 2026-06-22**. Anyone trusting
 that corpus is wrong on module count, patch level, and next steps.
 
-**Proposed:** mark `docs/vsl-msl/{overview,plan,tracker,retrospective}` as
-`superseded` (or reconcile them to: 6 modules, `VSL*1.0*5`, tap quarantined, web
-clients retired, live next-thing = this plan + `v-rpc-tap`). This is an org-repo
-edit; do it under the increment protocol in the `docs` session.
+**✅ DONE (2026-06-28, docs repo commit `b1b49fb`).** All **7** live `docs/vsl-msl/`
+docs (overview, retrospective, architecture, coordination-plan, kickoff, README,
+https-stack-spec) were marked `status: superseded` with a banner stating the deltas
+(6 modules not 8; KIDS `VSL*1.0*7`; web stack + 7 web clients retired 2026-06-22;
+RPC→S3 tap quarantined 2026-06-27) and pointing to **this repo** as the live source
+of truth (`docs/proposals/v-stdlib-remediation-plan.md` + `docs/modules/` +
+`docs/memory/`). The implementation plan + tracker were already in
+`docs/archive/vsl-msl/`. Files kept in place (cross-repo inbound links would break
+on a move); the architecture/coordination banners note their design content is
+largely still valid. `doc-framework/tools/link-check.py` clean; docs-repo memory
+[[msl-vsl-coordination-plan]] updated.
 
 ### R8 — HYGIENE: uncommitted deletion on `main`
 
@@ -332,7 +339,8 @@ dependency edges between the two documents.
 
 1. **R1** — `$$user` fix (DONE, in this change).
 2. **R6 empty-body/fall-through gate** — DONE (`tools/check-fallthrough.py`).
-3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit, docs session).
+3. **R7 — DONE** — `docs/vsl-msl/` corpus (7 docs) marked `superseded` with a delta
+   banner pointing to this repo (docs commit `b1b49fb`).
 4. **R3 — DONE** — real `VSLLOG` audit DD: **R3a** dedicated `VSL AUDIT` #999001 +
    structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range) over the
    VSLFS finder. Dual-engine green. Unblocks every suite write verb; co-design the
@@ -361,5 +369,5 @@ deferred until the audit substrate (R3) exists.
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |
-| R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*5`) | Proposed |
+| R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | **Done** — 7 docs marked `superseded` + delta banner → this repo (docs commit `b1b49fb`) |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | Fold into next commit |
