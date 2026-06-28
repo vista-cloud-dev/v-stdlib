@@ -312,6 +312,14 @@ largely still valid. `doc-framework/tools/link-check.py` clean; docs-repo memory
 (tap-quarantine fallout) sitting uncommitted on `main`, contrary to the
 increment protocol. Fold it into the next commit.
 
+> **✅ R8 DONE (verified 2026-06-28).** The deletion was already folded into the
+> R1 commit `19b96b3` ("fix(VSLSEC): restore $$user body; add adversarial
+> remediation plan") — `docs/prompts/debug-live-capture-fault.md` (and the now-empty
+> `docs/prompts/` folder) is gone from `HEAD` and the working tree is clean. No
+> further action; this row is bookkeeping. (`docs/prompts/` was a bespoke folder the
+> org docs-layout standard removes anyway — see the layout vocabulary in the org
+> `CLAUDE.md`.)
+
 ---
 
 ## Are the existing plans worthwhile?
@@ -404,10 +412,12 @@ dependency edges between the two documents.
    within each tier; gated writes only after R3).
 8. **R4 / R5 — DONE** — minor contract docs (VSLIO timeout default, VSLTASK `when`
    wording, VSLFS `$$kill` asymmetry note), folded into the module touch of
-   2026-06-28. **R8** — remaining hygiene, folded into the next touch of each module.
+   2026-06-28. **R8 — DONE** — the stray staged deletion was pruned in the R1
+   commit `19b96b3`; HEAD + working tree clean.
 
-Read-only, low-risk, highest-daily-value capabilities first; dangerous writes
-deferred until the audit substrate (R3) exists.
+**All remediation items (R1–R8 + R-EXT-6) are now closed.** Read-only, low-risk,
+highest-daily-value capabilities came first; dangerous writes were deferred until
+the audit substrate (R3) existed. Next: hand off to the sysadmin-suite Tier 1→2→3.
 
 ---
 
@@ -422,4 +432,4 @@ deferred until the audit substrate (R3) exists.
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | **Done — `when` reworded; `$$kill` asymmetry documented + `$$lastError` path** |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Done — fall-through gate (`tools/check-fallthrough.py`) + test suites made canonical (long `@example`s → `@illustrative` pointers, M-MOD-001 19→0) + golden fixture extended (`@illustrative`/`@raisesnodemo`). 6:1 ratio = accepted observation** |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | **Done** — 7 docs marked `superseded` + delta banner → this repo (docs commit `b1b49fb`) |
-| R8 | Hygiene | git | uncommitted staged deletion on `main` | Fold into next commit |
+| R8 | Hygiene | git | uncommitted staged deletion on `main` | **Done — pruned in `19b96b3`; HEAD + working tree clean** |
