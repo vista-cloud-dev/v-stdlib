@@ -5,17 +5,12 @@ VSLTASKEX ; Living examples for VSLTASK — generated from @example tags.
         new pass,fail
         do start^STDASSERT(.pass,.fail)
         ;
-        do tExampleLastError(.pass,.fail)
         do tExamplePersist(.pass,.fail)
         do tExampleRunning(.pass,.fail)
         do tExampleSchedule(.pass,.fail)
         do tExampleStop(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
-        quit
-        ;
-tExampleLastError(pass,fail)    ;@TEST "example: VSLTASK.lastError"
-        do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","arm an error") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),"task number","$$lastError carries the malformed-call detail after a raise")
         quit
         ;
 tExamplePersist(pass,fail)      ;@TEST "example: VSLTASK.persist"

@@ -9,8 +9,6 @@ VSLFSEX ; Living examples for VSLFS — generated from @example tags.
         do tExampleExists2(.pass,.fail)
         do tExampleGet(.pass,.fail)
         do tExampleGet2(.pass,.fail)
-        do tExampleLastError(.pass,.fail)
-        do tExampleSet(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
         quit
@@ -29,13 +27,5 @@ tExampleGet(pass,fail)          ;@TEST "example: VSLFS.get"
         ;
 tExampleGet2(pass,fail)         ;@TEST "example: VSLFS.get"
         set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
-        quit
-        ;
-tExampleLastError(pass,fail)    ;@TEST "example: VSLFS.lastError"
-        new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
-        quit
-        ;
-tExampleSet(pass,fail)          ;@TEST "example: VSLFS.set"
-        do raises^STDASSERT(.pass,.fail,"set DUZ=1,DUZ(0)=""@"",U=""^"",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","set: a FileMan DIERR raises U-VSL-FS-DIERR")
         quit
         ;

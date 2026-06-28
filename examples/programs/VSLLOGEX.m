@@ -6,16 +6,11 @@ VSLLOGEX ; Living examples for VSLLOG — generated from @example tags.
         do start^STDASSERT(.pass,.fail)
         ;
         do tExampleAuditFile(.pass,.fail)
-        do tExampleLastError(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
         quit
         ;
 tExampleAuditFile(pass,fail)    ;@TEST "example: VSLLOG.auditFile"
         do eq^STDASSERT(.pass,.fail,$$auditFile^VSLLOG(),999001,"the dedicated VSL AUDIT file number")
-        quit
-        ;
-tExampleLastError(pass,fail)    ;@TEST "example: VSLLOG.lastError"
-        new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
         quit
         ;

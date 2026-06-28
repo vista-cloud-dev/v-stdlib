@@ -1,11 +1,53 @@
 {
   "description": "A tiny synthetic module: the frozen input for the manifest\ngenerator's golden-file regression test (P1.7). It lives under\ntools/fixtures/ — NOT src/ — so the gen-manifest `VSL*.m` glob and\nthe fmt/lint/test source globs never see it, and its line numbers\nstay stable for the source.file:line assertion.",
   "errors": [
-    "U-VSLGOLD-ARG"
+    "U-VSLGOLD-ARG",
+    "U-VSLGOLD-NET"
   ],
   "example_run": "dual",
   "example_safety": "read-only",
   "labels": {
+    "bye": {
+      "deprecated": "",
+      "description": "",
+      "examples": [],
+      "form": "extrinsic",
+      "illustrative": "sends the farewell over a live socket; exercised by tests, not a safe one-liner",
+      "params": [
+        {
+          "doc": "the name to bid farewell",
+          "name": "who",
+          "type": "string"
+        }
+      ],
+      "raised_in_body": [],
+      "raises": [
+        {
+          "code": "U-VSLGOLD-NET",
+          "doc": "the (illustrative) network send failed"
+        }
+      ],
+      "raises_nodemo": [
+        {
+          "code": "U-VSLGOLD-NET",
+          "reason": "needs a live socket peer; not triggerable on a healthy engine"
+        }
+      ],
+      "returns": {
+        "doc": "the rendered farewell",
+        "type": "string"
+      },
+      "seam": null,
+      "see_also": [],
+      "signature": "$$bye^VSLGOLD(who)",
+      "since": "",
+      "source": {
+        "file": "tools/fixtures/VSLGOLD.m",
+        "line": 25
+      },
+      "stable": "",
+      "synopsis": "Return a farewell; the live-send path is illustrative-only."
+    },
     "greet": {
       "deprecated": "",
       "description": "",

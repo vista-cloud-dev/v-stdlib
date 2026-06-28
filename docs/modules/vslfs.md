@@ -99,12 +99,6 @@ The last VSLFS error message (the composed FileMan DIERR detail).
 
 **Returns** _string_ — ^TMP($job,"vslfs","err"), or "" if none
 
-**Example**
-
-```m
-new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
-```
-
 ### `$$list^VSLFS(file, out, index)`
 
 List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
@@ -137,11 +131,5 @@ File `value` into (file,iens,field); return the resolved IENS, else raise.
 **Raises**
 
 - `U-VSL-FS-DIERR` — a FileMan DIERR (detail in $$lastError)
-
-**Example**
-
-```m
-do raises^STDASSERT(.pass,.fail,"set DUZ=1,DUZ(0)=""@"",U=""^"",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","set: a FileMan DIERR raises U-VSL-FS-DIERR")
-```
 
 <!-- END GENERATED API REFERENCE -->

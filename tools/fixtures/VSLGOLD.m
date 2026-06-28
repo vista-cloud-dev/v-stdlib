@@ -22,3 +22,11 @@ greet(who,loud)	; Return a greeting for `who`, optionally shouted.
 	set g="hello, "_who
 	quit $select(loud:$zconvert(g,"U"),1:g)
 	;
+bye(who)	; Return a farewell; the live-send path is illustrative-only.
+	; doc: @param who    string  the name to bid farewell
+	; doc: @returns      string  the rendered farewell
+	; doc: @raises       U-VSLGOLD-NET  the (illustrative) network send failed
+	; doc: @raisesnodemo U-VSLGOLD-NET  needs a live socket peer; not triggerable on a healthy engine
+	; doc: @illustrative  sends the farewell over a live socket; exercised by tests, not a safe one-liner
+	quit "bye, "_$get(who)
+	;

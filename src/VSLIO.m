@@ -96,7 +96,7 @@ close(id)	; Close an outbound connection opened by $$connect.
 	;
 lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
-	; doc: @example   new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
+	; doc: @illustrative  $$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check
 	quit $get(^TMP($job,"vslio","err"))
 	;
 	; ---------- TLS (known gap — loud, never silent) ----------

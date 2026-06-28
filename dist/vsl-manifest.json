@@ -31,8 +31,7 @@
           "raises": [],
           "raised_in_body": [],
           "examples": [
-            "do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(\"ZZVSLCFGNOSUCH\",\"fallback\"),\"fallback\",\"get: unset parameter returns the default\")",
-            "new k,i,r,d set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT,k=\"\",d=0 for  set k=$order(^XTV(8989.51,\"B\",k)) quit:k=\"\"!d  set i=+$order(^XTV(8989.51,\"B\",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))=\"F\",$$GET^XPAR(\"SYS\",k,1)=\"\" do EN^XPAR(\"SYS\",k,1,\"ZZP\",.r) set r=$$GET^XPAR(\"SYS\",k,1) do EN^XPAR(\"SYS\",k,1,\"@\") if r=\"ZZP\" do set^VSLCFG(k,\"hi\") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,\"MISS\"),\"hi\",\"get: $$set then $$get round-trips a SYS value\") do EN^XPAR(\"SYS\",k,1,\"@\") set d=1"
+            "do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(\"ZZVSLCFGNOSUCH\",\"fallback\"),\"fallback\",\"get: unset parameter returns the default\")"
           ],
           "since": "",
           "stable": "",
@@ -78,7 +77,7 @@
           "description": "The \"ALL\" entity tells XPAR to walk the precedence multiple defined on the\nparameter (#8989.51) and return the first level that has a value — what the\nvalue would actually resolve to in context. Contrast $$get, which reads only SYS.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 48
+            "line": 47
           }
         },
         "set": {
@@ -108,9 +107,7 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [
-            "set DUZ=1,DUZ(0)=\"@\",U=\"^\",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,\"do set^VSLCFG(\"\"ZZNOSUCHVSLCFGPARAM\"\",\"\"x\"\")\",\"U-VSL-CFG\",\"set: an undefined parameter raises U-VSL-CFG-...\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -119,8 +116,9 @@
           "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 61
-          }
+            "line": 60
+          },
+          "illustrative": "the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion"
         },
         "lastError": {
           "form": "extrinsic",
@@ -133,9 +131,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "new prior,r set prior=$get(^TMP($job,\"vslcfg\",\"err\")),^TMP($job,\"vslcfg\",\"err\")=\"set: x\" set r=$$lastError^VSLCFG() set ^TMP($job,\"vslcfg\",\"err\")=prior do eq^STDASSERT(.pass,.fail,r,\"set: x\",\"lastError: returns the stashed XPAR detail\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -144,8 +140,9 @@
           "description": "",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 77
-          }
+            "line": 76
+          },
+          "illustrative": "$$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check"
         }
       },
       "source": {
@@ -200,9 +197,7 @@
             }
           ],
           "raised_in_body": [],
-          "examples": [
-            "do raises^STDASSERT(.pass,.fail,\"set DUZ=1,DUZ(0)=\"\"@\"\",U=\"\"^\"\",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,\"\"+1,\"\",\"\".01\"\",\"\"ZZ\"\")\",\"U-VSL-FS\",\"set: a FileMan DIERR raises U-VSL-FS-DIERR\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -213,7 +208,7 @@
             "file": "src/VSLFS.m",
             "line": 46
           },
-          "illustrative": "a successful add files a real FileMan record; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) created+deleted, not a safe read-only one-liner — see tests/VSLFSTST.m tCreateGetRoundtrip"
+          "illustrative": "a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner"
         },
         "get": {
           "form": "extrinsic",
@@ -264,7 +259,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 62
+            "line": 61
           }
         },
         "exists": {
@@ -301,7 +296,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 77
+            "line": 76
           }
         },
         "kill": {
@@ -332,12 +327,12 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
+          "description": "This swallow-vs-raise asymmetry with $$set is deliberate (a delete is\nidempotent). A caller that needs delete-or-fail semantics must check\n$$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 89
+            "line": 88
           },
-          "illustrative": "deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill"
+          "illustrative": "deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner"
         },
         "find": {
           "form": "extrinsic",
@@ -375,7 +370,7 @@
           "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 102
+            "line": 103
           },
           "illustrative": "resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName"
         },
@@ -420,7 +415,7 @@
           "description": "@icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 113
+            "line": 114
           },
           "illustrative": "lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords"
         },
@@ -435,9 +430,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "new prior,r set prior=$get(^TMP($job,\"vslfs\",\"err\")),^TMP($job,\"vslfs\",\"err\")=\"set: FileMan DIERR\" set r=$$lastError^VSLFS() set ^TMP($job,\"vslfs\",\"err\")=prior do eq^STDASSERT(.pass,.fail,r,\"set: FileMan DIERR\",\"lastError: returns the composed FileMan DIERR detail\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -446,8 +439,9 @@
           "description": "",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 134
-          }
+            "line": 135
+          },
+          "illustrative": "$$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check"
         }
       },
       "source": {
@@ -627,9 +621,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "new had,save set had=$data(^TMP($job,\"vslio\",\"err\")),save=$get(^TMP($job,\"vslio\",\"err\")),^TMP($job,\"vslio\",\"err\")=\"connectTls: x\" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),\"connectTls\",\"lastError returns the stashed message\") if had set ^TMP($job,\"vslio\",\"err\")=save quit:had  kill ^TMP($job,\"vslio\",\"err\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -639,7 +631,8 @@
           "source": {
             "file": "src/VSLIO.m",
             "line": 97
-          }
+          },
+          "illustrative": "$$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check"
         },
         "tlsAvailable": {
           "form": "extrinsic",
@@ -831,7 +824,7 @@
             "file": "src/VSLLOG.m",
             "line": 54
           },
-          "illustrative": "files a real structured FileMan record into the dedicated VSL AUDIT file (#999001) — a live mutation needing the DD resident + teardown, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip"
+          "illustrative": "files a real structured record into VSL AUDIT (#999001) — a live mutation; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip, not a read-only one-liner"
         },
         "read": {
           "form": "extrinsic",
@@ -866,7 +859,7 @@
             "file": "src/VSLLOG.m",
             "line": 94
           },
-          "illustrative": "reads a structured record back from the dedicated VSL AUDIT file (#999001); needs a record present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip"
+          "illustrative": "reads a structured record back from VSL AUDIT (#999001); needs a record present; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip"
         },
         "query": {
           "form": "extrinsic",
@@ -911,7 +904,7 @@
             "file": "src/VSLLOG.m",
             "line": 108
           },
-          "illustrative": "filters real audit records in the dedicated VSL AUDIT file (#999001) via the VSLFS finder; needs records present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tQueryFilters"
+          "illustrative": "filters real audit records in VSL AUDIT (#999001) via the VSLFS finder; needs records present; exercised on live VistA by tests/VSLLOGTST.m tQueryFilters"
         },
         "lastError": {
           "form": "extrinsic",
@@ -924,9 +917,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "new prior,r set prior=$get(^TMP($job,\"vsllog\",\"err\")),^TMP($job,\"vsllog\",\"err\")=\"write: x\" set r=$$lastError^VSLLOG() set ^TMP($job,\"vsllog\",\"err\")=prior do eq^STDASSERT(.pass,.fail,r,\"write: x\",\"lastError returns the composed FileMan detail\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -936,7 +927,8 @@
           "source": {
             "file": "src/VSLLOG.m",
             "line": 129
-          }
+          },
+          "illustrative": "$$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check"
         }
       },
       "source": {
@@ -983,7 +975,6 @@
           "raised_in_body": [],
           "examples": [
             "do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(\"ZZ NO SUCH KEY\",1),0,\"hasKey is 0 (a normal DENY) for an unheld key\")",
-            "new k,d set k=$order(^XUSEC(\"\")),d=$select(k'=\"\":$order(^XUSEC(k,0)),1:\"\") do:k'=\"\"&(d'=\"\") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,\"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)\") do:k=\"\"!(d=\"\") true^STDASSERT(.pass,.fail,1,\"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia\")",
             "do raises^STDASSERT(.pass,.fail,\"set x=$$hasKey^VSLSEC(\"\"\"\",1)\",\"U-VSL-SEC-ARG\",\"$$hasKey with an empty key raises U-VSL-SEC-...\")"
           ],
           "since": "",
@@ -995,7 +986,8 @@
           "source": {
             "file": "src/VSLSEC.m",
             "line": 46
-          }
+          },
+          "illustrative": "the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion"
         },
         "duz": {
           "form": "extrinsic",
@@ -1050,7 +1042,7 @@
             "file": "src/VSLSEC.m",
             "line": 63
           },
-          "illustrative": "resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)"
+          "illustrative": "resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner"
         },
         "bySecid": {
           "form": "extrinsic",
@@ -1075,8 +1067,7 @@
           ],
           "raised_in_body": [],
           "examples": [
-            "do raises^STDASSERT(.pass,.fail,\"set x=$$bySecid^VSLSEC(\"\"\"\")\",\"U-VSL-SEC-ARG\",\"$$bySecid(\"\"\"\") raises U-VSL-SEC-...\")",
-            "do:$text(EN1^XUPSQRY)'=\"\" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC(\"ZZNO-SUCH-SECID-99999\"),\"\",\"an unprovisioned SecID resolves to no #200 IEN\") do:$text(EN1^XUPSQRY)=\"\" true^STDASSERT(.pass,.fail,1,\"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia\")"
+            "do raises^STDASSERT(.pass,.fail,\"set x=$$bySecid^VSLSEC(\"\"\"\")\",\"U-VSL-SEC-ARG\",\"$$bySecid(\"\"\"\") raises U-VSL-SEC-...\")"
           ],
           "since": "",
           "stable": "",
@@ -1087,7 +1078,8 @@
           "source": {
             "file": "src/VSLSEC.m",
             "line": 71
-          }
+          },
+          "illustrative": "the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it"
         },
         "lastError": {
           "form": "extrinsic",
@@ -1100,9 +1092,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "new $etrap set $etrap=\"set $ecode=\"\"\"\"\" do hasKey^VSLSEC(\"\") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'=\"\",\"lastError carries the malformed-call detail after a loud failure\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1112,7 +1102,8 @@
           "source": {
             "file": "src/VSLSEC.m",
             "line": 100
-          }
+          },
+          "illustrative": "$$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check"
         }
       },
       "source": {
@@ -1267,7 +1258,7 @@
             "file": "src/VSLTASK.m",
             "line": 61
           },
-          "illustrative": "the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown",
+          "illustrative": "the success path queues a real, un-KILLable persistent TaskMan task — a side effect not cleanly undone; only the malformed-call contract is safely shown",
           "raises_nodemo": [
             {
               "code": "U-VSL-TASK-QUEUE",
@@ -1286,9 +1277,7 @@
           },
           "raises": [],
           "raised_in_body": [],
-          "examples": [
-            "do raises^STDASSERT(.pass,.fail,\"set x=$$persist^VSLTASK(\"\"\"\")\",\"U-VSL-TASK-ARG\",\"arm an error\") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),\"task number\",\"$$lastError carries the malformed-call detail after a raise\")"
-          ],
+          "examples": [],
           "since": "",
           "stable": "",
           "see_also": [],
@@ -1298,7 +1287,8 @@
           "source": {
             "file": "src/VSLTASK.m",
             "line": 81
-          }
+          },
+          "illustrative": "$$lastError is exercised by the malformed-call assertions in tests/VSLTASKTST.m; the inline raise round-trip duplicated that canonical check"
         },
         "queue": {
           "form": "extrinsic",

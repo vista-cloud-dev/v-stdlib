@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*8^
+**KIDS**:VSL*1.0*9^
 
 **INSTALL NAME**
-VSL*1.0*8
+VSL*1.0*9
 "BLD",1,0)
-VSL*1.0*8^VSL^0^0
+VSL*1.0*9^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -35,7 +35,7 @@ MSL*0.1*1^2
 "RTN")
 6
 "RTN","VSLCFG")
-0^87^0^0
+0^86^0^0
 "RTN","VSLCFG",1,0)
 VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 "RTN","VSLCFG",2,0)
@@ -119,99 +119,97 @@ get(key,default)	; Read parameter `key` at the SYS entity; return `default` when
 "RTN","VSLCFG",41,0)
 	; doc: @example        do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH","fallback"),"fallback","get: unset parameter returns the default")
 "RTN","VSLCFG",42,0)
-	; doc: @example        new k,i,r,d set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,k="",d=0 for  set k=$order(^XTV(8989.51,"B",k)) quit:k=""!d  set i=+$order(^XTV(8989.51,"B",k,0)) if i,$extract($get(^XTV(8989.51,i,6)))="F",$$GET^XPAR("SYS",k,1)="" do EN^XPAR("SYS",k,1,"ZZP",.r) set r=$$GET^XPAR("SYS",k,1) do EN^XPAR("SYS",k,1,"@") if r="ZZP" do set^VSLCFG(k,"hi") do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(k,"MISS"),"hi","get: $$set then $$get round-trips a SYS value") do EN^XPAR("SYS",k,1,"@") set d=1
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 "RTN","VSLCFG",43,0)
-	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+	new v
 "RTN","VSLCFG",44,0)
-	new v
-"RTN","VSLCFG",45,0)
 	set v=$$GET^XPAR("SYS",key,1)
+"RTN","VSLCFG",45,0)
+	quit $select(v="":default,1:v)
 "RTN","VSLCFG",46,0)
-	quit $select(v="":default,1:v)
+	;
 "RTN","VSLCFG",47,0)
-	;
-"RTN","VSLCFG",48,0)
 getEffective(key,default)	; Read the effective value across the parameter's entity precedence; else `default`.
-"RTN","VSLCFG",49,0)
+"RTN","VSLCFG",48,0)
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
-"RTN","VSLCFG",50,0)
+"RTN","VSLCFG",49,0)
 	; doc: @param default  string  value returned when the parameter is unset at every level
-"RTN","VSLCFG",51,0)
+"RTN","VSLCFG",50,0)
 	; doc: @returns        string  the first value found in the parameter's precedence chain, or `default`
-"RTN","VSLCFG",52,0)
+"RTN","VSLCFG",51,0)
 	; doc: The "ALL" entity tells XPAR to walk the precedence multiple defined on the
-"RTN","VSLCFG",53,0)
+"RTN","VSLCFG",52,0)
 	; doc: parameter (#8989.51) and return the first level that has a value — what the
-"RTN","VSLCFG",54,0)
+"RTN","VSLCFG",53,0)
 	; doc: value would actually resolve to in context. Contrast $$get, which reads only SYS.
-"RTN","VSLCFG",55,0)
+"RTN","VSLCFG",54,0)
 	; doc: @example        do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","getEffective: unset parameter returns the default")
-"RTN","VSLCFG",56,0)
+"RTN","VSLCFG",55,0)
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
-"RTN","VSLCFG",57,0)
+"RTN","VSLCFG",56,0)
 	new v
-"RTN","VSLCFG",58,0)
+"RTN","VSLCFG",57,0)
 	set v=$$GET^XPAR("ALL",key,1)
-"RTN","VSLCFG",59,0)
+"RTN","VSLCFG",58,0)
 	quit $select(v="":default,1:v)
+"RTN","VSLCFG",59,0)
+	;
 "RTN","VSLCFG",60,0)
-	;
-"RTN","VSLCFG",61,0)
 set(key,value)	; Set parameter `key` to `value` at the SYS entity; raise on a failed write.
-"RTN","VSLCFG",62,0)
+"RTN","VSLCFG",61,0)
 	; doc: @param key    string  XPAR parameter name (#8989.51)
-"RTN","VSLCFG",63,0)
+"RTN","VSLCFG",62,0)
 	; doc: @param value  string  value to store at the SYS level
-"RTN","VSLCFG",64,0)
+"RTN","VSLCFG",63,0)
 	; doc: @returns      void    side-effecting; no return value (loud on failure)
-"RTN","VSLCFG",65,0)
+"RTN","VSLCFG",64,0)
 	; doc: @raises  U-VSL-CFG-SET  the XPAR write failed (detail in $$lastError)
+"RTN","VSLCFG",65,0)
+	; doc: @illustrative  the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion
 "RTN","VSLCFG",66,0)
-	; doc: @example      set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")","U-VSL-CFG","set: an undefined parameter raises U-VSL-CFG-...")
-"RTN","VSLCFG",67,0)
 	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
-"RTN","VSLCFG",68,0)
+"RTN","VSLCFG",67,0)
 	new ERR,$etrap,ok
-"RTN","VSLCFG",69,0)
+"RTN","VSLCFG",68,0)
 	set ok=1
-"RTN","VSLCFG",70,0)
+"RTN","VSLCFG",69,0)
 	set $etrap="set ok=0,$ecode="""" quit"
-"RTN","VSLCFG",71,0)
+"RTN","VSLCFG",70,0)
 	do EN^XPAR("SYS",key,1,value,.ERR)
-"RTN","VSLCFG",72,0)
+"RTN","VSLCFG",71,0)
 	set $etrap=""
-"RTN","VSLCFG",73,0)
+"RTN","VSLCFG",72,0)
 	if 'ok do raiseSet(key,"EN^XPAR faulted") quit
-"RTN","VSLCFG",74,0)
+"RTN","VSLCFG",73,0)
 	if +$get(ERR)>0 do raiseSet(key,ERR) quit
-"RTN","VSLCFG",75,0)
+"RTN","VSLCFG",74,0)
 	quit
+"RTN","VSLCFG",75,0)
+	;
 "RTN","VSLCFG",76,0)
-	;
-"RTN","VSLCFG",77,0)
 lastError()	; The last VSLCFG error message (the composed XPAR failure detail).
-"RTN","VSLCFG",78,0)
+"RTN","VSLCFG",77,0)
 	; doc: @returns      string  ^TMP($job,"vslcfg","err"), or "" if none
+"RTN","VSLCFG",78,0)
+	; doc: @illustrative  $$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check
 "RTN","VSLCFG",79,0)
-	; doc: @example      new prior,r set prior=$get(^TMP($job,"vslcfg","err")),^TMP($job,"vslcfg","err")="set: x" set r=$$lastError^VSLCFG() set ^TMP($job,"vslcfg","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: x","lastError: returns the stashed XPAR detail")
-"RTN","VSLCFG",80,0)
 	quit $get(^TMP($job,"vslcfg","err"))
+"RTN","VSLCFG",80,0)
+	;
 "RTN","VSLCFG",81,0)
-	;
-"RTN","VSLCFG",82,0)
 	; ---------- internals ----------
-"RTN","VSLCFG",83,0)
+"RTN","VSLCFG",82,0)
 	;
-"RTN","VSLCFG",84,0)
+"RTN","VSLCFG",83,0)
 raiseSet(key,detail)	; (private) stash the detail, then raise the clean ,U-VSL-CFG-SET,.
-"RTN","VSLCFG",85,0)
+"RTN","VSLCFG",84,0)
 	set ^TMP($job,"vslcfg","err")="set("_key_"): XPAR failed ("_detail_")"
-"RTN","VSLCFG",86,0)
+"RTN","VSLCFG",85,0)
 	set $ecode=",U-VSL-CFG-SET,"
-"RTN","VSLCFG",87,0)
+"RTN","VSLCFG",86,0)
 	quit
 "RTN","VSLFS")
-0^171^0^0
+0^172^0^0
 "RTN","VSLFS",1,0)
 VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 "RTN","VSLFS",2,0)
@@ -319,240 +317,242 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 "RTN","VSLFS",53,0)
 	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
 "RTN","VSLFS",54,0)
-	; doc: @illustrative  a successful add files a real FileMan record; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) created+deleted, not a safe read-only one-liner — see tests/VSLFSTST.m tCreateGetRoundtrip
+	; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
 "RTN","VSLFS",55,0)
-	; doc: @example   do raises^STDASSERT(.pass,.fail,"set DUZ=1,DUZ(0)=""@"",U=""^"",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","set: a FileMan DIERR raises U-VSL-FS-DIERR")
-"RTN","VSLFS",56,0)
 	new FDA,IEN,ERR
-"RTN","VSLFS",57,0)
+"RTN","VSLFS",56,0)
 	set FDA(file,iens,field)=value
-"RTN","VSLFS",58,0)
+"RTN","VSLFS",57,0)
 	do UPDATE^DIE("","FDA","IEN","ERR")
-"RTN","VSLFS",59,0)
+"RTN","VSLFS",58,0)
 	if $data(ERR("DIERR")) do raiseDierr("set",.ERR) quit ""
-"RTN","VSLFS",60,0)
+"RTN","VSLFS",59,0)
 	quit $$resolveIens(iens,.IEN)
+"RTN","VSLFS",60,0)
+	;
 "RTN","VSLFS",61,0)
-	;
-"RTN","VSLFS",62,0)
 get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+"RTN","VSLFS",62,0)
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",63,0)
-	; doc: @param   file     numeric  FileMan file number
+	; doc: @param   iens     string   IENS of the record
 "RTN","VSLFS",64,0)
-	; doc: @param   iens     string   IENS of the record
-"RTN","VSLFS",65,0)
 	; doc: @param   field    string   field number
-"RTN","VSLFS",66,0)
+"RTN","VSLFS",65,0)
 	; doc: @param   default  string   value returned when the field/record is unset
-"RTN","VSLFS",67,0)
+"RTN","VSLFS",66,0)
 	; doc: @param   flags    string   $$GET1^DIQ flags: "" external (default), "I" internal
-"RTN","VSLFS",68,0)
+"RTN","VSLFS",67,0)
 	; doc: @returns          string   the field value (external, or internal if flags["I"]), or `default`
+"RTN","VSLFS",68,0)
+	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
 "RTN","VSLFS",69,0)
-	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
-"RTN","VSLFS",70,0)
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
-"RTN","VSLFS",71,0)
+"RTN","VSLFS",70,0)
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
+"RTN","VSLFS",71,0)
+	new val,ERR
 "RTN","VSLFS",72,0)
-	new val,ERR
-"RTN","VSLFS",73,0)
 	set val=$$GET1^DIQ(file,iens,field,$get(flags),"","ERR")
-"RTN","VSLFS",74,0)
+"RTN","VSLFS",73,0)
 	if $data(ERR("DIERR")) quit default
-"RTN","VSLFS",75,0)
+"RTN","VSLFS",74,0)
 	quit $select(val="":default,1:val)
+"RTN","VSLFS",75,0)
+	;
 "RTN","VSLFS",76,0)
-	;
-"RTN","VSLFS",77,0)
 exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
+"RTN","VSLFS",77,0)
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",78,0)
-	; doc: @param   file     numeric  FileMan file number
-"RTN","VSLFS",79,0)
 	; doc: @param   iens     string   IENS of the record
-"RTN","VSLFS",80,0)
+"RTN","VSLFS",79,0)
 	; doc: @returns          bool     1 iff the record exists; 0 otherwise
-"RTN","VSLFS",81,0)
+"RTN","VSLFS",80,0)
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
-"RTN","VSLFS",82,0)
+"RTN","VSLFS",81,0)
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"1,"),1,"exists: #200 IEN 1 (postmaster) exists")
-"RTN","VSLFS",83,0)
+"RTN","VSLFS",82,0)
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"999999999,"),0,"exists: an absent record returns 0")
-"RTN","VSLFS",84,0)
+"RTN","VSLFS",83,0)
 	new val,ERR
-"RTN","VSLFS",85,0)
+"RTN","VSLFS",84,0)
 	set val=$$GET1^DIQ(file,iens,".01","","","ERR")
-"RTN","VSLFS",86,0)
+"RTN","VSLFS",85,0)
 	if $data(ERR("DIERR")) quit 0
-"RTN","VSLFS",87,0)
+"RTN","VSLFS",86,0)
 	quit $select(val="":0,1:1)
+"RTN","VSLFS",87,0)
+	;
 "RTN","VSLFS",88,0)
-	;
-"RTN","VSLFS",89,0)
 kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
+"RTN","VSLFS",89,0)
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",90,0)
-	; doc: @param   file     numeric  FileMan file number
-"RTN","VSLFS",91,0)
 	; doc: @param   iens     string   IENS of the record to delete
-"RTN","VSLFS",92,0)
+"RTN","VSLFS",91,0)
 	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
+"RTN","VSLFS",92,0)
+	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is
 "RTN","VSLFS",93,0)
-	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
+	; doc: idempotent). A caller that needs delete-or-fail semantics must check
 "RTN","VSLFS",94,0)
-	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+	; doc: $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
 "RTN","VSLFS",95,0)
-	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
+	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 "RTN","VSLFS",96,0)
-	new FDA,ERR
+	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner
 "RTN","VSLFS",97,0)
-	set FDA(file,iens,".01")="@"
+	new FDA,ERR
 "RTN","VSLFS",98,0)
-	do FILE^DIE("","FDA","ERR")
+	set FDA(file,iens,".01")="@"
 "RTN","VSLFS",99,0)
-	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
+	do FILE^DIE("","FDA","ERR")
 "RTN","VSLFS",100,0)
-	quit 1
+	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
 "RTN","VSLFS",101,0)
-	;
+	quit 1
 "RTN","VSLFS",102,0)
-find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+	;
 "RTN","VSLFS",103,0)
-	; doc: @param   file     numeric  FileMan file number
+find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
 "RTN","VSLFS",104,0)
-	; doc: @param   value    string   the lookup value to match (exact)
-"RTN","VSLFS",105,0)
-	; doc: @param   index    string   the cross-reference to search (default "B")
-"RTN","VSLFS",106,0)
-	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
-"RTN","VSLFS",107,0)
-	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
-"RTN","VSLFS",108,0)
-	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
-"RTN","VSLFS",109,0)
-	new y,ERR
-"RTN","VSLFS",110,0)
-	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
-"RTN","VSLFS",111,0)
-	quit $select(+y>0:y_",",1:"")
-"RTN","VSLFS",112,0)
-	;
-"RTN","VSLFS",113,0)
-list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
-"RTN","VSLFS",114,0)
 	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",105,0)
+	; doc: @param   value    string   the lookup value to match (exact)
+"RTN","VSLFS",106,0)
+	; doc: @param   index    string   the cross-reference to search (default "B")
+"RTN","VSLFS",107,0)
+	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
+"RTN","VSLFS",108,0)
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+"RTN","VSLFS",109,0)
+	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
+"RTN","VSLFS",110,0)
+	new y,ERR
+"RTN","VSLFS",111,0)
+	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
+"RTN","VSLFS",112,0)
+	quit $select(+y>0:y_",",1:"")
+"RTN","VSLFS",113,0)
+	;
+"RTN","VSLFS",114,0)
+list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
 "RTN","VSLFS",115,0)
-	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",116,0)
-	; doc: @param   index    string   traversal cross-reference (default "B")
+	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
 "RTN","VSLFS",117,0)
-	; doc: @returns          numeric  the number of records listed
+	; doc: @param   index    string   traversal cross-reference (default "B")
 "RTN","VSLFS",118,0)
-	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	; doc: @returns          numeric  the number of records listed
 "RTN","VSLFS",119,0)
-	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 "RTN","VSLFS",120,0)
-	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
+	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
 "RTN","VSLFS",121,0)
-	new ERR,cnt,seq,ien
+	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
 "RTN","VSLFS",122,0)
-	kill ^TMP("DILIST",$job)
+	new ERR,cnt,seq,ien
 "RTN","VSLFS",123,0)
-	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
-"RTN","VSLFS",124,0)
-	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
-"RTN","VSLFS",125,0)
-	set cnt=+$get(^TMP("DILIST",$job,0))
-"RTN","VSLFS",126,0)
-	set seq=$order(^TMP("DILIST",$job,2,""))
-"RTN","VSLFS",127,0)
-	for  quit:seq=""  do
-"RTN","VSLFS",128,0)
-	. set ien=$get(^TMP("DILIST",$job,2,seq))
-"RTN","VSLFS",129,0)
-	. if ien'="" set out(ien_",")=""
-"RTN","VSLFS",130,0)
-	. set seq=$order(^TMP("DILIST",$job,2,seq))
-"RTN","VSLFS",131,0)
 	kill ^TMP("DILIST",$job)
-"RTN","VSLFS",132,0)
-	quit cnt
-"RTN","VSLFS",133,0)
-	;
-"RTN","VSLFS",134,0)
-lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
-"RTN","VSLFS",135,0)
-	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
-"RTN","VSLFS",136,0)
-	; doc: @example   new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
-"RTN","VSLFS",137,0)
-	quit $get(^TMP($job,"vslfs","err"))
-"RTN","VSLFS",138,0)
-	;
-"RTN","VSLFS",139,0)
-	; ---------- internals ----------
-"RTN","VSLFS",140,0)
-	;
-"RTN","VSLFS",141,0)
-raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
-"RTN","VSLFS",142,0)
-	do stashDierr(who,.ERR)
-"RTN","VSLFS",143,0)
-	set $ecode=",U-VSL-FS-DIERR,"
-"RTN","VSLFS",144,0)
-	quit
-"RTN","VSLFS",145,0)
-	;
-"RTN","VSLFS",146,0)
-stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
-"RTN","VSLFS",147,0)
-	new m,nl,seq
-"RTN","VSLFS",148,0)
-	set nl=$char(10)
-"RTN","VSLFS",149,0)
-	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
-"RTN","VSLFS",150,0)
-	set seq=$order(ERR("DIERR",""))
-"RTN","VSLFS",151,0)
+"RTN","VSLFS",124,0)
+	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
+"RTN","VSLFS",125,0)
+	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
+"RTN","VSLFS",126,0)
+	set cnt=+$get(^TMP("DILIST",$job,0))
+"RTN","VSLFS",127,0)
+	set seq=$order(^TMP("DILIST",$job,2,""))
+"RTN","VSLFS",128,0)
 	for  quit:seq=""  do
+"RTN","VSLFS",129,0)
+	. set ien=$get(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",130,0)
+	. if ien'="" set out(ien_",")=""
+"RTN","VSLFS",131,0)
+	. set seq=$order(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",132,0)
+	kill ^TMP("DILIST",$job)
+"RTN","VSLFS",133,0)
+	quit cnt
+"RTN","VSLFS",134,0)
+	;
+"RTN","VSLFS",135,0)
+lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
+"RTN","VSLFS",136,0)
+	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+"RTN","VSLFS",137,0)
+	; doc: @illustrative  $$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check
+"RTN","VSLFS",138,0)
+	quit $get(^TMP($job,"vslfs","err"))
+"RTN","VSLFS",139,0)
+	;
+"RTN","VSLFS",140,0)
+	; ---------- internals ----------
+"RTN","VSLFS",141,0)
+	;
+"RTN","VSLFS",142,0)
+raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
+"RTN","VSLFS",143,0)
+	do stashDierr(who,.ERR)
+"RTN","VSLFS",144,0)
+	set $ecode=",U-VSL-FS-DIERR,"
+"RTN","VSLFS",145,0)
+	quit
+"RTN","VSLFS",146,0)
+	;
+"RTN","VSLFS",147,0)
+stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
+"RTN","VSLFS",148,0)
+	new m,nl,seq
+"RTN","VSLFS",149,0)
+	set nl=$char(10)
+"RTN","VSLFS",150,0)
+	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
+"RTN","VSLFS",151,0)
+	set seq=$order(ERR("DIERR",""))
 "RTN","VSLFS",152,0)
-	. do:seq=+seq addText(seq,.ERR,.m,nl)
+	for  quit:seq=""  do
 "RTN","VSLFS",153,0)
-	. set seq=$order(ERR("DIERR",seq))
+	. do:seq=+seq addText(seq,.ERR,.m,nl)
 "RTN","VSLFS",154,0)
-	set ^TMP($job,"vslfs","err")=m
+	. set seq=$order(ERR("DIERR",seq))
 "RTN","VSLFS",155,0)
-	quit
+	set ^TMP($job,"vslfs","err")=m
 "RTN","VSLFS",156,0)
-	;
-"RTN","VSLFS",157,0)
-addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
-"RTN","VSLFS",158,0)
-	new ln
-"RTN","VSLFS",159,0)
-	set ln=$order(ERR("DIERR",seq,"TEXT",""))
-"RTN","VSLFS",160,0)
-	for  quit:ln=""  do
-"RTN","VSLFS",161,0)
-	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
-"RTN","VSLFS",162,0)
-	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
-"RTN","VSLFS",163,0)
 	quit
-"RTN","VSLFS",164,0)
+"RTN","VSLFS",157,0)
 	;
+"RTN","VSLFS",158,0)
+addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
+"RTN","VSLFS",159,0)
+	new ln
+"RTN","VSLFS",160,0)
+	set ln=$order(ERR("DIERR",seq,"TEXT",""))
+"RTN","VSLFS",161,0)
+	for  quit:ln=""  do
+"RTN","VSLFS",162,0)
+	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",163,0)
+	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",164,0)
+	quit
 "RTN","VSLFS",165,0)
-resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
+	;
 "RTN","VSLFS",166,0)
-	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
+resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
 "RTN","VSLFS",167,0)
-	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
+	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
 "RTN","VSLFS",168,0)
-	new n
+	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
 "RTN","VSLFS",169,0)
-	if $extract(iens,1)'="+" quit iens
+	new n
 "RTN","VSLFS",170,0)
-	set n=+$piece($extract(iens,2,$length(iens)),",")
+	if $extract(iens,1)'="+" quit iens
 "RTN","VSLFS",171,0)
+	set n=+$piece($extract(iens,2,$length(iens)),",")
+"RTN","VSLFS",172,0)
 	quit $get(IEN(n))_","
 "RTN","VSLIO")
 0^144^0^0
@@ -753,7 +753,7 @@ lastError()	; The last VSLIO error message (e.g. the TLS-gap remediation).
 "RTN","VSLIO",98,0)
 	; doc: @returns string  ^TMP($job,"vslio","err"), or "" if none
 "RTN","VSLIO",99,0)
-	; doc: @example   new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
+	; doc: @illustrative  $$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check
 "RTN","VSLIO",100,0)
 	quit $get(^TMP($job,"vslio","err"))
 "RTN","VSLIO",101,0)
@@ -969,7 +969,7 @@ write(event,detail,duz,host)	; File one structured audit record; return the reso
 "RTN","VSLLOG",61,0)
 	; doc: @icr 10103 @call $$NOW^XLFDT @status Supported @custodian XU @source XU/krn_8_0_dg_xlf_fl_ug#nowxlfdt-current-date-and-time-va-fileman-format
 "RTN","VSLLOG",62,0)
-	; doc: @illustrative  files a real structured FileMan record into the dedicated VSL AUDIT file (#999001) — a live mutation needing the DD resident + teardown, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
+	; doc: @illustrative  files a real structured record into VSL AUDIT (#999001) — a live mutation; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip, not a read-only one-liner
 "RTN","VSLLOG",63,0)
 	; Every $$set^VSLFS is called DIRECTLY in this frame (not via a helper extrinsic)
 "RTN","VSLLOG",64,0)
@@ -1041,7 +1041,7 @@ read(iens,rec)	; Read the audit record's typed fields into rec(); return the EVE
 "RTN","VSLLOG",97,0)
 	; doc: @returns          string   the stored EVENT (.01), or "" if the record is absent
 "RTN","VSLLOG",98,0)
-	; doc: @illustrative  reads a structured record back from the dedicated VSL AUDIT file (#999001); needs a record present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
+	; doc: @illustrative  reads a structured record back from VSL AUDIT (#999001); needs a record present; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip
 "RTN","VSLLOG",99,0)
 	new file
 "RTN","VSLLOG",100,0)
@@ -1073,7 +1073,7 @@ query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date
 "RTN","VSLLOG",113,0)
 	; doc: @returns          numeric  the number of matching records
 "RTN","VSLLOG",114,0)
-	; doc: @illustrative  filters real audit records in the dedicated VSL AUDIT file (#999001) via the VSLFS finder; needs records present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tQueryFilters
+	; doc: @illustrative  filters real audit records in VSL AUDIT (#999001) via the VSLFS finder; needs records present; exercised on live VistA by tests/VSLLOGTST.m tQueryFilters
 "RTN","VSLLOG",115,0)
 	new file,all,iens,cur,n,ev,ts,junk
 "RTN","VSLLOG",116,0)
@@ -1107,7 +1107,7 @@ lastError()	; The last VSLLOG error message (the composed FileMan detail).
 "RTN","VSLLOG",130,0)
 	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
 "RTN","VSLLOG",131,0)
-	; doc: @example   new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
+	; doc: @illustrative  $$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check
 "RTN","VSLLOG",132,0)
 	quit $get(^TMP($job,"vsllog","err"))
 "RTN","VSLSEC")
@@ -1217,7 +1217,7 @@ hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key
 "RTN","VSLSEC",52,0)
 	; doc: @example  do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC("ZZ NO SUCH KEY",1),0,"hasKey is 0 (a normal DENY) for an unheld key")
 "RTN","VSLSEC",53,0)
-	; doc: @example  new k,d set k=$order(^XUSEC("")),d=$select(k'="":$order(^XUSEC(k,0)),1:"") do:k'=""&(d'="") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)") do:k=""!(d="") true^STDASSERT(.pass,.fail,1,"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia")
+	; doc: @illustrative  the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion
 "RTN","VSLSEC",54,0)
 	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
 "RTN","VSLSEC",55,0)
@@ -1247,7 +1247,7 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 "RTN","VSLSEC",67,0)
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 "RTN","VSLSEC",68,0)
-	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)
+	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
 "RTN","VSLSEC",69,0)
 	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
 "RTN","VSLSEC",70,0)
@@ -1281,7 +1281,7 @@ bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY)
 "RTN","VSLSEC",84,0)
 	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
 "RTN","VSLSEC",85,0)
-	; doc: @example  do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
+	; doc: @illustrative  the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it
 "RTN","VSLSEC",86,0)
 	new RESULT
 "RTN","VSLSEC",87,0)
@@ -1315,7 +1315,7 @@ lastError()	; The last VSLSEC error message (the composed malformed-call detail)
 "RTN","VSLSEC",101,0)
 	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
 "RTN","VSLSEC",102,0)
-	; doc: @example  new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
+	; doc: @illustrative  $$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check
 "RTN","VSLSEC",103,0)
 	quit $get(^TMP($job,"vslsec","err"))
 "RTN","VSLSEC",104,0)
@@ -1477,7 +1477,7 @@ schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; ret
 "RTN","VSLTASK",68,0)
 	; doc: @raisesnodemo U-VSL-TASK-QUEUE  reachable only via a genuinely-failed live TaskMan queue (side-effecting, non-deterministic); not safely triggerable in an example
 "RTN","VSLTASK",69,0)
-	; doc: @illustrative   the success path queues a real, persistent (un-KILLable) TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone; only the malformed-call contract is safely shown
+	; doc: @illustrative   the success path queues a real, un-KILLable persistent TaskMan task — a side effect not cleanly undone; only the malformed-call contract is safely shown
 "RTN","VSLTASK",70,0)
 	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
 "RTN","VSLTASK",71,0)
@@ -1505,7 +1505,7 @@ lastError()	; The last VSLTASK error message (the composed malformed-call / faul
 "RTN","VSLTASK",82,0)
 	; doc: @returns          string   ^TMP($job,"vsltask","err"), or "" if none
 "RTN","VSLTASK",83,0)
-	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","arm an error") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),"task number","$$lastError carries the malformed-call detail after a raise")
+	; doc: @illustrative  $$lastError is exercised by the malformed-call assertions in tests/VSLTASKTST.m; the inline raise round-trip duplicated that canonical check
 "RTN","VSLTASK",84,0)
 	quit $get(^TMP($job,"vsltask","err"))
 "RTN","VSLTASK",85,0)

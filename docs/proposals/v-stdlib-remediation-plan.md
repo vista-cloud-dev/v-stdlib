@@ -31,7 +31,7 @@ Live status of every remediation item. Update this row when an item lands.
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ✅ **DONE** — **R3a** dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range filters) over the new **VSLFS finder verbs (R-EXT-6: `$$find`/`$$list`)**. Dual-engine green (VSLFSTST 12/12, VSLLOGTST 15/15, vehu+foia-t12). Unblocked by v-pkg **B.2-a**. File # is test-range #999001 until B.2-b |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ✅ DONE — doc + header now say 30 (match code) |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ✅ DONE — `when` reworded to the full-$H/ZTDTH form; `$$kill` doc states the asymmetry is deliberate + points delete-or-fail callers at `$$lastError` |
-| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
+| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | ✅ DONE (fall-through gate `tools/check-fallthrough.py`; test suites made canonical — long multi-statement `@example`s demoted to `@illustrative` pointers, lint M-MOD-001 19→0; golden fixture extended to cover `@illustrative`/`@raisesnodemo`. 6:1 tooling ratio = accepted observation) |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | ✅ DONE — all 7 `docs/vsl-msl/` docs marked `status: superseded` with a delta banner pointing to this repo as the source of truth (docs repo commit `b1b49fb`); link-check clean |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | ✅ DONE (pruned in `19b96b3`) |
 
@@ -258,6 +258,32 @@ tracked as the existing gating item — no change beyond the doc.
   `tools/fixtures/` golden slice exists; extend it to cover the
   doc-tag-rewrite path that deleted R1).
 
+> **✅ R6 DONE (2026-06-28).** All three bullets:
+> 1. **Fall-through gate** — done earlier (`tools/check-fallthrough.py`, in `gates`).
+> 2. **One source of truth for assertions (test suites canonical).** Every
+>    multi-statement `@example` that merely re-encoded a test-suite assertion was
+>    removed: where the label kept a short runnable one-liner the long copy was
+>    **deleted** (VSLCFG `get`, VSLSEC `hasKey`/`bySecid`); where the demoted
+>    scenario is genuinely non-demonstrable as a safe one-liner (a live mutation,
+>    live data, or a bare-engine-absent API) it became an **`@illustrative`
+>    pointer** naming the canonical `tests/VSL*TST.m` test (the `set`/`lastError`
+>    error-demos, the held-key/SecID/#200-NAME live paths). The over-long
+>    `@illustrative` *reason* lines and one prose note were shortened/wrapped.
+>    Result: **`M-MOD-001` 19 → 0** (no source line over 200 cols); the test
+>    suites are now the single canonical assertion source. **Convention recorded:**
+>    `@illustrative` is for genuinely non-demonstrable scenarios only — a label
+>    that retains a runnable `@example` gets the long duplicate *deleted*, not
+>    tagged illustrative.
+> 3. **Tooling-as-product test.** The golden parser fixture
+>    (`tools/fixtures/VSLGOLD.m` + `vslgold-manifest-slice.json`) gained a `bye`
+>    label exercising **`@illustrative` + `@raisesnodemo`** (previously only
+>    `@example` was frozen), so the parser contract for the exact tags this
+>    remediation relies on is now drift-gated.
+>
+> The **6:1 tooling-to-product ratio** is left as an accepted observation, not an
+> action item — the generate/drift-gate discipline is the org standard and the
+> ratio is an artifact of a 6-module library, not a defect.
+
 ### R7 — STRUCTURAL: the published plan corpus is stale and misleading
 
 The `docs` repo `docs/vsl-msl/` (overview, plan, tracker, retrospective) froze
@@ -394,6 +420,6 @@ deferred until the audit substrate (R3) exists.
 | R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **DONE** — R3a dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; R3b `$$query` over the new VSLFS finder verbs (R-EXT-6). Dual-engine green (12/12 + 15/15); unblocked by v-pkg B.2-a |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | **Done — doc + header = 30 (match code)** |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | **Done — `when` reworded; `$$kill` asymmetry documented + `$$lastError` path** |
-| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |
+| R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Done — fall-through gate (`tools/check-fallthrough.py`) + test suites made canonical (long `@example`s → `@illustrative` pointers, M-MOD-001 19→0) + golden fixture extended (`@illustrative`/`@raisesnodemo`). 6:1 ratio = accepted observation** |
 | R7 | Structural | docs/vsl-msl | published corpus stale (8 modules/`*1.0*2`; reality 6/`*1.0*7`) | **Done** — 7 docs marked `superseded` + delta banner → this repo (docs commit `b1b49fb`) |
 | R8 | Hygiene | git | uncommitted staged deletion on `main` | Fold into next commit |

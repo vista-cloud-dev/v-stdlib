@@ -7,7 +7,6 @@ VSLIOEX ; Living examples for VSLIO — generated from @example tags.
         ;
         do tExampleConnect(.pass,.fail)
         do tExampleConnectTls(.pass,.fail)
-        do tExampleLastError(.pass,.fail)
         do tExampleTlsAvailable(.pass,.fail)
         do tExampleTlsHelp(.pass,.fail)
         ;
@@ -20,10 +19,6 @@ tExampleConnect(pass,fail)      ;@TEST "example: VSLIO.connect"
         ;
 tExampleConnectTls(pass,fail)   ;@TEST "example: VSLIO.connectTls"
         do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
-        quit
-        ;
-tExampleLastError(pass,fail)    ;@TEST "example: VSLIO.lastError"
-        new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
         quit
         ;
 tExampleTlsAvailable(pass,fail) ;@TEST "example: VSLIO.tlsAvailable"

@@ -50,7 +50,7 @@ hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key
 	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty key name)
 	; doc: @icr notional @call ^XUSEC @status Supported @custodian XU @source XU/krn_8_0_dg_security_keys_ug#key-lookup
 	; doc: @example  do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC("ZZ NO SUCH KEY",1),0,"hasKey is 0 (a normal DENY) for an unheld key")
-	; doc: @example  new k,d set k=$order(^XUSEC("")),d=$select(k'="":$order(^XUSEC(k,0)),1:"") do:k'=""&(d'="") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)") do:k=""!(d="") true^STDASSERT(.pass,.fail,1,"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia")
+	; doc: @illustrative  the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion
 	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
 	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
 	quit ''$data(^XUSEC(key,$$pduz(duz)))
@@ -65,7 +65,7 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 	; doc: @returns          string   the NEW PERSON (#200) .01 NAME, or "" if absent
 	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
-	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)
+	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
 	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
 	;
 bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
@@ -82,7 +82,7 @@ bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY)
 	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
 	; doc: Subscription API and the IEN is read from the returned array (waterline).
 	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
-	; doc: @example  do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
+	; doc: @illustrative  the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it
 	new RESULT
 	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
 	if $text(EN1^XUPSQRY)="" quit ""
@@ -99,7 +99,7 @@ parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
 	;
 lastError()	; The last VSLSEC error message (the composed malformed-call detail).
 	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
-	; doc: @example  new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
+	; doc: @illustrative  $$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check
 	quit $get(^TMP($job,"vslsec","err"))
 	;
 	; ---------- internals ----------

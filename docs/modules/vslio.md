@@ -89,12 +89,6 @@ The last VSLIO error message (e.g. the TLS-gap remediation).
 
 **Returns** _string_ — ^TMP($job,"vslio","err"), or "" if none
 
-**Example**
-
-```m
-new had,save set had=$data(^TMP($job,"vslio","err")),save=$get(^TMP($job,"vslio","err")),^TMP($job,"vslio","err")="connectTls: x" do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"connectTls","lastError returns the stashed message") if had set ^TMP($job,"vslio","err")=save quit:had  kill ^TMP($job,"vslio","err")
-```
-
 ### `$$read^VSLIO(id, maxlen, timeout, buf)`
 
 Raw-read up to maxlen bytes from a handle.

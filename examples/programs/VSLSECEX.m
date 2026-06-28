@@ -6,22 +6,15 @@ VSLSECEX ; Living examples for VSLSEC — generated from @example tags.
         do start^STDASSERT(.pass,.fail)
         ;
         do tExampleBySecid(.pass,.fail)
-        do tExampleBySecid2(.pass,.fail)
         do tExampleDuz(.pass,.fail)
         do tExampleHasKey(.pass,.fail)
         do tExampleHasKey2(.pass,.fail)
-        do tExampleHasKey3(.pass,.fail)
-        do tExampleLastError(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
         quit
         ;
 tExampleBySecid(pass,fail)      ;@TEST "example: VSLSEC.bySecid"
         do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
-        quit
-        ;
-tExampleBySecid2(pass,fail)     ;@TEST "example: VSLSEC.bySecid"
-        do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
         quit
         ;
 tExampleDuz(pass,fail)          ;@TEST "example: VSLSEC.duz"
@@ -33,14 +26,6 @@ tExampleHasKey(pass,fail)       ;@TEST "example: VSLSEC.hasKey"
         quit
         ;
 tExampleHasKey2(pass,fail)      ;@TEST "example: VSLSEC.hasKey"
-        new k,d set k=$order(^XUSEC("")),d=$select(k'="":$order(^XUSEC(k,0)),1:"") do:k'=""&(d'="") eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC(k,d),1,"hasKey is 1 for an existing held ^XUSEC(key,duz) pair (probed read-only)") do:k=""!(d="") true^STDASSERT(.pass,.fail,1,"no ^XUSEC pairs present (bare engine) - held-key path verified on vehu/foia")
-        quit
-        ;
-tExampleHasKey3(pass,fail)      ;@TEST "example: VSLSEC.hasKey"
         do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
-        quit
-        ;
-tExampleLastError(pass,fail)    ;@TEST "example: VSLSEC.lastError"
-        new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
         quit
         ;

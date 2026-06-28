@@ -51,8 +51,7 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 	; doc: @returns          string   the resolved IENS on success (the new IENS for an add)
 	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
-	; doc: @illustrative  a successful add files a real FileMan record; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) created+deleted, not a safe read-only one-liner — see tests/VSLFSTST.m tCreateGetRoundtrip
-	; doc: @example   do raises^STDASSERT(.pass,.fail,"set DUZ=1,DUZ(0)=""@"",U=""^"",DT=$$DT^XLFDT set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","set: a FileMan DIERR raises U-VSL-FS-DIERR")
+	; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
 	new FDA,IEN,ERR
 	set FDA(file,iens,field)=value
 	do UPDATE^DIE("","FDA","IEN","ERR")
@@ -90,9 +89,11 @@ kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE;
 	; doc: @param   file     numeric  FileMan file number
 	; doc: @param   iens     string   IENS of the record to delete
 	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
-	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is idempotent). A caller that needs delete-or-fail semantics must check $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
+	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is
+	; doc: idempotent). A caller that needs delete-or-fail semantics must check
+	; doc: $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
 	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
-	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); demonstrating it safely needs a throwaway record created+deleted in a test DD (#999000 ZZVSLFS), not a read-only one-liner — see tests/VSLFSTST.m tExistsThenKill
+	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner
 	new FDA,ERR
 	set FDA(file,iens,".01")="@"
 	do FILE^DIE("","FDA","ERR")
@@ -133,7 +134,7 @@ list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ie
 	;
 lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
 	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
-	; doc: @example   new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
+	; doc: @illustrative  $$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check
 	quit $get(^TMP($job,"vslfs","err"))
 	;
 	; ---------- internals ----------

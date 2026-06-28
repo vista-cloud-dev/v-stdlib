@@ -59,7 +59,7 @@ write(event,detail,duz,host)	; File one structured audit record; return the reso
 	; doc: @returns          string   the resolved IENS of the new audit record
 	; doc: @raises  U-VSL-LOG-WRITE  the FileMan write failed (detail in $$lastError)
 	; doc: @icr 10103 @call $$NOW^XLFDT @status Supported @custodian XU @source XU/krn_8_0_dg_xlf_fl_ug#nowxlfdt-current-date-and-time-va-fileman-format
-	; doc: @illustrative  files a real structured FileMan record into the dedicated VSL AUDIT file (#999001) — a live mutation needing the DD resident + teardown, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
+	; doc: @illustrative  files a real structured record into VSL AUDIT (#999001) — a live mutation; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip, not a read-only one-liner
 	; Every $$set^VSLFS is called DIRECTLY in this frame (not via a helper extrinsic)
 	; so the flag-based $etrap behaves as the proven VSLLOG idiom: a VSLFS DIERR
 	; flips ok, the `if ok` guards skip the rest, and raiseWrite maps it to a clean
@@ -95,7 +95,7 @@ read(iens,rec)	; Read the audit record's typed fields into rec(); return the EVE
 	; doc: @param   iens     string   IENS of the audit record
 	; doc: @param   rec      array    (by ref) filled: rec("event"|"timestamp"|"user"|"host"|"detail")
 	; doc: @returns          string   the stored EVENT (.01), or "" if the record is absent
-	; doc: @illustrative  reads a structured record back from the dedicated VSL AUDIT file (#999001); needs a record present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
+	; doc: @illustrative  reads a structured record back from VSL AUDIT (#999001); needs a record present; exercised on live VistA by tests/VSLLOGTST.m tWriteReadRoundtrip
 	new file
 	set file=$$auditFile()
 	set rec("event")=$$get^VSLFS(file,iens,".01","")
@@ -111,7 +111,7 @@ query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date
 	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
 	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
 	; doc: @returns          numeric  the number of matching records
-	; doc: @illustrative  filters real audit records in the dedicated VSL AUDIT file (#999001) via the VSLFS finder; needs records present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tQueryFilters
+	; doc: @illustrative  filters real audit records in VSL AUDIT (#999001) via the VSLFS finder; needs records present; exercised on live VistA by tests/VSLLOGTST.m tQueryFilters
 	new file,all,iens,cur,n,ev,ts,junk
 	set file=$$auditFile()
 	set junk=$$list^VSLFS(file,.all,"B")
@@ -128,5 +128,5 @@ query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date
 	;
 lastError()	; The last VSLLOG error message (the composed FileMan detail).
 	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
-	; doc: @example   new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
+	; doc: @illustrative  $$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check
 	quit $get(^TMP($job,"vsllog","err"))

@@ -47,12 +47,6 @@ The last VSLLOG error message (the composed FileMan detail).
 
 **Returns** _string_ — ^TMP($job,"vsllog","err"), or "" if none
 
-**Example**
-
-```m
-new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
-```
-
 ### `$$query^VSLLOG(out, event, fromDt, toDt)`
 
 Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count.

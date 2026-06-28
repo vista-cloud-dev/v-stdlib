@@ -36,12 +36,6 @@ The last VSLTASK error message (the composed malformed-call / fault detail).
 
 **Returns** _string_ — ^TMP($job,"vsltask","err"), or "" if none
 
-**Example**
-
-```m
-do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","arm an error") do contains^STDASSERT(.pass,.fail,$$lastError^VSLTASK(),"task number","$$lastError carries the malformed-call detail after a raise")
-```
-
 ### `$$persist^VSLTASK(ztsk)`
 
 Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.

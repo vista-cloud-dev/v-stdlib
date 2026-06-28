@@ -75,6 +75,17 @@ pages is its own note: [[docs-governance-regime-b]].
   example that sets state on a *shared* live engine must self-restore (TSTART/
   TROLLBACK or save/restore) or be scoped `bare`; a post-run residue check is what
   surfaces shared-engine pollution.
+- **R6 made the test suites the canonical assertion source (2026-06-28).** The E3
+  "100% executable+illustrative coverage" was over-fitted: ~12 multi-statement
+  `@example`s just re-encoded a `VSL*TST.m` assertion as a >200-col doc line
+  (`M-MOD-001` exhaust). R6 removed them — so executable-example coverage
+  **intentionally dropped** (it is advisory, not a gate; `examples-coverage` only).
+  **Durable convention:** `@illustrative` is for genuinely non-demonstrable
+  scenarios ONLY (a live mutation, live data, or a bare-engine-absent API) — a
+  label that keeps a runnable short `@example` gets the long duplicate **deleted**,
+  NOT tagged illustrative (the tag's defined meaning is "example is illustrative-
+  *only*"). The golden parser fixture (`tools/fixtures/VSLGOLD.m`) now freezes
+  `@illustrative` + `@raisesnodemo`, not just `@example`.
 
 ## Reusable gotchas (cost real iterations)
 - **A single-line `for` scopes the trailing assert** — `for i=1:1:N set x=$$f() do
