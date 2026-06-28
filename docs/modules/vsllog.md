@@ -3,8 +3,8 @@ module: VSLLOG
 layer: v
 since: 
 stable: stable
-synopsis: 'VistA FileMan audit-sink adapter (the S3 audit seam)'
-labels: ['lastError', 'read', 'write']
+synopsis: 'VistA FileMan audit sink (the dedicated VSL AUDIT file)'
+labels: ['auditFile', 'lastError', 'read', 'write']
 errors: ['U-VSL-LOG-WRITE']
 see_also: []
 doc_type: [REFERENCE]
@@ -23,9 +23,22 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 
 | Label | Signature | Summary |
 |---|---|---|
+| `auditFile` | `$$auditFile^VSLLOG()` | The dedicated VSL AUDIT FileMan file number (single source of truth). |
 | `lastError` | `$$lastError^VSLLOG()` | The last VSLLOG error message (the composed FileMan detail). |
-| `read` | `$$read^VSLLOG(file, iens)` | Read the audit line stored at (file,iens) .01, else "". |
-| `write` | `do write^VSLLOG(file, event, detail)` | File one audit record into `file`; return the resolved IENS, else raise. |
+| `read` | `$$read^VSLLOG(iens, rec)` | Read the audit record's typed fields into rec(); return the EVENT (.01), else "". |
+| `write` | `do write^VSLLOG(event, detail, duz, host)` | File one structured audit record; return the resolved IENS, else raise. |
+
+### `$$auditFile^VSLLOG()`
+
+The dedicated VSL AUDIT FileMan file number (single source of truth).
+
+**Returns** _numeric_ — the VSL AUDIT file number (#999001)
+
+**Example**
+
+```m
+do eq^STDASSERT(.pass,.fail,$$auditFile^VSLLOG(),999001,"the dedicated VSL AUDIT file number")
+```
 
 ### `$$lastError^VSLLOG()`
 
@@ -36,47 +49,35 @@ The last VSLLOG error message (the composed FileMan detail).
 **Example**
 
 ```m
-set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","seed a failure") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the FileMan detail after a failed write")
+new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
 ```
 
-### `$$read^VSLLOG(file, iens)`
+### `$$read^VSLLOG(iens, rec)`
 
-Read the audit line stored at (file,iens) .01, else "".
+Read the audit record's typed fields into rec(); return the EVENT (.01), else "".
 
 **Parameters**
 
-- `file` _(numeric)_ — FileMan audit-file number
 - `iens` _(string)_ — IENS of the audit record
+- `rec` _(array)_ — (by ref) filled: rec("event"|"timestamp"|"user"|"host"|"detail")
 
-**Returns** _string_ — the stored audit line, or "" if absent
+**Returns** _string_ — the stored EVENT (.01), or "" if the record is absent
 
-**Example**
+### `do write^VSLLOG(event, detail, duz, host)`
 
-```m
-set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,"9999999,"),"","read of an absent record returns empty string")
-```
-
-### `do write^VSLLOG(file, event, detail)`
-
-File one audit record into `file`; return the resolved IENS, else raise.
+File one structured audit record; return the resolved IENS, else raise.
 
 **Parameters**
 
-- `file` _(numeric)_ — FileMan audit-file number
-- `event` _(string)_ — short event name (audit category)
-- `detail` _(string)_ — free-text detail for the record
+- `event` _(string)_ — short event name (the .01; 1-30 chars)
+- `detail` _(string)_ — free-text detail (filed only when non-empty)
+- `duz` _(numeric)_ — acting principal #200 IEN; defaults to +$GET(DUZ); 0 = system
+- `host` _(string)_ — originating host/$IO; defaults to $IO (filed only when non-empty)
 
 **Returns** _string_ — the resolved IENS of the new audit record
 
 **Raises**
 
 - `U-VSL-LOG-WRITE` — the FileMan write failed (detail in $$lastError)
-
-**Example**
-
-```m
-set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,"ZZVSLLOGEX","X") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),"ZZVSLLOGEX","write then read-back contains the event") set zzok=$$kill^VSLFS(8989.51,ie)
-set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","writing into a bogus file raises U-VSL-LOG-WRITE")
-```
 
 <!-- END GENERATED API REFERENCE -->

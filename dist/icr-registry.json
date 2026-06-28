@@ -95,6 +95,18 @@
       "status": "Supported"
     }
   ],
+  "VSLLOG": [
+    {
+      "call": "$$NOW^XLFDT",
+      "custodian": "XU",
+      "icr": 10103,
+      "source": {
+        "anchor": "nowxlfdt-current-date-and-time-va-fileman-format",
+        "doc_key": "XU/krn_8_0_dg_xlf_fl_ug"
+      },
+      "status": "Supported"
+    }
+  ],
   "VSLSEC": [
     {
       "call": "^XUSEC",

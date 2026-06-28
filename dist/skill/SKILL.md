@@ -17,7 +17,7 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 6 modules, 31 public labels,
+**Catalogue:** 6 modules, 32 public labels,
 7 error codes.
 
 ## When to use this skill
@@ -48,7 +48,7 @@ reverse. For an engine-neutral primitive, load the **m-stdlib** skill:
 - **`VSLCFG`** — VistA configuration adapter over XPAR (Parameter Tools).
 - **`VSLFS`** — VistA FileMan storage adapter (FileMan DBS record store).
 - **`VSLIO`** — VistA TCP transport adapter over the Kernel device handler.
-- **`VSLLOG`** — VistA FileMan audit-sink adapter (the S3 audit seam).
+- **`VSLLOG`** — VistA FileMan audit sink (the dedicated VSL AUDIT file).
 - **`VSLSEC`** — VistA identity/authorization adapter (Kernel).
 - **`VSLTASK`** — VistA TaskMan persistent-listener adapter (the process seam).
 

@@ -12,6 +12,7 @@ tracker, or git). Active R-item status lives in the tracker
 - [m5-vsltask-vslbld](m5-vsltask-vslbld.md) — VSLTASK (`^%ZTLOAD` **#10063**) + VSLENV + VSLBLD (KIDS base build); TaskMan live on both engines; destructive self-restart soft-skipped (runaway-unsafe).
 - [m6.5-vslsec-secid-binding](m6.5-vslsec-secid-binding.md) — VSLSEC `$$bySecid` (SecID → #200 IEN via `EN1^XUPSQRY`, **ICR 4575** CS, by-ref result array); the VistA half of validate-token-not-PIV auth.
 - [r2-vslcfg-loud-effective](r2-vslcfg-loud-effective.md) — VSLCFG made loud (`$$set` raises from `EN^XPAR`'s scalar error) + `$$lastError`/`$$getEffective` (`GET^XPAR "ALL"` precedence); `EN^XPAR`/`$$GET^XPAR` both **ICR #2263**.
+- [r3a-vsllog-audit-dd](r3a-vsllog-audit-dd.md) — VSLLOG rebound to a dedicated multi-field `VSL AUDIT` file (#999001), structured `$$write`/`$$read`, dual-engine 11/11. Gotchas: VSLFS files INTERNAL (date needs `$$NOW^XLFDT`); never catch a raise from an intermediate `$$helper` frame on IRIS; audit detail must be one line.
 - [vslsec-user-regression-fix](vslsec-user-regression-fix.md) — `$$user^VSLSEC` fell through with no body (a doc-tag edit deleted the line); lesson → the empty-body/fall-through lint gate ([[r6-fallthrough-gate]]). Remediation-plan headlines (R2/R3/R7).
 
 ## Scaffold / packaging foundations

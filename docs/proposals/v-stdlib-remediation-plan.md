@@ -3,7 +3,7 @@ title: "v-stdlib remediation plan — adversarial analysis findings + sysadmin e
 status: proposed
 created: 2026-06-28
 last_modified: 2026-06-28
-revisions: 1
+revisions: 2
 doc_type: [PROPOSAL]
 scope: the 6 shipped VSL* modules, tests, examples, generated docs, tooling, and the planning corpus (quarantine/ excluded)
 ---
@@ -28,7 +28,7 @@ Live status of every remediation item. Update this row when an item lands.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | ✅ DONE (12/12 live, commit `19b96b3`) |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; 7/7 live ydb; IRIS owed) |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ⛔ BLOCKED on v-pkg (multi-field DD = `v-pkg` proposal item **B.2**); analysis in `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`. Interim single-`.01` delimited record is the only in-repo stopgap |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | 🔶 **R3a DONE** (dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; dual-engine **11/11** vehu+foia-t12, commit pending). Unblocked once v-pkg **B.2-a** landed (live-proven both engines 2026-06-28). **R3b (`$$query`) deferred** — needs the VSLFS finder verbs (R-EXT-6), sequenced next |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
@@ -164,17 +164,19 @@ host/$IO, event category, free-text detail) shipped in the VSL KIDS build via
 `v pkg`, and rebind `$$write^VSLLOG` to file structured fields through VSLFS.
 Add `$$query^VSLLOG` (date/event filters) over the VSLFS finder (R-EXT-6).
 
-> **⛔ BLOCKED (2026-06-28):** the multi-field `VSL AUDIT` DD cannot ship today —
-> `v-pkg`'s KIDS build supports only a single-`.01`, test-range FileMan file, and
-> the org bans hand-rolled DD installers. A grounded adversarial analysis of the
-> gap and the fix lives at `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`:
-> the multi-field DD + DATA export is **Track-B item B.2** there (with the real
-> `^DD`/`^DIC` minimum node-set already specified). R3 unblocks once B.2 lands in
-> v-pkg. **In-repo stopgap if needed sooner:** a dedicated single-`.01` audit file
-> whose `.01` holds a delimited `timestamp^DUZ^host^event^detail` record, with
-> `$$write` composing it and `$$read`/`$$query` parsing+filtering — fixes "writes
-> into a foreign file" + "no query path" now; structured fields become positional
-> pieces until B.2.
+> **🔶 R3a DONE — R3b deferred (2026-06-28):** v-pkg **B.2-a** (multi-field DD
+> authoring) landed and is live-install-proven on both engines, so the multi-field
+> DD shipped. **R3a (done):** a dedicated `VSL AUDIT` file (#999001, `^DIZ(999001,`)
+> with `.01` EVENT + TIMESTAMP (date) + USER NUMBER (numeric DUZ, 0 = system) + HOST
+> + DETAIL, declared in `kids/vsl.build.json` and shipped via `v pkg`; `$$write^VSLLOG`
+> now owns the file (dropped the `file` param — the "foreign file" defect) and files
+> structured typed fields through VSLFS; `$$read^VSLLOG(iens,.rec)` returns them.
+> Dual-engine **11/11** (vehu YDB + foia-t12 IRIS) over the driver stack. **R3b
+> (deferred):** `$$query^VSLLOG` (date/event filters) needs the VSLFS finder verbs
+> (R-EXT-6) — building it today would walk the data global directly, which the VSLFS
+> seam exists to forbid. Sequenced as the next increment (pull R-EXT-6 forward, then
+> add `$$query`). **Stopgaps still true:** the file number is the VA-reserved
+> test-range #999001 until v-pkg **B.2-b** ships permanent-namespace numbers.
 
 ### R4 — MINOR: `VSLIO` doc/code default mismatch
 
@@ -328,8 +330,10 @@ dependency edges between the two documents.
 1. **R1** — `$$user` fix (DONE, in this change).
 2. **R6 empty-body/fall-through gate** — DONE (`tools/check-fallthrough.py`).
 3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit, docs session).
-4. **R3** — real `VSLLOG` audit DD (unblocks every suite write verb; co-design
-   with the suite's `VSLAUD`).
+4. **R3a — DONE** — real `VSLLOG` audit DD (dedicated `VSL AUDIT` #999001 +
+   structured `$$write`/`$$read`, dual-engine 11/11). Unblocks every suite write
+   verb; co-design the DD with the suite's `VSLAUD`. **R3b (`$$query`)** folds into
+   step 6 (it consumes the VSLFS finder).
 5. **R2** — fix `VSLCFG` (loud + effective resolution), folded into `VSLPARM`.
 6. **`VSLFS` finder verbs** — feeds the suite's Tier-2 wrappers and `v db`.
 7. Then hand off to **`vista-sysadmin-suite.md`** Tier 1 → 2 → 3 (read verbs first
@@ -348,7 +352,7 @@ deferred until the audit substrate (R3) exists.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | **Fixed + verified 12/12 live** |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, 7/7 live ydb** |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **Blocked on v-pkg B.2** (multi-field DD) — see `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`; interim single-`.01` delimited record is the stopgap |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **R3a DONE** — dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`, dual-engine 11/11; unblocked by v-pkg B.2-a. **R3b (`$$query`) deferred** to follow the VSLFS finder (R-EXT-6) |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |

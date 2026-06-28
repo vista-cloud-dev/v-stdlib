@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 31 public labels.
+v-stdlib unversioned; 6 modules; 32 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -47,11 +47,12 @@ _raises: `U-VSLIO-NOTLS`_
 
 ## `VSLLOG`
 
-VistA FileMan audit-sink adapter (the S3 audit seam).
+VistA FileMan audit sink (the dedicated VSL AUDIT file).
 
+- `$$auditFile^VSLLOG()` — The dedicated VSL AUDIT FileMan file number (single source of truth).
 - `$$lastError^VSLLOG()` — The last VSLLOG error message (the composed FileMan detail).
-- `$$read^VSLLOG(file, iens)` — Read the audit line stored at (file,iens) .01, else "".
-- `do write^VSLLOG(file, event, detail)` — File one audit record into `file`; return the resolved IENS, else raise.
+- `$$read^VSLLOG(iens, rec)` — Read the audit record's typed fields into rec(); return the EVENT (.01), else "".
+- `do write^VSLLOG(event, detail, duz, host)` — File one structured audit record; return the resolved IENS, else raise.
 
 _raises: `U-VSL-LOG-WRITE`_
 

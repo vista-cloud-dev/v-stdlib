@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*5^
+**KIDS**:VSL*1.0*6^
 
 **INSTALL NAME**
-VSL*1.0*5
+VSL*1.0*6
 "BLD",1,0)
-VSL*1.0*5^VSL^0^0
+VSL*1.0*6^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -17,6 +17,14 @@ VPNG GREETING^^0
 "BLD",1,"KRN",8989.51,"NM","B","VPNG GREETING",1)
 
 "BLD",1,"KRN","B",8989.51,8989.51)
+
+"BLD",1,4,0)
+^9.64PA^999001^1
+"BLD",1,4,999001,0)
+999001
+"BLD",1,4,999001,222)
+y^n^f^^^^n^^n
+"BLD",1,4,"B",999001,999001)
 
 "BLD",1,"REQB",0)
 ^9.611^1^1
@@ -761,9 +769,9 @@ raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not s
 "RTN","VSLIO",143,0)
 	quit
 "RTN","VSLLOG")
-0^69^0^0
+0^110^0^0
 "RTN","VSLLOG",1,0)
-VSLLOG	; v-stdlib — VistA FileMan audit-sink adapter (the S3 audit seam).
+VSLLOG	; v-stdlib — VistA FileMan audit sink (the dedicated VSL AUDIT file).
 "RTN","VSLLOG",2,0)
 	; doc: @exrun live
 "RTN","VSLLOG",3,0)
@@ -771,134 +779,216 @@ VSLLOG	; v-stdlib — VistA FileMan audit-sink adapter (the S3 audit seam).
 "RTN","VSLLOG",4,0)
 	;
 "RTN","VSLLOG",5,0)
-	; Binds the observability sink to a VistA FileMan audit file. VSLLOG is the
+	; Owns a dedicated VistA FileMan audit file — VSL AUDIT (#999001, data global
 "RTN","VSLLOG",6,0)
-	; first v->v composition: it writes audit records by REUSING VSLFS (the
+	; ^DIZ(999001,) — and writes a STRUCTURED audit record by REUSING VSLFS (the
 "RTN","VSLLOG",7,0)
-	; FileMan DBS record writer) rather than re-binding UPDATE^DIE/$$GET1^DIQ
+	; FileMan DBS record writer) rather than re-binding UPDATE^DIE/$$GET1^DIQ itself
 "RTN","VSLLOG",8,0)
-	; itself — the in-`v` analog of the waterline no-duplication rule (a `v` tool
+	; — the in-`v` analog of the waterline no-duplication rule (a `v` tool consumes
 "RTN","VSLLOG",9,0)
-	; consumes a lower `v` capability; only `v->m`/leaked-VistA-symbols are
+	; a lower `v` capability; only `v->m`/leaked-VistA-symbols are forbidden, never a
 "RTN","VSLLOG",10,0)
-	; forbidden, never a VSL*->VSL* call). VSLLOG adds ONLY the log-record ->
+	; VSL*->VSL* call). VSLLOG adds ONLY the audit-record -> FileMan-field mapping:
 "RTN","VSLLOG",11,0)
-	; FileMan-field mapping: it composes a timestamped audit line (the timestamp
+	; .01 EVENT (free text), TIMESTAMP (filed "NOW" — the FileMan date/time input
 "RTN","VSLLOG",12,0)
-	; from $$now^STDDATE(), portable, called up — v->m) and files it as the
+	; transform, portable), USER NUMBER (the acting DUZ; a plain numeric, NOT a #200
 "RTN","VSLLOG",13,0)
-	; record's .01 via $$set^VSLFS.
+	; pointer, so a system-context record (DUZ 0) files with no NEW PERSON
 "RTN","VSLLOG",14,0)
-	;
+	; dependency), HOST (the originating $IO), and free-text DETAIL.
 "RTN","VSLLOG",15,0)
-	; Public API (the handle is the FileMan IENS VSLFS returns):
+	;
 "RTN","VSLLOG",16,0)
-	;   $$write^VSLLOG(file,event,detail) — file one audit record -> resolved IENS
+	; Public API (the handle is the FileMan IENS VSLFS returns):
 "RTN","VSLLOG",17,0)
-	;   $$read^VSLLOG(file,iens)          — read an audit line back, else ""
+	;   $$write^VSLLOG(event,detail,duz,host) — file one audit record -> resolved IENS
 "RTN","VSLLOG",18,0)
-	;   $$lastError^VSLLOG()              — last error detail, else ""
+	;   $$read^VSLLOG(iens,.rec)              — read a record's typed fields into rec(),
 "RTN","VSLLOG",19,0)
-	;
+	;                                            return the EVENT (.01), else ""
 "RTN","VSLLOG",20,0)
-	; *** ERROR CONTRACT — loud, never a silent lost record ***
+	;   $$auditFile^VSLLOG()                  — the dedicated VSL AUDIT file number
 "RTN","VSLLOG",21,0)
-	; A FileMan write failure surfaces from VSLFS as ,U-VSL-FS-DIERR,; VSLLOG
+	;   $$lastError^VSLLOG()                  — last error detail, else ""
 "RTN","VSLLOG",22,0)
-	; catches it and re-raises a clean ,U-VSL-LOG-WRITE, $ECODE, carrying the
+	;
 "RTN","VSLLOG",23,0)
-	; underlying VSLFS detail in ^TMP($job,"vsllog","err") for $$lastError. The
+	; The file number is a VA-reserved local/test number (#999001) — the documented
 "RTN","VSLLOG",24,0)
-	; "audit log must never silently drop a record" goal (§6.2): a sink failure is
+	; R3 stopgap until v-pkg can ship a permanent-namespace file number (coverage
 "RTN","VSLLOG",25,0)
-	; loud, not swallowed. Reads of an absent record return "" (as VSLFS reads do).
+	; analysis item B.2-b). $$query (date/event filters) is deferred to R3b, which
 "RTN","VSLLOG",26,0)
-	;
+	; lands once VSLFS gains finder verbs (the remediation plan's R-EXT-6); a query
 "RTN","VSLLOG",27,0)
-	; No @icr declarations here: VSLLOG makes NO direct L4 call — every FileMan
+	; built today would have to walk the data global directly, which the VSLFS seam
 "RTN","VSLLOG",28,0)
-	; DBS call is inside VSLFS (declared there), and $$now^STDDATE is an `m`-layer
+	; exists to forbid.
 "RTN","VSLLOG",29,0)
-	; (STD*) call up, not an L4 reference. The v->v + v->m composition is correct
+	;
 "RTN","VSLLOG",30,0)
-	; by construction and invisible to the ICR/no-direct-global gate.
+	; *** ERROR CONTRACT — loud, never a silent lost record ***
 "RTN","VSLLOG",31,0)
-	;
+	; A FileMan write failure surfaces from VSLFS as ,U-VSL-FS-DIERR,; VSLLOG
 "RTN","VSLLOG",32,0)
-	quit
+	; catches it and re-raises a clean ,U-VSL-LOG-WRITE, $ECODE, carrying the
 "RTN","VSLLOG",33,0)
-	;
+	; underlying VSLFS detail in ^TMP($job,"vsllog","err") for $$lastError. The
 "RTN","VSLLOG",34,0)
-	; ---------- the audit sink, bound to FileMan via VSLFS (v->v) ----------
+	; "audit log must never silently drop a record" goal (§6.2): a sink failure is
 "RTN","VSLLOG",35,0)
-	;
+	; loud, not swallowed. Reads of an absent record return "" (as VSLFS reads do).
 "RTN","VSLLOG",36,0)
-write(file,event,detail)	; File one audit record into `file`; return the resolved IENS, else raise.
+	;
 "RTN","VSLLOG",37,0)
-	; doc: @param   file     numeric  FileMan audit-file number
+	; ICR: VSLLOG makes ONE direct L4 call — $$NOW^XLFDT (ICR #10103, Supported,
 "RTN","VSLLOG",38,0)
-	; doc: @param   event    string   short event name (audit category)
+	; the FileMan-internal current date/time for the TIMESTAMP field), declared on
 "RTN","VSLLOG",39,0)
-	; doc: @param   detail   string   free-text detail for the record
+	; write. Every FileMan record I/O is inside VSLFS (declared there); the rest
 "RTN","VSLLOG",40,0)
-	; doc: @returns          string   the resolved IENS of the new audit record
+	; is v->v (VSLFS) + v->m (STD*). No direct global access.
 "RTN","VSLLOG",41,0)
-	; doc: @raises  U-VSL-LOG-WRITE  the FileMan write failed (detail in $$lastError)
+	;
 "RTN","VSLLOG",42,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,"ZZVSLLOGEX","X") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),"ZZVSLLOGEX","write then read-back contains the event") set zzok=$$kill^VSLFS(8989.51,ie)
-"RTN","VSLLOG",43,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","writing into a bogus file raises U-VSL-LOG-WRITE")
-"RTN","VSLLOG",44,0)
-	new $etrap,iens,line,ok
-"RTN","VSLLOG",45,0)
-	set ok=1
-"RTN","VSLLOG",46,0)
-	set $etrap="set ok=0,$ecode="""" quit"
-"RTN","VSLLOG",47,0)
-	set line=$$now^STDDATE()_" "_event_" "_detail
-"RTN","VSLLOG",48,0)
-	set iens=$$set^VSLFS(file,"+1,",".01",line)
-"RTN","VSLLOG",49,0)
-	if ok quit iens
-"RTN","VSLLOG",50,0)
-	set $etrap="" do raiseWrite quit ""
-"RTN","VSLLOG",51,0)
-	;
-"RTN","VSLLOG",52,0)
-raiseWrite	; (private) map a downstream VSLFS fault to a loud ,U-VSL-LOG-WRITE,.
-"RTN","VSLLOG",53,0)
-	new detail
-"RTN","VSLLOG",54,0)
-	set detail=$$lastError^VSLFS()
-"RTN","VSLLOG",55,0)
-	set ^TMP($job,"vsllog","err")="write: "_$select(detail'="":detail,1:"FileMan write failed")
-"RTN","VSLLOG",56,0)
-	set $ecode=",U-VSL-LOG-WRITE,"
-"RTN","VSLLOG",57,0)
 	quit
+"RTN","VSLLOG",43,0)
+	;
+"RTN","VSLLOG",44,0)
+	; ---------- the dedicated audit file ----------
+"RTN","VSLLOG",45,0)
+	;
+"RTN","VSLLOG",46,0)
+auditFile()	; The dedicated VSL AUDIT FileMan file number (single source of truth).
+"RTN","VSLLOG",47,0)
+	; doc: @returns          numeric  the VSL AUDIT file number (#999001)
+"RTN","VSLLOG",48,0)
+	; doc: @example   do eq^STDASSERT(.pass,.fail,$$auditFile^VSLLOG(),999001,"the dedicated VSL AUDIT file number")
+"RTN","VSLLOG",49,0)
+	quit 999001
+"RTN","VSLLOG",50,0)
+	;
+"RTN","VSLLOG",51,0)
+	; ---------- the audit sink, bound to FileMan via VSLFS (v->v) ----------
+"RTN","VSLLOG",52,0)
+	;
+"RTN","VSLLOG",53,0)
+write(event,detail,duz,host)	; File one structured audit record; return the resolved IENS, else raise.
+"RTN","VSLLOG",54,0)
+	; doc: @param   event    string   short event name (the .01; 1-30 chars)
+"RTN","VSLLOG",55,0)
+	; doc: @param   detail   string   free-text detail (filed only when non-empty)
+"RTN","VSLLOG",56,0)
+	; doc: @param   duz      numeric  acting principal #200 IEN; defaults to +$GET(DUZ); 0 = system
+"RTN","VSLLOG",57,0)
+	; doc: @param   host     string   originating host/$IO; defaults to $IO (filed only when non-empty)
 "RTN","VSLLOG",58,0)
-	;
+	; doc: @returns          string   the resolved IENS of the new audit record
 "RTN","VSLLOG",59,0)
-read(file,iens)	; Read the audit line stored at (file,iens) .01, else "".
+	; doc: @raises  U-VSL-LOG-WRITE  the FileMan write failed (detail in $$lastError)
 "RTN","VSLLOG",60,0)
-	; doc: @param   file     numeric  FileMan audit-file number
+	; doc: @icr 10103 @call $$NOW^XLFDT @status Supported @custodian XU @source XU/krn_8_0_dg_xlf_fl_ug#nowxlfdt-current-date-and-time-va-fileman-format
 "RTN","VSLLOG",61,0)
-	; doc: @param   iens     string   IENS of the audit record
+	; doc: @illustrative  files a real structured FileMan record into the dedicated VSL AUDIT file (#999001) — a live mutation needing the DD resident + teardown, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
 "RTN","VSLLOG",62,0)
-	; doc: @returns          string   the stored audit line, or "" if absent
+	; Every $$set^VSLFS is called DIRECTLY in this frame (not via a helper extrinsic)
 "RTN","VSLLOG",63,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,"9999999,"),"","read of an absent record returns empty string")
+	; so the flag-based $etrap behaves as the proven VSLLOG idiom: a VSLFS DIERR
 "RTN","VSLLOG",64,0)
-	quit $$get^VSLFS(file,iens,".01","")
+	; flips ok, the `if ok` guards skip the rest, and raiseWrite maps it to a clean
 "RTN","VSLLOG",65,0)
-	;
+	; ,U-VSL-LOG-WRITE,. An intermediate `set x=$$helper(...)` would, on IRIS, raise
 "RTN","VSLLOG",66,0)
-lastError()	; The last VSLLOG error message (the composed FileMan detail).
+	; a secondary fault when the trap unwinds the helper with no return value.
 "RTN","VSLLOG",67,0)
-	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
+	new $etrap,file,iens,ok,u,h,x
 "RTN","VSLLOG",68,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","seed a failure") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the FileMan detail after a failed write")
+	set ok=1,h=""
 "RTN","VSLLOG",69,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLLOG",70,0)
+	set file=$$auditFile()
+"RTN","VSLLOG",71,0)
+	set iens=$$set^VSLFS(file,"+1,",".01",event)
+"RTN","VSLLOG",72,0)
+	if ok set x=$$set^VSLFS(file,iens,"1",$$NOW^XLFDT)
+"RTN","VSLLOG",73,0)
+	if ok set u=$select($data(duz):+duz,1:+$get(DUZ)),x=$$set^VSLFS(file,iens,"2",u)
+"RTN","VSLLOG",74,0)
+	if ok set h=$extract($select($get(host)'="":host,1:$io),1,80)
+"RTN","VSLLOG",75,0)
+	if ok,h'="" set x=$$set^VSLFS(file,iens,"3",h)
+"RTN","VSLLOG",76,0)
+	if ok,$get(detail)'="" set x=$$set^VSLFS(file,iens,"4",detail)
+"RTN","VSLLOG",77,0)
+	if ok quit iens
+"RTN","VSLLOG",78,0)
+	set $etrap="" do raiseWrite quit ""
+"RTN","VSLLOG",79,0)
+	;
+"RTN","VSLLOG",80,0)
+raiseWrite	; (private) map a downstream VSLFS fault to a loud ,U-VSL-LOG-WRITE,.
+"RTN","VSLLOG",81,0)
+	new detail
+"RTN","VSLLOG",82,0)
+	set detail=$$oneLine($$lastError^VSLFS())
+"RTN","VSLLOG",83,0)
+	set ^TMP($job,"vsllog","err")="write: "_$select(detail'="":detail,1:"FileMan write failed")
+"RTN","VSLLOG",84,0)
+	set $ecode=",U-VSL-LOG-WRITE,"
+"RTN","VSLLOG",85,0)
+	quit
+"RTN","VSLLOG",86,0)
+	;
+"RTN","VSLLOG",87,0)
+oneLine(s)	; (private) collapse CR/LF in `s` to spaces — an audit detail is one line.
+"RTN","VSLLOG",88,0)
+	; A multi-line FileMan DIERR (TEXT lines joined by $C(10) in VSLFS) would put a
+"RTN","VSLLOG",89,0)
+	; raw newline into the audit record and corrupt the IRIS driver's session frame;
+"RTN","VSLLOG",90,0)
+	; keep the composed detail a single line.
+"RTN","VSLLOG",91,0)
+	quit $translate(s,$char(13)_$char(10),"  ")
+"RTN","VSLLOG",92,0)
+	;
+"RTN","VSLLOG",93,0)
+read(iens,rec)	; Read the audit record's typed fields into rec(); return the EVENT (.01), else "".
+"RTN","VSLLOG",94,0)
+	; doc: @param   iens     string   IENS of the audit record
+"RTN","VSLLOG",95,0)
+	; doc: @param   rec      array    (by ref) filled: rec("event"|"timestamp"|"user"|"host"|"detail")
+"RTN","VSLLOG",96,0)
+	; doc: @returns          string   the stored EVENT (.01), or "" if the record is absent
+"RTN","VSLLOG",97,0)
+	; doc: @illustrative  reads a structured record back from the dedicated VSL AUDIT file (#999001); needs a record present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tWriteReadRoundtrip
+"RTN","VSLLOG",98,0)
+	new file
+"RTN","VSLLOG",99,0)
+	set file=$$auditFile()
+"RTN","VSLLOG",100,0)
+	set rec("event")=$$get^VSLFS(file,iens,".01","")
+"RTN","VSLLOG",101,0)
+	set rec("timestamp")=$$get^VSLFS(file,iens,"1","")
+"RTN","VSLLOG",102,0)
+	set rec("user")=$$get^VSLFS(file,iens,"2","")
+"RTN","VSLLOG",103,0)
+	set rec("host")=$$get^VSLFS(file,iens,"3","")
+"RTN","VSLLOG",104,0)
+	set rec("detail")=$$get^VSLFS(file,iens,"4","")
+"RTN","VSLLOG",105,0)
+	quit rec("event")
+"RTN","VSLLOG",106,0)
+	;
+"RTN","VSLLOG",107,0)
+lastError()	; The last VSLLOG error message (the composed FileMan detail).
+"RTN","VSLLOG",108,0)
+	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
+"RTN","VSLLOG",109,0)
+	; doc: @example   new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
+"RTN","VSLLOG",110,0)
 	quit $get(^TMP($job,"vsllog","err"))
 "RTN","VSLSEC")
 0^113^0^0
@@ -1347,6 +1437,60 @@ F^^
 "KRN",8989.51,1,30,1,0)
 1^4.2
 "KRN",8989.51,1,30,"B",1,1)
+
+"FIA",999001)
+VSL AUDIT
+"FIA",999001,0)
+^DIZ(999001,
+"FIA",999001,0,0)
+999001I
+"FIA",999001,0,1)
+y^n^f^^^^n^^n
+"FIA",999001,0,"VR")
+1.0^VSL
+"^DD",999001,999001,0)
+FIELD^^4^5
+"^DD",999001,999001,0,"IX","B",999001,0.01)
+
+"^DD",999001,999001,0,"NM","VSL AUDIT")
+
+"^DD",999001,999001,0.01,0)
+NAME^RF^^0;1^K:$L(X)>30!($L(X)<1) X
+"^DD",999001,999001,0.01,1,0)
+^.1
+"^DD",999001,999001,0.01,1,1,0)
+999001^B
+"^DD",999001,999001,0.01,1,1,1)
+S ^DIZ(999001,"B",$E(X,1,30),DA)=""
+"^DD",999001,999001,0.01,1,1,2)
+K ^DIZ(999001,"B",$E(X,1,30),DA)
+"^DD",999001,999001,0.01,3)
+Answer must be 1-30 characters in length.
+"^DD",999001,999001,"B","NAME",0.01)
+
+"^DD",999001,999001,"GL","0;1",1,0.01)
+
+"^DD",999001,999001,1,0)
+TIMESTAMP^D^^0;2^S %DT="ET" D ^%DT S X=Y K:Y<1 X
+"^DD",999001,999001,1,3)
+When the audit event occurred (FileMan date/time).
+"^DD",999001,999001,2,0)
+USER NUMBER^NJ12,0^^0;3^K:+X'=X!(X<0)!(X?.E1"."1.N) X
+"^DD",999001,999001,2,3)
+The acting principal's #200 IEN (DUZ); 0 = system context.
+"^DD",999001,999001,3,0)
+HOST^F^^0;4^K:$L(X)>80!($L(X)<1) X
+"^DD",999001,999001,3,3)
+The originating host/device ($IO), up to 80 characters.
+"^DD",999001,999001,4,0)
+DETAIL^F^^0;5^K:$L(X)>245!($L(X)<1) X
+"^DD",999001,999001,4,3)
+Free-text event detail, up to 245 characters.
+"^DIC",999001,999001,0)
+VSL AUDIT^999001
+"^DIC",999001,999001,0,"GL")
+^DIZ(999001,
+"^DIC",999001,"B","VSL AUDIT",999001)
 
 "MBREQ")
 1

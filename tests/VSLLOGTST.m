@@ -1,4 +1,4 @@
-VSLLOGTST	; v-stdlib — VSLLOG (FileMan audit-sink adapter) test suite.
+VSLLOGTST	; v-stdlib — VSLLOG (dedicated VistA FileMan audit-sink) test suite.
 	; Exercises VSLLOG against a live VistA's FileMan DBS API, over the driver
 	; stack only (m/v waterline — the ONLY path):
 	;   m test --engine ydb  --docker vehu     --chset m \
@@ -6,56 +6,74 @@ VSLLOGTST	; v-stdlib — VSLLOG (FileMan audit-sink adapter) test suite.
 	;   m test --engine iris --docker foia-t12 --namespace VISTA \
 	;     --routines src --routines <m-stdlib>/src tests/VSLLOGTST.m
 	;
-	; VSLLOG is the audit sink: it writes a log record to a FileMan audit file by
-	; REUSING VSLFS (v->v composition; it does NOT re-bind the FileMan DBS) and
-	; maps a write failure to a clean ,U-VSL-LOG-WRITE, $ECODE. The "audit file"
-	; is the same EXISTING low-risk file VSLFS uses — #8989.51 PARAMETER
-	; DEFINITION — whose .01 is free-text (uppercased) with no other required
-	; fields, so a throwaway ZZ-namespaced audit record is created and removed
-	; cleanly (no DD install; the dedicated-audit-file DD is a deferred v-pkg
-	; track). The audit line carries a $$now^STDDATE() timestamp (portable, v->m)
-	; + the event + detail; the round-trip asserts the read-back CONTAINS the
-	; event and detail (the timestamp is generated, so not byte-predictable; the
-	; #8989.51 .01 uppercases, so the test content is uppercase).
+	; VSLLOG is the audit sink: it OWNS a dedicated VistA FileMan file — VSL AUDIT
+	; (#999001, data global ^DIZ(999001,) — and writes a STRUCTURED audit record by
+	; REUSING VSLFS (v->v composition; it does NOT re-bind the FileMan DBS) and maps
+	; a write failure to a clean ,U-VSL-LOG-WRITE, $ECODE. The record's typed fields
+	; are .01 EVENT (free text), TIMESTAMP (date/time, filed as "NOW"), USER NUMBER
+	; (numeric DUZ; 0 = system context), HOST (free text $IO), and DETAIL (free
+	; text). USER NUMBER is a plain numeric, NOT a #200 pointer, so a system-context
+	; record (DUZ 0) files cleanly with no dependency on a populated NEW PERSON.
+	;
+	; The VSL AUDIT DD must be RESIDENT before this suite runs — installed from the
+	; VSL KIDS build via `v pkg install dist/kids/VSL.kids --engine <e>` (the org
+	; bespoke-installer ban: a real KIDS install, never a hand-rolled DD). Each test
+	; files a throwaway ZZ-event record and removes it (via VSLFS) in teardown.
 	new pass,fail
 	do start^STDASSERT(.pass,.fail)
 	;
 	do tWriteReadRoundtrip(.pass,.fail)
+	do tSystemContextWrites(.pass,.fail)
 	do tWriteFailureIsLoud(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
 	;
-tWriteReadRoundtrip(pass,fail)	;@TEST "$$write files an audit record via VSLFS and $$read returns a line carrying the event and detail"
-	new file,event,detail,iens,line
-	do setup(.file)
+tWriteReadRoundtrip(pass,fail)	;@TEST "$$write files a structured audit record and $$read returns its typed fields"
+	new event,detail,iens,rec
+	do setup()
 	set event="ZZVSLLOG-LOGIN"
 	set detail="USER=1 JOB="_$job
-	set iens=$$write^VSLLOG(file,event,detail)
+	set iens=$$write^VSLLOG(event,detail,1,"TEST.HOST")
 	do true^STDASSERT(.pass,.fail,iens'="","audit record written (got a resolved IENS)")
 	quit:iens=""
-	set line=$$read^VSLLOG(file,iens)
-	do true^STDASSERT(.pass,.fail,line[event,"read-back audit line contains the event")
-	do true^STDASSERT(.pass,.fail,line[detail,"read-back audit line contains the detail")
-	do teardown(file,iens)
+	do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(iens,.rec),event,"$$read returns the event (.01) and fills rec()")
+	do eq^STDASSERT(.pass,.fail,$get(rec("event")),event,"rec(event) round-trips byte-identical")
+	do eq^STDASSERT(.pass,.fail,$get(rec("detail")),detail,"rec(detail) round-trips byte-identical")
+	do eq^STDASSERT(.pass,.fail,$get(rec("user")),1,"rec(user) is the acting DUZ")
+	do eq^STDASSERT(.pass,.fail,$get(rec("host")),"TEST.HOST","rec(host) round-trips")
+	do true^STDASSERT(.pass,.fail,$get(rec("timestamp"))'="","rec(timestamp) is populated (generated)")
+	do teardown(iens)
+	quit
+	;
+tSystemContextWrites(pass,fail)	;@TEST "$$write files a system-context record (DUZ 0) — USER NUMBER is numeric, not a #200 pointer"
+	new iens,rec,x
+	do setup()
+	set iens=$$write^VSLLOG("ZZVSLLOG-SYS","boot",0,"TEST.HOST")
+	do true^STDASSERT(.pass,.fail,iens'="","system-context record written (DUZ 0 files into the numeric field)")
+	quit:iens=""
+	set x=$$read^VSLLOG(iens,.rec)
+	do eq^STDASSERT(.pass,.fail,$get(rec("user")),0,"rec(user) is 0 for system context")
+	do teardown(iens)
 	quit
 	;
 tWriteFailureIsLoud(pass,fail)	;@TEST "a FileMan write failure maps to a clean ,U-VSL-LOG-..., $ECODE with detail in $$lastError"
-	new file
-	do setup(.file)
-	do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG","$$write into a bogus file raises U-VSL-LOG-...")
+	do setup()
+	; an empty event (.01 is required on a new FileMan entry) -> DIERR -> loud
+	do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG("""",""d"",1,""h"")","U-VSL-LOG","$$write of a record with an empty .01 raises U-VSL-LOG-...")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the underlying FileMan detail")
 	quit
 	;
 	; ---------- fixtures ----------
 	;
-setup(file)	; FileMan programmer context + the safe audit file (#8989.51).
+setup()	; FileMan programmer context for the dedicated VSL AUDIT file (#999001).
 	set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT
-	set file=8989.51
 	quit
 	;
-teardown(file,iens)	; Remove the throwaway audit record if it still exists (via VSLFS).
-	new x
+teardown(iens)	; Remove the throwaway audit record if it still exists (via VSLFS).
+	new file,x
+	quit:iens=""
+	set file=$$auditFile^VSLLOG()
 	quit:'$$exists^VSLFS(file,iens)
 	set x=$$kill^VSLFS(file,iens)
 	quit

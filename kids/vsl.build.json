@@ -1,7 +1,7 @@
 {
   "package": "VSL",
   "version": "1.0",
-  "patch": "5",
+  "patch": "6",
   "allowLongNames": true,
   "components": {
     "routines": [
@@ -11,6 +11,17 @@
       "VSLLOG",
       "VSLSEC",
       "VSLTASK"
+    ],
+    "files": [
+      {
+        "number": 999001, "name": "VSL AUDIT", "globalRoot": "^DIZ(999001,",
+        "fields": [
+          { "number": 1, "label": "TIMESTAMP", "type": "date", "node": 0, "piece": 2, "time": true, "help": "When the audit event occurred (FileMan date/time)." },
+          { "number": 2, "label": "USER NUMBER", "type": "numeric", "node": 0, "piece": 3, "width": 12, "decimals": 0, "min": 0, "help": "The acting principal's #200 IEN (DUZ); 0 = system context." },
+          { "number": 3, "label": "HOST", "type": "free text", "node": 0, "piece": 4, "maxLen": 80, "help": "The originating host/device ($IO), up to 80 characters." },
+          { "number": 4, "label": "DETAIL", "type": "free text", "node": 0, "piece": 5, "maxLen": 245, "help": "Free-text event detail, up to 245 characters." }
+        ]
+      }
     ],
     "parameterDefinitions": [
       {

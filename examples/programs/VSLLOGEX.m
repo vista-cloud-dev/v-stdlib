@@ -5,27 +5,17 @@ VSLLOGEX ; Living examples for VSLLOG — generated from @example tags.
         new pass,fail
         do start^STDASSERT(.pass,.fail)
         ;
+        do tExampleAuditFile(.pass,.fail)
         do tExampleLastError(.pass,.fail)
-        do tExampleRead(.pass,.fail)
-        do tExampleWrite(.pass,.fail)
-        do tExampleWrite2(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
         quit
         ;
+tExampleAuditFile(pass,fail)    ;@TEST "example: VSLLOG.auditFile"
+        do eq^STDASSERT(.pass,.fail,$$auditFile^VSLLOG(),999001,"the dedicated VSL AUDIT file number")
+        quit
+        ;
 tExampleLastError(pass,fail)    ;@TEST "example: VSLLOG.lastError"
-        set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","seed a failure") do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the FileMan detail after a failed write")
-        quit
-        ;
-tExampleRead(pass,fail)         ;@TEST "example: VSLLOG.read"
-        set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,"9999999,"),"","read of an absent record returns empty string")
-        quit
-        ;
-tExampleWrite(pass,fail)        ;@TEST "example: VSLLOG.write"
-        set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT,ie=$$write^VSLLOG(8989.51,"ZZVSLLOGEX","X") do contains^STDASSERT(.pass,.fail,$$read^VSLLOG(8989.51,ie),"ZZVSLLOGEX","write then read-back contains the event") set zzok=$$kill^VSLFS(8989.51,ie)
-        quit
-        ;
-tExampleWrite2(pass,fail)       ;@TEST "example: VSLLOG.write"
-        set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG(99999999,""ZZ"",""X"")","U-VSL-LOG-WRITE","writing into a bogus file raises U-VSL-LOG-WRITE")
+        new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
         quit
         ;
