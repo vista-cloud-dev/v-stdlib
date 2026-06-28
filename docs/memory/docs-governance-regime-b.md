@@ -33,9 +33,9 @@ verification missed it because `docs-validate` is a separate workflow.
   drift** — VSLCFG's `getEffective`/`lastError` labels + `U-VSL-CFG-SET` (added by
   [[r2-vslcfg-loud-effective]]) were in the manifest + the generated API body but the
   page *frontmatter* + index had gone stale; `check-frontmatter` passed because the
-  old list was still schema-*valid*. (The org two-regimes ADR still describes the
-  schema gate — update it in a docs-repo session; m-stdlib keeps its own copy until
-  its Phase-4 increment.)
+  old list was still schema-*valid*. (Org two-regimes ADR amended 2026-06-28 — §7
+  records the M2 schema-validator → regenerate-and-diff change; m-stdlib did the
+  same collapse in its own Phase-4 increment, so both stdlibs now match.)
 - **M3 — grammar pointer (the regression fix):** `docs/guides/m-doc-grammar.md` is
   now a **thin pointer** to m-stdlib's canonical spec (GitHub URL), not a verbatim
   copy. Kills the 3 broken links (R-GRAMMAR: one canonical copy, no drift). The
