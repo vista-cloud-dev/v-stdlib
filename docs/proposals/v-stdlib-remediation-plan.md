@@ -28,7 +28,7 @@ Live status of every remediation item. Update this row when an item lands.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | ✅ DONE (12/12 live, commit `19b96b3`) |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; 7/7 live ydb; IRIS owed) |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ⬜ TODO (gates suite write verbs) |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ⛔ BLOCKED on v-pkg (multi-field DD = `v-pkg` proposal item **B.2**); analysis in `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`. Interim single-`.01` delimited record is the only in-repo stopgap |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
@@ -163,6 +163,18 @@ auditable. See the extension-roadmap section below.
 host/$IO, event category, free-text detail) shipped in the VSL KIDS build via
 `v pkg`, and rebind `$$write^VSLLOG` to file structured fields through VSLFS.
 Add `$$query^VSLLOG` (date/event filters) over the VSLFS finder (R-EXT-6).
+
+> **⛔ BLOCKED (2026-06-28):** the multi-field `VSL AUDIT` DD cannot ship today —
+> `v-pkg`'s KIDS build supports only a single-`.01`, test-range FileMan file, and
+> the org bans hand-rolled DD installers. A grounded adversarial analysis of the
+> gap and the fix lives at `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`:
+> the multi-field DD + DATA export is **Track-B item B.2** there (with the real
+> `^DD`/`^DIC` minimum node-set already specified). R3 unblocks once B.2 lands in
+> v-pkg. **In-repo stopgap if needed sooner:** a dedicated single-`.01` audit file
+> whose `.01` holds a delimited `timestamp^DUZ^host^event^detail` record, with
+> `$$write` composing it and `$$read`/`$$query` parsing+filtering — fixes "writes
+> into a foreign file" + "no query path" now; structured fields become positional
+> pieces until B.2.
 
 ### R4 — MINOR: `VSLIO` doc/code default mismatch
 
@@ -336,7 +348,7 @@ deferred until the audit substrate (R3) exists.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | **Fixed + verified 12/12 live** |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, 7/7 live ydb** |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | Proposed |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **Blocked on v-pkg B.2** (multi-field DD) — see `v-pkg/docs/proposals/v-pkg-kids-coverage-analysis.md`; interim single-`.01` delimited record is the stopgap |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |
