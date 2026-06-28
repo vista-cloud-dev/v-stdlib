@@ -1,9 +1,9 @@
 ---
 title: "v-stdlib remediation plan — adversarial analysis findings + sysadmin extension roadmap"
-status: proposed
+status: accepted
 created: 2026-06-28
 last_modified: 2026-06-28
-revisions: 2
+revisions: 3
 doc_type: [PROPOSAL]
 scope: the 6 shipped VSL* modules, tests, examples, generated docs, tooling, and the planning corpus (quarantine/ excluded)
 ---
@@ -16,9 +16,14 @@ planning corpus in the `docs` repo). `quarantine/` is out of scope by
 instruction. This document records the findings as a **prioritized remediation
 plan** plus a **sysadmin-facing extension roadmap**.
 
-> **R1 is already landed in the same change as this document.** The broken
-> `$$user^VSLSEC` public API has been fixed and re-verified (12/12 live on
-> `vehu`). Everything below R1 is proposed, not yet done.
+> **✅ COMPLETE (2026-06-28) — all remediation items landed.** R1–R8 + R-EXT-6
+> are done and on `main` (R1 in `19b96b3`; R2/R4/R5 in `b2f6bac`; R3a/R3b, R6, R7,
+> R8 in their own commits — see each section). This document is **kept in place,
+> not archived**: the docs-repo R7 banners cite it as the live cross-repo source of
+> truth, and it carries durable analysis (findings, the m/v-waterline rationale,
+> the sysadmin-suite handoff) beyond live status. The per-item status below is now
+> a historical record; the **forward path is the sysadmin-suite Tier 1→2→3**
+> (`docs/proposals/vista-sysadmin-suite.md`).
 
 ## Status tracker (R1–R8)
 
