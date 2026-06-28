@@ -48,7 +48,7 @@ BARE_SRC := $(filter-out $(LIVE_SRC),$(wildcard src/*.m))
         seams check-seams icr check-icr check-citations namespaces check-namespaces \
         pin check-msl-pin check-engine-access check-fallthrough kids check-kids gates \
         manifest manifest-check manifest-golden frontmatter skill skill-check skill-install \
-        docs-check docs-bodies docs-bodies-check check-frontmatter examples examples-check examples-coverage \
+        docs-check docs-bodies docs-bodies-check frontmatter-check examples examples-check examples-coverage \
         examples-run examples-run-ydb examples-run-iris examples-run-live
 
 all: check
@@ -213,7 +213,7 @@ manifest-golden:
 	@python3 tools/test-manifest-golden.py --check
 
 frontmatter:
-	python3 tools/write-module-frontmatter.py
+	python3 tools/write-module-frontmatter.py --force
 
 skill:
 	python3 tools/gen-skill.py
@@ -253,13 +253,20 @@ docs-bodies:
 docs-bodies-check:
 	@python3 tools/gen-bodies.py --check
 
-# check-frontmatter (Regime-B governance — docs-governance-two-regimes ADR): the
-# generated module pages (docs/modules/) are machine output, excluded from the
-# doc-framework prose validator and governed instead by their OWN robust schema,
-# tools/reference-frontmatter.schema.json. This validates every page's frontmatter
-# against it. Engine-free; byte-identical sibling of m-stdlib's check-frontmatter.py.
-check-frontmatter:
-	@python3 tools/check-frontmatter.py --check
+# frontmatter-check (Regime-B drift gate — docs-governance-two-regimes ADR +
+# remediation-plan Part 4 action 5 / OQ-2): the generated module pages
+# (docs/modules/) are machine output, excluded from the doc-framework prose
+# validator and governed instead by REGENERATE-AND-DIFF — the same model as
+# manifest-check. `frontmatter` re-syncs every page's frontmatter + the index
+# from the manifest (--force); this gate fails if git-diff is dirty. It is
+# strictly stronger than the former schema validator (tools/check-frontmatter.py,
+# DELETED): a byte-match to the manifest-driven generator implies schema-valid AND
+# catches manifest drift the schema check missed (e.g. a label added to a module
+# but not propagated to its page — the live VSLCFG getEffective/lastError drift).
+frontmatter-check: frontmatter
+	@git diff --exit-code -- docs/modules/ \
+		|| { echo "ERROR: docs/modules/ frontmatter/index out of date — run 'make frontmatter' and commit."; exit 1; }
+	@echo "frontmatter: clean"
 
 # examples / examples-check (Living Executable Examples, E1 — docs proposal
 # proposals/living-executable-examples.md): generated, self-verifying runnable
@@ -318,7 +325,7 @@ examples-run-live:
 # upward MSL pin + the transport-monopoly gate + the KIDS-build drift gate +
 # the doc-pipeline manifest/skill/golden gates).
 gates: check-seams check-icr check-citations check-namespaces check-msl-pin check-engine-access check-fallthrough check-kids \
-       manifest-check manifest-golden skill-check docs-check docs-bodies-check check-frontmatter examples-check
+       manifest-check manifest-golden skill-check docs-check docs-bodies-check frontmatter-check examples-check
 
 # Engine-free gates (fmt/lint/arch + drift gates) + the engine-bound suite. CI
 # runs the full set; `make check-fast` needs no engine.

@@ -22,11 +22,20 @@ verification missed it because `docs-validate` is a separate workflow.
 - **M1 (doc-framework repo):** `modules` added to the validator `EXCLUDE_DIRS` →
   generated pages no longer touched by the prose validator (removed the modules
   warnings).
-- **M2 — Regime-B schema + gate:** `tools/reference-frontmatter.schema.json` +
-  `tools/check-frontmatter.py` (`make check-frontmatter`, in `gates` + `ci.yml`).
-  **Byte-identical siblings of m-stdlib's** — one schema validates both; v-stdlib's
-  17 pages pass (its `layer` field + the m-stdlib-only `tag/phase/...` are all in
-  the union with the common-core required set).
+- **M2 — Regime-B gate.** Originally `tools/reference-frontmatter.schema.json` +
+  `tools/check-frontmatter.py` (`make check-frontmatter`) — byte-identical siblings
+  of m-stdlib's. **SUPERSEDED 2026-06-28** (remediation-plan Part 4 action 5 / OQ-2):
+  both DELETED in favour of **`frontmatter-check`** — a regenerate-and-diff gate
+  (`make frontmatter` re-syncs every page's frontmatter + index from the manifest
+  via `--force`; git-diff must be clean). It is **strictly stronger** than the schema
+  validator: a byte-match to the manifest-driven generator implies schema-valid AND
+  catches manifest drift the schema check missed. The collapse **caught a real latent
+  drift** — VSLCFG's `getEffective`/`lastError` labels + `U-VSL-CFG-SET` (added by
+  [[r2-vslcfg-loud-effective]]) were in the manifest + the generated API body but the
+  page *frontmatter* + index had gone stale; `check-frontmatter` passed because the
+  old list was still schema-*valid*. (The org two-regimes ADR still describes the
+  schema gate — update it in a docs-repo session; m-stdlib keeps its own copy until
+  its Phase-4 increment.)
 - **M3 — grammar pointer (the regression fix):** `docs/guides/m-doc-grammar.md` is
   now a **thin pointer** to m-stdlib's canonical spec (GitHub URL), not a verbatim
   copy. Kills the 3 broken links (R-GRAMMAR: one canonical copy, no drift). The
@@ -37,8 +46,9 @@ verification missed it because `docs-validate` is a separate workflow.
   waterline. Mutual with m-stdlib's; resolves R-2SKILLS (no merged artifact in the
   internal docs repo — the unified view is assembled by the consumer/skill).
 
-**Gates green:** `check-frontmatter` 17/17, `skill-check`, `docs-bodies-check`,
-`manifest-check`, `manifest-golden` clean; `docs-validate` 0 errors.
+**Gates green:** `frontmatter-check` (regenerate-and-diff), `skill-check`,
+`docs-bodies-check`, `manifest-check`, `manifest-golden` clean; `docs-validate`
+0 errors.
 
 **Phase 5 status:** P5.1 (merged catalog) → superseded by M4; P5.4 (grammar
 promotion) → realised as M3. Remaining: the `m doc` CLI assembler (deferred —

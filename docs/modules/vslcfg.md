@@ -4,8 +4,8 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA configuration adapter over XPAR (Parameter Tools)'
-labels: ['get', 'set']
-errors: []
+labels: ['get', 'getEffective', 'lastError', 'set']
+errors: ['U-VSL-CFG-SET']
 see_also: []
 doc_type: [REFERENCE]
 ---
