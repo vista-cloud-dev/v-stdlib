@@ -1,6 +1,6 @@
 ---
 name: m2-vslio
-description: VSL/MSL M2 Lane B DONE — VSLIO binds the STDNET socket seam to VistA's Kernel device handler (outbound TCP via CALL^%ZISTCP, ICR #2118). Re-pinned msl_ref v0.7.0→v0.8.0. Tier1 POP=0 + tier2 echo GREEN on vehu(YDB); CALL^%ZISTCP wired on both engines; IRIS loopback soft-skips on STDNET's deferred IRIS leg; tier3 TLS loud-blocked. 3 boundaries green.
+description: VSL/MSL M2 Lane B DONE — VSLIO binds the STDNET socket seam to VistA's Kernel device handler (outbound TCP via CALL^%ZISTCP, ICR #2118). Re-pinned msl_ref v0.7.0→v0.8.0. Tier1 POP=0 + tier2 echo GREEN on vehu(YDB); CALL^%ZISTCP wired on both engines; tier3 TLS loud-blocked. ⚠️ 2026-06-28 audit: VSLIO now RED on IRIS (9/10) — $$write lacks a $ZVERSION["IRIS" flush arm; the old "IRIS loopback soft-skips" is stale ($$available^STDNET()=1 on IRIS now). See in-file CORRECTION + vista-library-wrapping-baseline.md.
 metadata:
   type: project
 ---
@@ -43,6 +43,16 @@ the socket. `CLOSE^%ZISTCP` reads `IO` (set `IO`=handle first) and calls
 `@call CLOSE^%ZISTCP`, `@source XU/krn_8_0_dg_device_handler_ug#callzistcp-…` /
 `#closezistcp-…` (check-icr + check-citations green). Engine-portable: `^%ZISTCP`
 branches by OS internally (CGTM/CONT), so VSLIO needs no `$ZVERSION` arm.
+
+> **⚠️ CORRECTION (2026-06-28 baseline audit) — this claim is now WRONG.** The
+> dual-engine audit found `VSLIOTST` **RED on IRIS (9/10, exit 3)** while green on
+> YDB: `$$write` (`use id write buf` / `use pio`) has **no `$ZVERSION["IRIS"` flush
+> arm**, so client→server bytes are silently dropped on IRIS. `^%ZISTCP` *connect*
+> is portable, but the *write* path is not — VSLIO DOES need an IRIS arm and is
+> currently **committed RED on a supported engine**. The "loopback soft-skips on
+> IRIS / STDNET is YDB-only" acceptance below is also stale: `$$available^STDNET()=1`
+> on IRIS now, so that arm runs (and fails). See
+> `docs/proposals/vista-library-wrapping-baseline.md` defect (2).
 
 ## Acceptance (tiered, both engines over the driver)
 - **vehu (YDB) 10/10:** tier-1 `CALL^%ZISTCP`→POP=0 + tier-2 byte echo (loopback:
