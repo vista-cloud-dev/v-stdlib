@@ -48,6 +48,27 @@ G4 single-surface (registry is the only declaration site). R-WEB: `v serve` need
 token-auth (M6.5 stack) + TLS (blocked on VSLIO `$$INIT^XUTLS`/ICR 7616) → web is
 additive/loopback-only until then; CLI/TUI is the production path.
 
+**Industry grounding (added 2026-06-27 rev 3, §11 — web-researched, 3 parallel
+agents):** both VistA and **Epic** are single-integrated-MUMPS-DB EHRs (VistA on
+GT.M/YottaDB/IRIS; Epic "Chronicles" on Caché→IRIS) administered as ONE unit (one
+journal/backup/namespace/change-surface → system-wide blast radius). 8-group common
+core with **(P)latform vs (A)pplication** split: the suite targets the **application**
+core (interfaces/users-security-audit/batch fully; env/monitoring/patch partially)
+and leaves **engine/infra** ops (journaling, freeze-thaw backups, IRIS mirroring/
+YottaDB replication, integrity, ECP, buffer/capacity tuning) BELOW the waterline
+(YottaDB MUPIP / IRIS Mgmt Portal / m-* + driver) — reinforces the m/v split.
+Epic↔VistA analog table proves the verticals aren't VistA-parochial (TaskMan↔IRIS
+Task Manager, ^XUSEC keys↔Epic security classes, ^%ZTER↔messages.log, XQALERT↔In
+Basket, #3.081 audit↔Epic audit+Break-the-Glass, HLO↔Bridges/Interconnect-FHIR,
+RUM↔System-Pulse/^mgstat). Daily reality = mundane/ticket-shaped (unlocks, resets,
+printer issues, interface-queue triage, job/ETL babysitting, monitoring) → validates
+Tier-1-spine-first + the client-type rubric. **Authoritative refs:** InterSystems
+IRIS docs (journaling/WIJ/backup/mirroring/ECP/^mgstat/RBAC), YottaDB AdminOps
+(MUPIP), VA VDL (Kernel SM/TaskMan/KIDS/Signon/HL7/RUM, Handbook 6500.8), HIPAA
+45 CFR §164.308/.312; Epic via public corroboration (login-gated internally —
+flagged [secondary]). Section is §11; TOC + numbering shifted Out-of-scope→§12,
+References→§13 (23 anchors verified, gates green).
+
 **Explicitly out of scope:** KIDS install (already `v pkg`/v-pkg); the RPC tap
 (separate greenfield `v-rpc-tap`); read-only navigation/knowledge tools (those are
 the **VistA-Copilot** org, not vista-cloud-dev — this suite *actuates a live engine*,

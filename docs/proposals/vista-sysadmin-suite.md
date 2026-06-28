@@ -3,7 +3,7 @@ title: "VistA System-Administration Suite — VSL* engine modules + paired `v` C
 status: draft
 created: 2026-06-27
 last_modified: 2026-06-27
-revisions: 1
+revisions: 2
 doc_type: [PROPOSAL]
 layer: v
 related_modules: [VSLCFG, VSLSEC, VSLTASK, VSLFS]
@@ -37,8 +37,14 @@ related_modules: [VSLCFG, VSLSEC, VSLTASK, VSLFS]
 - [8. Phased roadmap](#8-phased-roadmap)
 - [9. Cross-cutting concerns & risks](#9-cross-cutting-concerns--risks)
 - [10. Open questions](#10-open-questions)
-- [11. Out of scope](#11-out-of-scope)
-- [12. References (vdocs GOLD corpus)](#12-references-vdocs-gold-corpus)
+- [11. Industry grounding — Epic, VistA, and the platform](#11-industry-grounding--administering-an-integrated-mumps-ehr-epic-vista-the-platform)
+  - [11.1 The common core of recurring admin work](#111-the-common-core-of-recurring-admin-work)
+  - [11.2 Epic ↔ VistA admin analogs](#112-epic--vista-admin-analogs-the-suite-is-not-vista-parochial)
+  - [11.3 The daily reality is high-volume and mundane](#113-the-daily-reality-is-high-volume-and-mundane)
+  - [11.4 Boundary — what this suite does not address](#114-boundary--what-this-suite-does-not-address)
+  - [11.5 References (industry & platform)](#115-references-industry--platform--web-researched)
+- [12. Out of scope](#12-out-of-scope)
+- [13. References (vdocs GOLD corpus)](#13-references-vdocs-gold-corpus)
 
 ---
 
@@ -154,6 +160,12 @@ create/edit/deactivate (#200), device edit (#3.5), sign-on-log read (#3.081).**
 (separate greenfield `v-rpc-tap`); read-only *navigation/knowledge* tools (those
 belong to the **VistA-Copilot** org, not here — this suite *actuates/operates* a
 live engine, which is exactly the vista-cloud-dev `v` test).
+
+> **Corroboration.** §11 grounds these gold-corpus-derived needs against the wider
+> industry — **Epic** (the other single-integrated-MUMPS-database EHR) and the
+> **InterSystems IRIS / YottaDB** platform both EHRs run on — with external
+> references, and draws the boundary between the application-level work this suite
+> targets and the engine/infrastructure work below the waterline.
 
 ---
 
@@ -539,7 +551,140 @@ Each phase closes per the org Increment Protocol (memory + tracker + commit), ru
 
 ---
 
-## 11. Out of scope
+## 11. Industry grounding — administering an integrated-MUMPS EHR (Epic, VistA, the platform)
+
+The two dominant **single-integrated-MUMPS-database** EHRs are VistA and Epic.
+VistA's 180+ applications share one lifelong patient database on GT.M/YottaDB or
+InterSystems IRIS [V1][V2]; Epic's clinical store ("Chronicles") is a MUMPS-family
+global database on InterSystems Caché → IRIS [E1][E2]. Both share the defining
+administrative property: **every clinical app lives in one shared global store,
+administered as a single unit** — one journal, one backup/restore boundary, one
+global namespace, one change surface. There is no per-service independent recovery;
+a runaway global or a corrupt block has system-wide blast radius [P-int]. That is
+why admin tooling for these systems is *integrated*, and why a coherent `VSL*` + `v`
+suite is the right shape. External research (InterSystems and YottaDB platform docs,
+VA VDL, Epic operational practice, HIPAA) corroborates the gold-corpus needs of §3
+and widens them.
+
+### 11.1 The common core of recurring admin work
+
+Across Epic, VistA, and the InterSystems/YottaDB platform the recurring work
+clusters into eight groups — **(P)** platform/engine-level, **(A)** application-level
+(the single shared DB blurs the two):
+
+| # | Group | Representative tasks | P/A | This suite? |
+|---|---|---|---|---|
+| 1 | **Database / platform ops** | journaling + write-daemon/WIJ; integrity (`MUPIP INTEG` / `^Integrity`); freeze/thaw backups; restore/dejournal; global growth (`REORG`/`EXTEND`/`^GBLOCKCOPY`) | P | **No** — engine/infra, below the waterline |
+| 2 | **HA / downtime** | IRIS **mirroring** (sync failover + async/DR); YottaDB BC/SI replication; read-only downtime viewers; HIPAA contingency | P+A | platform half **No**; monitors help triage |
+| 3 | **Environment management** | prod / reporting-shadow / DR / test / training instances; refresh/clone; build promotion (Epic **Data Courier**; VistA KIDS staging) | P+A | **Partial** — KIDS = `v pkg`; instances = infra |
+| 4 | **Monitoring / capacity** | `^SystemPerformance`/`^pButtons`, `^mgstat`, `^GLOSTAT`; Epic **System Pulse**; VistA **RUM**; buffer/`gmheap` sizing | P | **Partial** — `v status`/`v error` (app-level) |
+| 5 | **Interfaces / integration** | HL7/FHIR queues & links (Epic **Bridges**/Interconnect; VistA HL7/HLO) | A on P | **Yes** — `v hl7` |
+| 6 | **Users / security / audit** | provisioning; roles/keys/security-classes; sign-on/failed-access audit; **break-the-glass**; access review; ≥6-yr log retention | A | **Yes** — `v user`/`v key`/`v audit` |
+| 7 | **Batch / scheduled jobs** | TaskMan / IRIS Task Manager background jobs; purges; nightly processing | A on P | **Yes** — `v job` |
+| 8 | **Change / patch mgmt** | engine upgrades; KIDS builds / Epic releases into the shared store | P+A | **Partial** — KIDS = `v pkg`; engine = infra |
+
+**Takeaway:** the suite targets the **application-level** core (groups 5/6/7 fully;
+3/4/8 partially) and deliberately leaves **engine/infra** ops (group 1, the platform
+half of 2/4) to the M-engine + driver tooling below the waterline — exactly the m/v
+split this org already enforces.
+
+### 11.2 Epic ↔ VistA admin analogs (the suite is not VistA-parochial)
+
+Each proposed vertical maps onto a need that is **universal to integrated-MUMPS
+EHRs**, not a VistA quirk — the same job exists in the Epic/InterSystems world:
+
+| Need | VistA — this suite | Epic analog | Platform (IRIS/YottaDB) |
+|---|---|---|---|
+| Background jobs | `v job` / TaskMan `#14.x` | IRIS Task Manager / Epic batch | `^%ZTLOAD` ↔ `JOB` |
+| Config / params | `v config` / XPAR `#8989.3` | Epic system definitions | — |
+| Users / identity | `v user` / `#200` | Epic **EMP/SER** + security templates | IRIS users |
+| Access keys / roles | `v key` / `^XUSEC` `#19.1` | Epic security **classes/points/roles** | IRIS RBAC roles |
+| Alerts | `v alert` / XQALERT `#8992` | Epic In Basket / system alerts | — |
+| Error review | `v error` / `^%ZTER` `#3.075` | IRIS `messages.log` / Log Monitor | — |
+| Sign-on audit / BTG | `v audit` / `#3.081`, `#3.05` | Epic audit trail + **Break-the-Glass** | IRIS audit (on by default) |
+| Interfaces | `v hl7` / `#870` HLO | Epic Bridges / Interconnect (FHIR) | ECP transport |
+| Devices / print | `v device` / `#3.5` | Epic **EPS** / print services | — |
+| Status / who's-on | `v status` | Epic System Pulse / Mgmt Portal | `^mgstat` / `^GLOSTAT` |
+
+### 11.3 The daily reality is high-volume and mundane
+
+Triangulated across Epic and VistA practitioner sources, the highest-**frequency**
+admin work is ticket-shaped and repetitive: **account unlocks & verify/password
+resets, printer/device issues, interface error-queue triage, background-job/ETL
+babysitting, error-trap & monitoring sweeps, routine user provisioning** — with
+rarer-but-high-yield events (downtime/business-continuity, patch installs,
+environment refreshes) layered on top [E-freq][V-freq]. This validates two design
+choices already in the proposal: **(1)** ship the **API-backed Tier-1 spine first**
+(`v job`/`v alert`/`v config`/`v key`/`v error`), because it automates the daily
+high-volume loop; **(2)** the **client-type rubric** (§7.1) — scriptable daily ops →
+CLI/TUI, review/provisioning/dashboards → web — matches how the work is actually
+performed.
+
+### 11.4 Boundary — what this suite does *not* address
+
+The platform/engine layer — journaling, freeze/thaw backups, mirroring/replication,
+integrity checks, ECP, global-buffer/capacity tuning — is **below the v-stdlib
+waterline**: it is YottaDB **MUPIP** / IRIS **Management Portal** / m-* engine and
+infrastructure work, reached (if at all) through the driver stack, never through
+`VSL*`. Environment management and downtime/business-continuity are largely
+infrastructure + clinical-process concerns. **This suite is the application-
+administration complement to that platform layer, not a replacement for it.** A
+future `m`/`v` effort could surface selected *read-only* platform status (a journal/
+space/integrity/capacity feed over the driver seam), but that is explicitly out of
+this proposal.
+
+### 11.5 References (industry & platform — web-researched)
+
+Platform docs are the strongest anchors (they translate ~1:1 between IRIS-backed and
+YottaDB-backed VistA, and to Epic's Caché/IRIS). **[secondary]** marks
+community/vendor/trade sources used for corroboration, not as normative.
+
+**InterSystems IRIS / Caché (platform substrate — authoritative):**
+- [P-int] Single integrated DB lineage — *InterSystems IRIS Adopted by Epic* — https://www.intersystems.com/news/intersystems-iris-data-platform-adopted-by-epic-for-its-new-generation-of-high-performance-scalability-and-architecture-flexibility/
+- Journaling Overview — IRIS Data Integrity Guide — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GCDI_journal
+- Write Image Journaling & Recovery (WIJ / write daemon) — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GCDI_wij
+- Backup & Restore (external freeze/thaw; online not for prod) — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GCDI_backup
+- Data Integrity / Integrity Check (`^Integrity`) — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GCDI_integrity
+- Mirroring Overview (HA/DR; shadowing discontinued 2019.1) — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GHA_mirror
+- Distributed Caching (ECP) — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSCALE_ecp_oview
+- Monitoring with `^SystemPerformance` / `^mgstat` / `^GLOSTAT` — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GCM_systemperf
+- Roles & RBAC / Auditing — System Administration Guide — https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_config_roles
+- [E2] *Stepping out of the shadows: VA migrated VistA to IRIS mirroring & cloud* — InterSystems Developer Community **[secondary]** — https://community.intersystems.com/post/video-stepping-out-shadows-how-us-va-migrated-mirroring-intersystems-iris-cloud
+
+**YottaDB / GT.M (the open-source VistA M engine — authoritative):**
+- [V2] YottaDB Administration & Operations Guide (MUPIP BACKUP/INTEG/REORG/EXTEND; journaling; replication) — https://docs.yottadb.com/AdminOpsGuide/index.html
+- — Journaling — https://docs.yottadb.com/AdminOpsGuide/ydbjournal.html
+
+**VA / VistA (VDL — authoritative):**
+- [V1] Kernel 8.0 Systems Management binder (EVE; site-manager duties) — https://www.va.gov/vdl/documents/Infrastructure/Kernel/krn_8_0_sm_binder.pdf
+- Kernel 8.0 SM: TaskMan User Guide — https://www.va.gov/vdl/documents/Infrastructure/Kernel/krn_8_0_sm_taskman_ug.pdf
+- Kernel 8.0 SM: KIDS User Guide — https://www.va.gov/vdl/documents/Infrastructure/Kernel/krn_8_0_sm_kids_ug.pdf
+- Kernel 8.0 SM: Signon/Security User Guide (#3.081, #3.05, lockouts) — https://www.va.gov/vdl/documents/Infrastructure/Kernel/krn_8_0_sm_signon_security_ug.pdf
+- HL7 Site Manager & Developer Manual v1.6 (link monitor, filers, purge) — https://www.va.gov/vdl/documents/Infrastructure/Health_Level_7_(HL7)/hl71_6smdm_p161.pdf
+- Resource Usage Monitor (RUM) v2.0 User Manual — https://www.va.gov/vdl/documents/Infrastructure/Resource_Usage_Mon/kmpr2_0um.pdf
+- VA Handbook 6500.8 — IT Contingency Planning — https://www.va.gov/vapubs/viewPublication.asp?Pub_ID=542&FType=2
+
+**HIPAA / regulatory (authoritative):**
+- 45 CFR §164.312 — Technical safeguards (audit controls, access control, emergency access) — https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-164/subpart-C/section-164.312
+- 45 CFR §164.308 — Administrative safeguards (contingency plan: backup / DR / emergency-mode) — https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-164/subpart-C/section-164.308
+
+**Epic operational practice (mostly login-gated internally → public corroboration; [secondary]):**
+- [E1] *What does InterSystems' Caché have to do with Epic's EHR?* — Healthcare IT News **[secondary]** — https://www.healthcareitnews.com/news/what-does-intersystems-cache-have-do-epics-ehr
+- Epic Operational Database Administrator (ODBA) role — job posting, Thomas Jefferson Health **[secondary]** — https://jeffersonhealth.wd5.myworkdayjobs.com/en-US/ThomasJeffersonExternal/job/Epic-Operational-Database-Administrator_REQ-0011153-1
+- Epic environments (POC/TST/SUP/REL/PRD; refresh/masking) — AHS Connect Care glossary **[secondary]** — https://ehealth.connect-care.ca/epic-systems/epic-environments
+- Epic Downtime 101 — SRO / BCA Web / BCA PC **[secondary]** — https://www.suretysystems.com/insights/epic-downtime-101-overview-key-functionality/
+- Epic Bridges (HL7 queues/monitoring) **[secondary]** — https://www.suretysystems.com/insights/epic-bridges-interfacing-solution-you-need/
+- Epic Break-the-Glass (HIPAA emergency access) — Central Michigan U **[secondary]** — https://www.cmich.edu/docs/default-source/presidents-division/general-counsel/hipaa/hipaa-guidance-btg.pdf
+- [E-freq] ECSA daily responsibilities **[secondary]** — https://www.ziprecruiter.com/e/What-are-typical-daily-responsibilities-of-an-Epic-Client-Systems-Administrator
+- Epic on FHIR (Interconnect web services / FHIR R4) — https://fhir.epic.com/
+
+**VistA daily-task frequency (community — [secondary]):**
+- [V-freq] hardhats — Updating A VistA System (KIDS install discipline) **[secondary]** — https://www.hardhats.org/projects/New/UpdatingAVistASystem.html
+- VistApedia — VistA Menu Map / site-manager duties **[secondary]** — https://vistapedia.com/index.php/VistA_Menu_Commands_/_VistA_Menu_Map
+
+---
+
+## 12. Out of scope
 
 - **KIDS / package install** — already `v pkg` (v-pkg repo).
 - **RPC traffic tap** — the separate greenfield `v-rpc-tap` effort.
@@ -550,7 +695,7 @@ Each phase closes per the org Increment Protocol (memory + tracker + commit), ru
 
 ---
 
-## 12. References (vdocs GOLD corpus)
+## 13. References (vdocs GOLD corpus)
 
 - Kernel & Toolkit Technical Manual — `XU/krn_8_0_tm` (EVE menu tree; `xuser`,
   `xutio`, `xutm-mgr`, `xusitemgr`, `xuspy`, `xuprog`; `kernel-system-parameters-89893-file`, `xparedit-routine`)
