@@ -59,7 +59,7 @@ VistA identity/authorization adapter (Kernel).
 - `$$duz^VSLSEC()` — The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 - `$$hasKey^VSLSEC(key, duz)` — 1 iff `duz` (default: the ambient DUZ) holds security key `key`.
 - `$$lastError^VSLSEC()` — The last VSLSEC error message (the composed malformed-call detail).
-- `do user^VSLSEC(duz)` — The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
+- `$$user^VSLSEC(duz)` — The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
 
 _raises: `U-VSL-SEC-ARG`_
 

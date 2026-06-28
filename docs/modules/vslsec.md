@@ -27,7 +27,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `duz` | `$$duz^VSLSEC()` | The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN. |
 | `hasKey` | `$$hasKey^VSLSEC(key, duz)` | 1 iff `duz` (default: the ambient DUZ) holds security key `key`. |
 | `lastError` | `$$lastError^VSLSEC()` | The last VSLSEC error message (the composed malformed-call detail). |
-| `user` | `do user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
+| `user` | `$$user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
 
 ### `$$bySecid^VSLSEC(secid)`
 
@@ -97,7 +97,7 @@ The last VSLSEC error message (the composed malformed-call detail).
 new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
 ```
 
-### `do user^VSLSEC(duz)`
+### `$$user^VSLSEC(duz)`
 
 The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
 

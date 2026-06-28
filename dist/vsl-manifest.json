@@ -793,8 +793,8 @@
           }
         },
         "user": {
-          "form": "procedure",
-          "signature": "do user^VSLSEC(duz)",
+          "form": "extrinsic",
+          "signature": "$$user^VSLSEC(duz)",
           "synopsis": "The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.",
           "params": [
             {
@@ -856,7 +856,7 @@
           "description": "@icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file\nThe SSOi/2FA identity binding: a federated subject (the SecID claim of a\nvalidated token) -> the local #200 IEN, the way Kernel's own XUSAML/\nXUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID\n(param 2; null last name in param 3) and stuffs a by-ref result array\n(result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare\nengine (EN1^XUPSQRY absent) this returns \"\" — the caller $text-gates the\nlive path. No direct ^VA(200 read: the lookup is the Controlled-\nSubscription API and the IEN is read from the returned array (waterline).",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 70
+            "line": 71
           }
         },
         "lastError": {
@@ -881,7 +881,7 @@
           "description": "",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 99
+            "line": 100
           }
         }
       },

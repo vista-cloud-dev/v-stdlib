@@ -799,7 +799,7 @@ lastError()	; The last VSLLOG error message (the composed FileMan detail).
 "RTN","VSLLOG",69,0)
 	quit $get(^TMP($job,"vsllog","err"))
 "RTN","VSLSEC")
-0^112^0^0
+0^113^0^0
 "RTN","VSLSEC",1,0)
 VSLSEC	; v-stdlib — VistA identity/authorization adapter (Kernel).
 "RTN","VSLSEC",2,0)
@@ -937,92 +937,94 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 "RTN","VSLSEC",68,0)
 	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)
 "RTN","VSLSEC",69,0)
-	;
+	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
 "RTN","VSLSEC",70,0)
-bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
+	;
 "RTN","VSLSEC",71,0)
-	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
+bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 "RTN","VSLSEC",72,0)
-	; doc: @returns          numeric  the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
+	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
 "RTN","VSLSEC",73,0)
-	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty SecID)
+	; doc: @returns          numeric  the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
 "RTN","VSLSEC",74,0)
-	; doc: @icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file
+	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty SecID)
 "RTN","VSLSEC",75,0)
-	; doc: The SSOi/2FA identity binding: a federated subject (the SecID claim of a
+	; doc: @icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file
 "RTN","VSLSEC",76,0)
-	; doc: validated token) -> the local #200 IEN, the way Kernel's own XUSAML/
+	; doc: The SSOi/2FA identity binding: a federated subject (the SecID claim of a
 "RTN","VSLSEC",77,0)
-	; doc: XUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID
+	; doc: validated token) -> the local #200 IEN, the way Kernel's own XUSAML/
 "RTN","VSLSEC",78,0)
-	; doc: (param 2; null last name in param 3) and stuffs a by-ref result array
+	; doc: XUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID
 "RTN","VSLSEC",79,0)
-	; doc: (result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare
+	; doc: (param 2; null last name in param 3) and stuffs a by-ref result array
 "RTN","VSLSEC",80,0)
-	; doc: engine (EN1^XUPSQRY absent) this returns "" — the caller $text-gates the
+	; doc: (result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare
 "RTN","VSLSEC",81,0)
-	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
+	; doc: engine (EN1^XUPSQRY absent) this returns "" — the caller $text-gates the
 "RTN","VSLSEC",82,0)
-	; doc: Subscription API and the IEN is read from the returned array (waterline).
+	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
 "RTN","VSLSEC",83,0)
-	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
+	; doc: Subscription API and the IEN is read from the returned array (waterline).
 "RTN","VSLSEC",84,0)
-	; doc: @example  do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
+	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
 "RTN","VSLSEC",85,0)
-	new RESULT
+	; doc: @example  do:$text(EN1^XUPSQRY)'="" eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN") do:$text(EN1^XUPSQRY)="" true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia")
 "RTN","VSLSEC",86,0)
-	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
+	new RESULT
 "RTN","VSLSEC",87,0)
-	if $text(EN1^XUPSQRY)="" quit ""
+	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
 "RTN","VSLSEC",88,0)
-	do EN1^XUPSQRY(.RESULT,secid,"")
+	if $text(EN1^XUPSQRY)="" quit ""
 "RTN","VSLSEC",89,0)
-	quit $$parseQry(.RESULT)
+	do EN1^XUPSQRY(.RESULT,secid,"")
 "RTN","VSLSEC",90,0)
-	;
+	quit $$parseQry(.RESULT)
 "RTN","VSLSEC",91,0)
-parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
+	;
 "RTN","VSLSEC",92,0)
-	; doc: @internal
+parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
 "RTN","VSLSEC",93,0)
-	; doc: result(1) is the found-flag (1 found / 0 not found); result(1,0) is the
+	; doc: @internal
 "RTN","VSLSEC",94,0)
-	; doc: first record, VPID^IEN^LastName~First~Middle^SSN^DOB^SEX^ — the IEN is
+	; doc: result(1) is the found-flag (1 found / 0 not found); result(1,0) is the
 "RTN","VSLSEC",95,0)
-	; doc: ^-piece 2. Pure (no VistA) so it is unit-tested on a bare engine.
+	; doc: first record, VPID^IEN^LastName~First~Middle^SSN^DOB^SEX^ — the IEN is
 "RTN","VSLSEC",96,0)
-	if +$get(result(1))'=1 quit ""
+	; doc: ^-piece 2. Pure (no VistA) so it is unit-tested on a bare engine.
 "RTN","VSLSEC",97,0)
-	quit $piece($get(result(1,0)),"^",2)
+	if +$get(result(1))'=1 quit ""
 "RTN","VSLSEC",98,0)
-	;
+	quit $piece($get(result(1,0)),"^",2)
 "RTN","VSLSEC",99,0)
-lastError()	; The last VSLSEC error message (the composed malformed-call detail).
+	;
 "RTN","VSLSEC",100,0)
-	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
+lastError()	; The last VSLSEC error message (the composed malformed-call detail).
 "RTN","VSLSEC",101,0)
-	; doc: @example  new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
+	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
 "RTN","VSLSEC",102,0)
-	quit $get(^TMP($job,"vslsec","err"))
+	; doc: @example  new $etrap set $etrap="set $ecode=""""" do hasKey^VSLSEC("") do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail after a loud failure")
 "RTN","VSLSEC",103,0)
-	;
+	quit $get(^TMP($job,"vslsec","err"))
 "RTN","VSLSEC",104,0)
-	; ---------- internals ----------
+	;
 "RTN","VSLSEC",105,0)
-	;
+	; ---------- internals ----------
 "RTN","VSLSEC",106,0)
-pduz(duz)	; Resolve the effective principal: `duz` if supplied, else the ambient DUZ.
-"RTN","VSLSEC",107,0)
-	quit $select($get(duz)'="":duz,1:+$get(DUZ))
-"RTN","VSLSEC",108,0)
 	;
+"RTN","VSLSEC",107,0)
+pduz(duz)	; Resolve the effective principal: `duz` if supplied, else the ambient DUZ.
+"RTN","VSLSEC",108,0)
+	quit $select($get(duz)'="":duz,1:+$get(DUZ))
 "RTN","VSLSEC",109,0)
-raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
+	;
 "RTN","VSLSEC",110,0)
-	set ^TMP($job,"vslsec","err")=who_": "_msg
+raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
 "RTN","VSLSEC",111,0)
-	set $ecode=",U-VSL-SEC-ARG,"
+	set ^TMP($job,"vslsec","err")=who_": "_msg
 "RTN","VSLSEC",112,0)
+	set $ecode=",U-VSL-SEC-ARG,"
+"RTN","VSLSEC",113,0)
 	quit
 "RTN","VSLTASK")
 0^101^0^0

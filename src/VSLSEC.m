@@ -66,6 +66,7 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by VSLSECTST; not a portable self-contained one-liner (faults on a bare engine where $$GET1^DIQ is absent, and on a FileMan-restricted live instance)
+	quit $$get^VSLFS(200,$$pduz(duz)_",",".01","")
 	;
 bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)

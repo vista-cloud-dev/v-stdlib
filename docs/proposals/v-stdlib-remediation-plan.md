@@ -33,13 +33,9 @@ plan** plus a **sysadmin-facing extension roadmap**.
   - [R7 — STRUCTURAL: the published plan corpus is stale and misleading](#r7--structural-the-published-plan-corpus-is-stale-and-misleading)
   - [R8 — HYGIENE: uncommitted deletion on `main`](#r8--hygiene-uncommitted-deletion-on-main)
 - [Are the existing plans worthwhile?](#are-the-existing-plans-worthwhile)
-- [Sysadmin extension roadmap](#sysadmin-extension-roadmap)
-  - [R-EXT-1 — `VSLOPS` (read-only situational awareness) — DO FIRST](#r-ext-1--vslops-read-only-situational-awareness--do-first)
-  - [R-EXT-2 — `VSLTM` (TaskMan operations)](#r-ext-2--vsltm-taskman-operations)
-  - [R-EXT-3 — `VSLHL7` (interface / logical-link monitoring)](#r-ext-3--vslhl7-interface--logical-link-monitoring)
-  - [R-EXT-4 — `VSLALERT` (XQALERT notifications)](#r-ext-4--vslalert-xqalert-notifications)
-  - [R-EXT-5 — `VSLUSER` / `VSLKEY` (account & key lifecycle) — HIGH VALUE, HIGH RISK](#r-ext-5--vsluser--vslkey-account--key-lifecycle--high-value-high-risk)
-  - [R-EXT-6 — `VSLFS` finder verbs (turn storage into a query surface)](#r-ext-6--vslfs-finder-verbs-turn-storage-into-a-query-surface)
+- [Sysadmin extension roadmap — defer to the existing suite proposal](#sysadmin-extension-roadmap--defer-to-the-existing-suite-proposal)
+  - [Where this plan feeds the suite](#where-this-plan-feeds-the-suite)
+  - [Net positioning](#net-positioning)
 - [Recommended sequence](#recommended-sequence)
 - [Appendix — findings table](#appendix--findings-table)
 
@@ -130,8 +126,9 @@ fields (DUZ, host, event-type, timestamp-as-field), and no query path. As the
 today's `VSLLOG` is a placeholder — a fine v→v composition demo, inadequate as
 an operational audit sink.
 
-This is the **prerequisite** for every write-capable sysadmin module in the
-extension roadmap (R-EXT-4, R-EXT-5): privileged writes must be auditable.
+This is the **prerequisite** for every write-capable module in the sysadmin
+suite (`VSLKEY`, `VSLALERT`, `VSLUSER`, `VSLAUD`): privileged writes must be
+auditable. See the extension-roadmap section below.
 
 **Proposed:** define a dedicated `VSL AUDIT` FileMan DD (fields: timestamp, DUZ,
 host/$IO, event category, free-text detail) shipped in the VSL KIDS build via
@@ -228,52 +225,54 @@ closes that gap.
 
 ---
 
-## Sysadmin extension roadmap
+## Sysadmin extension roadmap — defer to the existing suite proposal
 
-The library today targets a *web-app substrate* (config / storage / socket /
-auth / audit / listener). The biggest unmet need for a **VistA
-sysadmin / operator** is **day-to-day operational control and situational
-awareness** — the things they do by hand in `^XUP` / FileMan / `^%ZTM`. Each
-item below is a thin, gated, driver-reachable `v` binding in the established
-idiom (loud errors, `$$lastError`, Supported/ICR-tagged), and each naturally
-fronts a future `v` CLI domain. Prioritized by operational value × safety × fit.
+The "what new modules do sysadmins need" question is **already answered** by the
+canonical `docs/proposals/vista-sysadmin-suite.md` (draft 2026-06-27, rev 2) — a
+grounded 46 KB design that turns v-stdlib from seam adapters into the engine half
+of a sysadmin suite, each `VSL*` module paired with a Go `v` CLI domain:
 
-### R-EXT-1 — `VSLOPS` (read-only situational awareness) — DO FIRST
-"Is the system healthy / who is on / what just broke." Who is signed on
-(`^XUTL("XUSEC")`), error-log tail (`^%ZTER` / `$$…^XUERRL`),
-volume-set / up-since, active job counts. Near-zero risk, mostly bare-readable,
-high daily value. Fronts `v status`.
+| Tier | Modules | Covers |
+|---|---|---|
+| 1 — API-backed spine (build first) | `VSLJOB`, `VSLALERT`, `VSLPARM`, `VSLKEY`, `VSLERR` | TaskMan ops, XQALERT, XPAR, `^XUSEC` keys, error trap |
+| 2 — FileMan-DBS wrappers | `VSLUSER`, `VSLDEV`, `VSLAUD` | users, devices, audit |
+| 3 — monitors | `VSLHLO`, `VSLSTAT` (`VSLCAP` deferred) | HL7 links, system status |
 
-### R-EXT-2 — `VSLTM` (TaskMan operations)
-VSLTASK only *schedules + persists* a listener. Sysadmins fight the task queue
-daily: enumerate queued/running/scheduled tasks (#14.4 `^%ZTSK`), read a task's
-status, and **stop / requeue / dequeue** a runaway. Binds `STAT^%ZTLOAD`,
-`REQ^%ZTLOAD`, `KILL^%ZTLOAD`, `OPTION^%ZTLOAD`. Read verbs low-risk; write verbs
-gate behind `$$hasKey^VSLSEC` + audit. Fronts `v job`.
+**This remediation plan does not re-propose those modules.** An earlier review
+draft invented overlapping names (`VSLOPS`/`VSLTM`/`VSLHL7`) — that would have
+been naming drift against an existing design, the exact inconsistency this review
+exists to catch. Adopt the suite's registry. The items below are the
+**prerequisite cleanup the suite assumes but does not itself cover**, plus the
+dependency edges between the two documents.
 
-### R-EXT-3 — `VSLHL7` (interface / logical-link monitoring)
-HL7 link health is the #1 integration firefight. Read logical-link status and
-queue depth (#870 `^HLCS` / `^HL`), list links that are down, restart a link
-(`STARTUP^HLCSDR` / `SHUTDOWN^HLCSDR`). Read-only first; restart gated. Fronts
-`v hl7`.
+### Where this plan feeds the suite
 
-### R-EXT-4 — `VSLALERT` (XQALERT notifications)
-Send / clear user alerts (#8992, `SETUP^XQALERT`, `$$…^XQALBUTL`). Operationally
-constant (notify on-call, clear stale alerts). Gated writes; requires the R3
-audit sink.
+- **R1 (fixed) is foundational to the whole suite.** The suite's `VSLUSER` and
+  `VSLKEY` explicitly *reuse* `VSLSEC` (identity / key check), and
+  `VSLUSER`/`VSLDEV`/`VSLAUD` reuse `VSLFS`. A broken `$$user^VSLSEC` would have
+  propagated into every Tier-2 module. **Fix the base before building on it** —
+  R1 did.
+- **R3 (real `VSLLOG` audit DD) is a hard prerequisite for the suite's write
+  verbs.** The suite states every gated write audits through `VSLLOG`/`VSLAUD`;
+  today's `VSLLOG` is a single-`.01` placeholder. Build R3 *before* any
+  write-capable suite module (`VSLKEY`, `VSLALERT`, `VSLUSER`, `VSLJOB` writes).
+  R3 and the suite's `VSLAUD` should be designed together (likely the same DD).
+- **R2 (VSLCFG loud + effective resolution) overlaps the suite's `VSLPARM`.**
+  Decide: fold R2 into `VSLPARM`'s design (preferred — one XPAR module,
+  entity-aware, loud) or fix `VSLCFG` standalone first. Do **not** ship both a
+  SYS-only silent `VSLCFG` and a separate `VSLPARM` with divergent contracts.
+- **`VSLFS` finder verbs** (`$$find`/`list` over `$$FIND1^DIC`/`LIST^DIC`) are
+  the missing query surface the suite's Tier-2 FileMan wrappers and the planned
+  `v db` domain both need. Pull this forward as a VSLFS increment ahead of Tier 2.
 
-### R-EXT-5 — `VSLUSER` / `VSLKEY` (account & key lifecycle) — HIGH VALUE, HIGH RISK
-VSLSEC only *reads* keys. Sysadmins constantly allocate/deallocate security keys
-(`^XUSEC` via `ADD/REM^XUSERNEW` / `XUKEYSET`), terminate users (#200
-termination), and reset verify codes. Most-requested and most-dangerous; every
-write verb must enforce `$$hasKey^VSLSEC` and audit through R3. **Do not build
-until R3 (real audit DD) exists.**
+### Net positioning
 
-### R-EXT-6 — `VSLFS` finder verbs (turn storage into a query surface)
-VSLFS does single-record get/set only. Add `$$find` / `list` over
-`$$FIND1^DIC` / `LIST^DIC` so callers (and the planned `v db` domain) can *query*
-FileMan, not just address known IENs. Natural feeder for `v db` and for
-`$$query^VSLLOG` (R3).
+- **This document** = prerequisite remediation (R1–R8): fix what's broken, harden
+  the contracts, add the empty-body gate, reconcile the stale corpus.
+- **`vista-sysadmin-suite.md`** = the forward capability roadmap (new `VSL*`
+  modules + `v` domains).
+- Sequence the suite's Tier 1 → 2 → 3 **after** R3 lands (write auditing) and with
+  R2 folded into `VSLPARM`.
 
 ---
 
@@ -281,12 +280,15 @@ FileMan, not just address known IENs. Natural feeder for `v db` and for
 
 1. **R1** — `$$user` fix (DONE, in this change).
 2. **R6 empty-body/fall-through gate** — cheap, and it would have caught R1.
-3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit).
-4. **R3** — real `VSLLOG` audit DD (unblocks the write-capable modules).
-5. **R-EXT-1 `VSLOPS`** — read-only, safest, immediate value.
-6. **R-EXT-2 `VSLTM`** → **R-EXT-3 `VSLHL7`** → **R-EXT-6 `VSLFS` finder**.
-7. **R2 / R4 / R5** module-contract cleanups (fold into the next touch of each).
-8. Gated writes last: **R-EXT-4 `VSLALERT`**, then **R-EXT-5 `VSLUSER`/`VSLKEY`**.
+3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit, docs session).
+4. **R3** — real `VSLLOG` audit DD (unblocks every suite write verb; co-design
+   with the suite's `VSLAUD`).
+5. **R2** — fix `VSLCFG` (loud + effective resolution), folded into `VSLPARM`.
+6. **`VSLFS` finder verbs** — feeds the suite's Tier-2 wrappers and `v db`.
+7. Then hand off to **`vista-sysadmin-suite.md`** Tier 1 → 2 → 3 (read verbs first
+   within each tier; gated writes only after R3).
+8. **R4 / R5 / R8** — minor contract docs + hygiene, folded into the next touch of
+   each module.
 
 Read-only, low-risk, highest-daily-value capabilities first; dangerous writes
 deferred until the audit substrate (R3) exists.
