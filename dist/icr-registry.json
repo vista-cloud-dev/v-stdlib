@@ -71,6 +71,26 @@
         "doc_key": "DI/fm22_2dg"
       },
       "status": "Supported"
+    },
+    {
+      "call": "$$FIND1^DIC",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "find1dic-finder-single-record",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "LIST^DIC",
+      "custodian": "DI",
+      "icr": "DBS",
+      "source": {
+        "anchor": "listdic-lister",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
     }
   ],
   "VSLIO": [

@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 32 public labels.
+v-stdlib unversioned; 6 modules; 35 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -23,9 +23,11 @@ _raises: `U-VSL-CFG-SET`_
 VistA FileMan storage adapter (FileMan DBS record store).
 
 - `$$exists^VSLFS(file, iens)` — Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
-- `$$get^VSLFS(file, iens, field, default)` — Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+- `$$find^VSLFS(file, value, index)` — The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+- `$$get^VSLFS(file, iens, field, default, flags)` — Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 - `$$kill^VSLFS(file, iens)` — Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
 - `$$lastError^VSLFS()` — The last VSLFS error message (the composed FileMan DIERR detail).
+- `$$list^VSLFS(file, out, index)` — List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
 - `$$set^VSLFS(file, iens, field, value)` — File `value` into (file,iens,field); return the resolved IENS, else raise.
 
 _raises: `U-VSL-FS-DIERR`_
@@ -51,6 +53,7 @@ VistA FileMan audit sink (the dedicated VSL AUDIT file).
 
 - `$$auditFile^VSLLOG()` — The dedicated VSL AUDIT FileMan file number (single source of truth).
 - `$$lastError^VSLLOG()` — The last VSLLOG error message (the composed FileMan detail).
+- `$$query^VSLLOG(out, event, fromDt, toDt)` — Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count.
 - `$$read^VSLLOG(iens, rec)` — Read the audit record's typed fields into rec(); return the EVENT (.01), else "".
 - `do write^VSLLOG(event, detail, duz, host)` — File one structured audit record; return the resolved IENS, else raise.
 

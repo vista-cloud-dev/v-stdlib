@@ -4,7 +4,7 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA FileMan audit sink (the dedicated VSL AUDIT file)'
-labels: ['auditFile', 'lastError', 'read', 'write']
+labels: ['auditFile', 'lastError', 'query', 'read', 'write']
 errors: ['U-VSL-LOG-WRITE']
 see_also: []
 doc_type: [REFERENCE]
@@ -25,6 +25,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 |---|---|---|
 | `auditFile` | `$$auditFile^VSLLOG()` | The dedicated VSL AUDIT FileMan file number (single source of truth). |
 | `lastError` | `$$lastError^VSLLOG()` | The last VSLLOG error message (the composed FileMan detail). |
+| `query` | `$$query^VSLLOG(out, event, fromDt, toDt)` | Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count. |
 | `read` | `$$read^VSLLOG(iens, rec)` | Read the audit record's typed fields into rec(); return the EVENT (.01), else "". |
 | `write` | `do write^VSLLOG(event, detail, duz, host)` | File one structured audit record; return the resolved IENS, else raise. |
 
@@ -51,6 +52,19 @@ The last VSLLOG error message (the composed FileMan detail).
 ```m
 new prior,r set prior=$get(^TMP($job,"vsllog","err")),^TMP($job,"vsllog","err")="write: x" set r=$$lastError^VSLLOG() set ^TMP($job,"vsllog","err")=prior do eq^STDASSERT(.pass,.fail,r,"write: x","lastError returns the composed FileMan detail")
 ```
+
+### `$$query^VSLLOG(out, event, fromDt, toDt)`
+
+Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count.
+
+**Parameters**
+
+- `out` _(array)_ — (by ref) set out("ien,")=event for each matching record
+- `event` _(string)_ — exact event (.01) to match; "" = any event
+- `fromDt` _(numeric)_ — inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
+- `toDt` _(numeric)_ — inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
+
+**Returns** _numeric_ — the number of matching records
 
 ### `$$read^VSLLOG(iens, rec)`
 

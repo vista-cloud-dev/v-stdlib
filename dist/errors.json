@@ -7,7 +7,8 @@
   },
   "U-VSL-FS-DIERR": {
     "labels": [
-      "set"
+      "set",
+      "list"
     ],
     "module": "VSLFS"
   },

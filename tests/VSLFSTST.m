@@ -20,6 +20,8 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	do tCreateGetRoundtrip(.pass,.fail)
 	do tExistsThenKill(.pass,.fail)
 	do tDierrIsLoud(.pass,.fail)
+	do tFindByName(.pass,.fail)
+	do tListAllRecords(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -52,6 +54,33 @@ tDierrIsLoud(pass,fail)	;@TEST "a FileMan DIERR maps to a clean ,U-VSL-FS-..., $
 	do setup(.file)
 	do raises^STDASSERT(.pass,.fail,"set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","$$set into a bogus file raises U-VSL-FS-...")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLFS()'="","lastError carries the FileMan DIERR detail")
+	quit
+	;
+tFindByName(pass,fail)	;@TEST "$$find returns the IENS of a uniquely-named record by the B index, and "" when absent"
+	new file,name,iens,found
+	do setup(.file)
+	set name="ZZVSLFS "_$job_"FIND"
+	set iens=$$set^VSLFS(file,"+1,",".01",name)
+	quit:iens=""
+	set found=$$find^VSLFS(file,name,"B")
+	do eq^STDASSERT(.pass,.fail,found,iens,"$$find resolves the record's IENS by exact .01")
+	do eq^STDASSERT(.pass,.fail,$$find^VSLFS(file,"ZZVSLFS NOSUCH "_$job,"B"),"","$$find returns empty for an absent value")
+	do teardown(file,iens)
+	quit
+	;
+tListAllRecords(pass,fail)	;@TEST "$$list returns the IENS of every record (the two just created are present)"
+	new file,n1,n2,i1,i2,out,cnt
+	do setup(.file)
+	set n1="ZZVSLFS "_$job_"L1",n2="ZZVSLFS "_$job_"L2"
+	set i1=$$set^VSLFS(file,"+1,",".01",n1)
+	set i2=$$set^VSLFS(file,"+1,",".01",n2)
+	quit:(i1="")!(i2="")
+	set cnt=$$list^VSLFS(file,.out,"B")
+	do true^STDASSERT(.pass,.fail,cnt>=2,"$$list counts at least the two new records")
+	do true^STDASSERT(.pass,.fail,$data(out(i1)),"$$list includes the first record's IENS")
+	do true^STDASSERT(.pass,.fail,$data(out(i2)),"$$list includes the second record's IENS")
+	do teardown(file,i1)
+	do teardown(file,i2)
 	quit
 	;
 	; ---------- fixtures ----------

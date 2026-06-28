@@ -17,9 +17,12 @@ VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 	; Public API (the handle is a FileMan IENS; values are field values):
 	;   $$set^VSLFS(file,iens,field,value) — file a field (UPDATE^DIE); add a
 	;                                         record with iens "+1," -> resolved IENS
-	;   $$get^VSLFS(file,iens,field,default)— read a field ($$GET1^DIQ), else default
+	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ), else
+	;                                         default; flags "I" reads the internal value
 	;   $$exists^VSLFS(file,iens)           — 1 iff the record exists
 	;   $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01="@")
+	;   $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)
+	;   $$list^VSLFS(file,.out,index)       — list every record's IENS into out (LIST^DIC)
 	;   $$lastError^VSLFS()                 — last FileMan DIERR detail, else ""
 	;
 	; *** ERROR CONTRACT — loud, never a silent wrong value ***
@@ -56,17 +59,18 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 	if $data(ERR("DIERR")) do raiseDierr("set",.ERR) quit ""
 	quit $$resolveIens(iens,.IEN)
 	;
-get(file,iens,field,default)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 	; doc: @param   file     numeric  FileMan file number
 	; doc: @param   iens     string   IENS of the record
 	; doc: @param   field    string   field number
 	; doc: @param   default  string   value returned when the field/record is unset
-	; doc: @returns          string   the external field value, or `default`
+	; doc: @param   flags    string   $$GET1^DIQ flags: "" external (default), "I" internal
+	; doc: @returns          string   the field value (external, or internal if flags["I"]), or `default`
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
 	new val,ERR
-	set val=$$GET1^DIQ(file,iens,field,"","","ERR")
+	set val=$$GET1^DIQ(file,iens,field,$get(flags),"","ERR")
 	if $data(ERR("DIERR")) quit default
 	quit $select(val="":default,1:val)
 	;
@@ -93,6 +97,38 @@ kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE;
 	do FILE^DIE("","FDA","ERR")
 	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
 	quit 1
+	;
+find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+	; doc: @param   file     numeric  FileMan file number
+	; doc: @param   value    string   the lookup value to match (exact)
+	; doc: @param   index    string   the cross-reference to search (default "B")
+	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
+	new y,ERR
+	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
+	quit $select(+y>0:y_",",1:"")
+	;
+list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
+	; doc: @param   file     numeric  FileMan file number
+	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
+	; doc: @param   index    string   traversal cross-reference (default "B")
+	; doc: @returns          numeric  the number of records listed
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
+	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
+	new ERR,cnt,seq,ien
+	kill ^TMP("DILIST",$job)
+	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
+	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
+	set cnt=+$get(^TMP("DILIST",$job,0))
+	set seq=$order(^TMP("DILIST",$job,2,""))
+	for  quit:seq=""  do
+	. set ien=$get(^TMP("DILIST",$job,2,seq))
+	. if ien'="" set out(ien_",")=""
+	. set seq=$order(^TMP("DILIST",$job,2,seq))
+	kill ^TMP("DILIST",$job)
+	quit cnt
 	;
 lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
 	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none

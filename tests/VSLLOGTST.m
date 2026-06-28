@@ -25,6 +25,7 @@ VSLLOGTST	; v-stdlib — VSLLOG (dedicated VistA FileMan audit-sink) test suite.
 	do tWriteReadRoundtrip(.pass,.fail)
 	do tSystemContextWrites(.pass,.fail)
 	do tWriteFailureIsLoud(.pass,.fail)
+	do tQueryFilters(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -62,6 +63,26 @@ tWriteFailureIsLoud(pass,fail)	;@TEST "a FileMan write failure maps to a clean ,
 	; an empty event (.01 is required on a new FileMan entry) -> DIERR -> loud
 	do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG("""",""d"",1,""h"")","U-VSL-LOG","$$write of a record with an empty .01 raises U-VSL-LOG-...")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the underlying FileMan detail")
+	quit
+	;
+tQueryFilters(pass,fail)	;@TEST "$$query filters audit records by exact event and by FileMan date range"
+	new i1,i2,i3,out,cnt,today
+	do setup()
+	set today=$$DT^XLFDT
+	set i1=$$write^VSLLOG("ZZQRY-A","one",1,"H")
+	set i2=$$write^VSLLOG("ZZQRY-A","two",2,"H")
+	set i3=$$write^VSLLOG("ZZQRY-B","three",1,"H")
+	quit:(i1="")!(i2="")!(i3="")
+	kill out set cnt=$$query^VSLLOG(.out,"ZZQRY-A","","")
+	do true^STDASSERT(.pass,.fail,$data(out(i1))&$data(out(i2)),"event filter returns both ZZQRY-A records")
+	do true^STDASSERT(.pass,.fail,'$data(out(i3)),"event filter excludes the ZZQRY-B record")
+	kill out set cnt=$$query^VSLLOG(.out,"",today,"")
+	do true^STDASSERT(.pass,.fail,$data(out(i1))&$data(out(i3)),"date-from (today) includes today's records")
+	kill out set cnt=$$query^VSLLOG(.out,"",today+10000,"")
+	do true^STDASSERT(.pass,.fail,'$data(out(i1)),"a future date-from excludes today's records")
+	do teardown(i1)
+	do teardown(i2)
+	do teardown(i3)
 	quit
 	;
 	; ---------- fixtures ----------

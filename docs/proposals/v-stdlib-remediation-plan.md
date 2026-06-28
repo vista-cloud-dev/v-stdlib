@@ -28,7 +28,7 @@ Live status of every remediation item. Update this row when an item lands.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | ✅ DONE (12/12 live, commit `19b96b3`) |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | ✅ DONE (loud `$$set`+`$$lastError`+`$$getEffective`; 7/7 live ydb; IRIS owed) |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | 🔶 **R3a DONE** (dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; dual-engine **11/11** vehu+foia-t12, commit pending). Unblocked once v-pkg **B.2-a** landed (live-proven both engines 2026-06-28). **R3b (`$$query`) deferred** — needs the VSLFS finder verbs (R-EXT-6), sequenced next |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | ✅ **DONE** — **R3a** dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range filters) over the new **VSLFS finder verbs (R-EXT-6: `$$find`/`$$list`)**. Dual-engine green (VSLFSTST 12/12, VSLLOGTST 15/15, vehu+foia-t12). Unblocked by v-pkg **B.2-a**. File # is test-range #999001 until B.2-b |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | ⬜ TODO |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | ⬜ TODO |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; no empty-body gate | 🔶 PARTIAL (empty-body/fall-through gate DONE — `tools/check-fallthrough.py`, in `gates`; triplication + 356-col lines still TODO) |
@@ -172,11 +172,14 @@ Add `$$query^VSLLOG` (date/event filters) over the VSLFS finder (R-EXT-6).
 > now owns the file (dropped the `file` param — the "foreign file" defect) and files
 > structured typed fields through VSLFS; `$$read^VSLLOG(iens,.rec)` returns them.
 > Dual-engine **11/11** (vehu YDB + foia-t12 IRIS) over the driver stack. **R3b
-> (deferred):** `$$query^VSLLOG` (date/event filters) needs the VSLFS finder verbs
-> (R-EXT-6) — building it today would walk the data global directly, which the VSLFS
-> seam exists to forbid. Sequenced as the next increment (pull R-EXT-6 forward, then
-> add `$$query`). **Stopgaps still true:** the file number is the VA-reserved
-> test-range #999001 until v-pkg **B.2-b** ships permanent-namespace numbers.
+> (done):** `$$query^VSLLOG(.out,event,fromDt,toDt)` filters audit records by exact
+> event and/or FileMan internal date range — built over the new **VSLFS finder verbs
+> (R-EXT-6): `$$find`** (`$$FIND1^DIC`, unique) and **`$$list`** (`LIST^DIC`, all
+> IENS), plus a `$$get` `"I"` internal-read flag (external dates don't sort). No
+> direct data-global access — all record reads go through the VSLFS seam. Dual-engine
+> green (VSLFSTST 12/12, VSLLOGTST 15/15). **Stopgap still true:** the file number is
+> the VA-reserved test-range #999001 until v-pkg **B.2-b** ships permanent-namespace
+> numbers.
 
 ### R4 — MINOR: `VSLIO` doc/code default mismatch
 
@@ -330,12 +333,14 @@ dependency edges between the two documents.
 1. **R1** — `$$user` fix (DONE, in this change).
 2. **R6 empty-body/fall-through gate** — DONE (`tools/check-fallthrough.py`).
 3. **R7** — supersede/reconcile `docs/vsl-msl/` (org-repo edit, docs session).
-4. **R3a — DONE** — real `VSLLOG` audit DD (dedicated `VSL AUDIT` #999001 +
-   structured `$$write`/`$$read`, dual-engine 11/11). Unblocks every suite write
-   verb; co-design the DD with the suite's `VSLAUD`. **R3b (`$$query`)** folds into
-   step 6 (it consumes the VSLFS finder).
+4. **R3 — DONE** — real `VSLLOG` audit DD: **R3a** dedicated `VSL AUDIT` #999001 +
+   structured `$$write`/`$$read`; **R3b** `$$query` (event + date-range) over the
+   VSLFS finder. Dual-engine green. Unblocks every suite write verb; co-design the
+   DD with the suite's `VSLAUD`.
 5. **R2** — fix `VSLCFG` (loud + effective resolution), folded into `VSLPARM`.
-6. **`VSLFS` finder verbs** — feeds the suite's Tier-2 wrappers and `v db`.
+6. **`VSLFS` finder verbs (R-EXT-6) — DONE** (`$$find`/`$$list` + `$$get` internal
+   flag, dual-engine 12/12). Feeds R3b's `$$query` and the suite's Tier-2 wrappers
+   and `v db`.
 7. Then hand off to **`vista-sysadmin-suite.md`** Tier 1 → 2 → 3 (read verbs first
    within each tier; gated writes only after R3).
 8. **R4 / R5 / R8** — minor contract docs + hygiene, folded into the next touch of
@@ -352,7 +357,7 @@ deferred until the audit substrate (R3) exists.
 |---|---|---|---|---|
 | R1 | BLOCKER | VSLSEC | `$$user` had no body → raised on every call | **Fixed + verified 12/12 live** |
 | R2 | Major | VSLCFG | silent-fail `$$set`; SYS-only `$$get` mislabeled as "config" | **Done — loud `$$set`/`$$lastError`/`$$getEffective`, 7/7 live ydb** |
-| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **R3a DONE** — dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`, dual-engine 11/11; unblocked by v-pkg B.2-a. **R3b (`$$query`) deferred** to follow the VSLFS finder (R-EXT-6) |
+| R3 | Major | VSLLOG | not a real audit log (single `.01`, no DD/fields/query) | **DONE** — R3a dedicated `VSL AUDIT` DD #999001 + structured `$$write`/`$$read`; R3b `$$query` over the new VSLFS finder verbs (R-EXT-6). Dual-engine green (12/12 + 15/15); unblocked by v-pkg B.2-a |
 | R4 | Minor | VSLIO | `$$connect` timeout default doc (10) ≠ code (30) | Proposed |
 | R5 | Minor | VSLTASK/VSLFS | `when` doc imprecise; `$$kill` swallow-vs-raise asymmetry | Proposed |
 | R6 | Structural | tests/examples/tooling | triplicated assertions; 356-col example lines; 6:1 tooling ratio; no empty-body gate | **Partial — empty-body/fall-through gate DONE (`tools/check-fallthrough.py`)**; triplication + 356-col lines proposed |

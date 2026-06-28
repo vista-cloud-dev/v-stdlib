@@ -13,7 +13,7 @@ that needs to disambiguate sources, this is the lookup table.
 
 ## `VSLFS`
 
-- **`U-VSL-FS-DIERR`** — raised by: `set`
+- **`U-VSL-FS-DIERR`** — raised by: `set`, `list`
 
 ## `VSLIO`
 

@@ -4,7 +4,7 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA FileMan storage adapter (FileMan DBS record store)'
-labels: ['exists', 'get', 'kill', 'lastError', 'set']
+labels: ['exists', 'find', 'get', 'kill', 'lastError', 'list', 'set']
 errors: ['U-VSL-FS-DIERR']
 see_also: []
 doc_type: [REFERENCE]
@@ -24,9 +24,11 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | Label | Signature | Summary |
 |---|---|---|
 | `exists` | `$$exists^VSLFS(file, iens)` | Return 1 iff record (file,iens) exists (its .01 reads without a DIERR). |
-| `get` | `$$get^VSLFS(file, iens, field, default)` | Read (file,iens,field) via $$GET1^DIQ; return value, else `default`. |
+| `find` | `$$find^VSLFS(file, value, index)` | The IENS of the UNIQUE record whose `index` lookup equals `value`, else "". |
+| `get` | `$$get^VSLFS(file, iens, field, default, flags)` | Read (file,iens,field) via $$GET1^DIQ; return value, else `default`. |
 | `kill` | `$$kill^VSLFS(file, iens)` | Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1. |
 | `lastError` | `$$lastError^VSLFS()` | The last VSLFS error message (the composed FileMan DIERR detail). |
+| `list` | `$$list^VSLFS(file, out, index)` | List the IENS of every record (via LIST^DIC) into out("ien,"); return the count. |
 | `set` | `$$set^VSLFS(file, iens, field, value)` | File `value` into (file,iens,field); return the resolved IENS, else raise. |
 
 ### `$$exists^VSLFS(file, iens)`
@@ -47,7 +49,19 @@ set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VS
 set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"999999999,"),0,"exists: an absent record returns 0")
 ```
 
-### `$$get^VSLFS(file, iens, field, default)`
+### `$$find^VSLFS(file, value, index)`
+
+The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+
+**Parameters**
+
+- `file` _(numeric)_ — FileMan file number
+- `value` _(string)_ — the lookup value to match (exact)
+- `index` _(string)_ — the cross-reference to search (default "B")
+
+**Returns** _string_ — the IENS ("ien,") of the single match, else "" (absent or ambiguous)
+
+### `$$get^VSLFS(file, iens, field, default, flags)`
 
 Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 
@@ -57,8 +71,9 @@ Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 - `iens` _(string)_ — IENS of the record
 - `field` _(string)_ — field number
 - `default` _(string)_ — value returned when the field/record is unset
+- `flags` _(string)_ — $$GET1^DIQ flags: "" external (default), "I" internal
 
-**Returns** _string_ — the external field value, or `default`
+**Returns** _string_ — the field value (external, or internal if flags["I"]), or `default`
 
 **Example**
 
@@ -89,6 +104,22 @@ The last VSLFS error message (the composed FileMan DIERR detail).
 ```m
 new prior,r set prior=$get(^TMP($job,"vslfs","err")),^TMP($job,"vslfs","err")="set: FileMan DIERR" set r=$$lastError^VSLFS() set ^TMP($job,"vslfs","err")=prior do eq^STDASSERT(.pass,.fail,r,"set: FileMan DIERR","lastError: returns the composed FileMan DIERR detail")
 ```
+
+### `$$list^VSLFS(file, out, index)`
+
+List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
+
+**Parameters**
+
+- `file` _(numeric)_ — FileMan file number
+- `out` _(array)_ — (by ref) set out("ien,")="" for each record found
+- `index` _(string)_ — traversal cross-reference (default "B")
+
+**Returns** _numeric_ — the number of records listed
+
+**Raises**
+
+- `U-VSL-FS-DIERR` — a FileMan DIERR (detail in $$lastError)
 
 ### `$$set^VSLFS(file, iens, field, value)`
 

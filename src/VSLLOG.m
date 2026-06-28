@@ -17,15 +17,16 @@ VSLLOG	; v-stdlib — VistA FileMan audit sink (the dedicated VSL AUDIT file).
 	;   $$write^VSLLOG(event,detail,duz,host) — file one audit record -> resolved IENS
 	;   $$read^VSLLOG(iens,.rec)              — read a record's typed fields into rec(),
 	;                                            return the EVENT (.01), else ""
+	;   $$query^VSLLOG(.out,event,fromDt,toDt)— filter records by event + FileMan date
+	;                                            range into out("ien,")=event; return count
 	;   $$auditFile^VSLLOG()                  — the dedicated VSL AUDIT file number
 	;   $$lastError^VSLLOG()                  — last error detail, else ""
 	;
 	; The file number is a VA-reserved local/test number (#999001) — the documented
 	; R3 stopgap until v-pkg can ship a permanent-namespace file number (coverage
-	; analysis item B.2-b). $$query (date/event filters) is deferred to R3b, which
-	; lands once VSLFS gains finder verbs (the remediation plan's R-EXT-6); a query
-	; built today would have to walk the data global directly, which the VSLFS seam
-	; exists to forbid.
+	; analysis item B.2-b). $$query reads through the VSLFS finder ($$list, the
+	; remediation plan's R-EXT-6) and never walks the data global directly — the
+	; VSLFS seam owns all record access.
 	;
 	; *** ERROR CONTRACT — loud, never a silent lost record ***
 	; A FileMan write failure surfaces from VSLFS as ,U-VSL-FS-DIERR,; VSLLOG
@@ -103,6 +104,27 @@ read(iens,rec)	; Read the audit record's typed fields into rec(); return the EVE
 	set rec("host")=$$get^VSLFS(file,iens,"3","")
 	set rec("detail")=$$get^VSLFS(file,iens,"4","")
 	quit rec("event")
+	;
+query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count.
+	; doc: @param   out      array    (by ref) set out("ien,")=event for each matching record
+	; doc: @param   event    string   exact event (.01) to match; "" = any event
+	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
+	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
+	; doc: @returns          numeric  the number of matching records
+	; doc: @illustrative  filters real audit records in the dedicated VSL AUDIT file (#999001) via the VSLFS finder; needs records present, not a safe read-only one-liner; exercised on live VistA by VSLLOGTST tQueryFilters
+	new file,all,iens,cur,n,ev,ts,junk
+	set file=$$auditFile()
+	set junk=$$list^VSLFS(file,.all,"B")
+	set n=0,iens=$order(all(""))
+	for  quit:iens=""  do
+	. set cur=iens,iens=$order(all(iens))
+	. set ev=$$get^VSLFS(file,cur,".01","")
+	. quit:(event'="")&(ev'=event)
+	. set ts=$$get^VSLFS(file,cur,"1","","I")
+	. quit:(fromDt'="")&(ts<fromDt)
+	. quit:(toDt'="")&(ts>toDt)
+	. set out(cur)=ev,n=n+1
+	quit n
 	;
 lastError()	; The last VSLLOG error message (the composed FileMan detail).
 	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
