@@ -11,10 +11,18 @@ docs/
   README.md   # this index
   guides/     # how-to for users of VSL*
   modules/    # GENERATED per-module reference (Regime B — built, never hand-edited)
+  proposals/  # live, in-progress proposals (decision-seeking; draft→accepted→superseded)
   memory/     # auto-memory — durable facts only
-  proposals/  # this repo's design proposals (live/in-progress)
   archive/    # retired docs from this repo — git mv'd, never deleted
 ```
+
+`design/` (this repo's stable design notes & analyses *not* seeking a decision) is
+the other standard folder — none yet in v-stdlib, since today's docs are all live
+proposals. Live-work trackers sit at `docs/` root as `<effort>-tracker.md` (e.g.
+`vsl-coverage-enhancements-tracker.md`) and move to `archive/` when the effort
+lands. **Kickoff/orchestration prompts ride with their proposal** in a
+`proposals/<effort>/` subfolder and archive together with it as one unit — never a
+standing top-level `prompts/`.
 
 ## Key docs
 
