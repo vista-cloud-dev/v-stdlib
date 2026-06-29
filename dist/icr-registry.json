@@ -171,6 +171,16 @@
       "status": "Supported"
     },
     {
+      "call": "$$ASKSTOP^%ZTLOAD",
+      "custodian": "XU",
+      "icr": 10063,
+      "source": {
+        "anchor": "askstopztload-stop-taskman-task",
+        "doc_key": "XU/krn_8_0_dg_taskman_ug"
+      },
+      "status": "Supported"
+    },
+    {
       "call": "$$PSET^%ZTLOAD",
       "custodian": "XU",
       "icr": 10063,

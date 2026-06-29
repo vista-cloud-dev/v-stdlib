@@ -4,7 +4,7 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA TaskMan persistent-listener adapter (the process seam)'
-labels: ['lastError', 'persist', 'queue', 'running', 'schedule', 'stop']
+labels: ['askStop', 'lastError', 'persist', 'queue', 'running', 'schedule', 'stop']
 errors: ['U-VSL-TASK-ARG', 'U-VSL-TASK-QUEUE']
 see_also: []
 doc_type: [REFERENCE]
@@ -23,12 +23,37 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 
 | Label | Signature | Summary |
 |---|---|---|
+| `askStop` | `$$askStop^VSLTASK(ztsk)` | Request that queued/running task `ztsk` stop (cooperative-stop WRITE side). |
 | `lastError` | `$$lastError^VSLTASK()` | The last VSLTASK error message (the composed malformed-call / fault detail). |
 | `persist` | `$$persist^VSLTASK(ztsk)` | Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop. |
 | `queue` | `$$queue^VSLTASK(entry, desc, when)` | (private) headless ^%ZTLOAD queue (no device); return the task number, else 0. |
 | `running` | `$$running^VSLTASK()` | 1 iff the TaskMan scheduler is live (its ^%ZTSCH("RUN") heartbeat is fresh). |
 | `schedule` | `$$schedule^VSLTASK(entry, desc, when)` | Headless-queue a persistent listener at `entry`; return its task number. |
 | `stop` | `$$stop^VSLTASK()` | 1 iff a stop has been requested of the currently-running task (cooperative stop). |
+
+### `$$askStop^VSLTASK(ztsk)`
+
+Request that queued/running task `ztsk` stop (cooperative-stop WRITE side).
+
+**Parameters**
+
+- `ztsk` _(numeric)_ — the task number to ask to stop
+
+**Returns** _numeric_ — the ^%ZTLOAD ASKSTOP result for a KNOWN task: 0 = busy
+(task locked or TaskMan starting to run it); 1 = task missing / already finished;
+2 = asked to stop (STOP FLAG set; stops at the next $$stop check) or unscheduled.
+The value for an absent/never-scheduled task is engine-specific and not part of
+this contract.
+
+**Raises**
+
+- `U-VSL-TASK-ARG` — the call is malformed (no positive task number)
+
+**Example**
+
+```m
+do raises^STDASSERT(.pass,.fail,"set x=$$askStop^VSLTASK("""")","U-VSL-TASK-ARG","$$askStop with no task# raises U-VSL-TASK-ARG")
+```
 
 ### `$$lastError^VSLTASK()`
 

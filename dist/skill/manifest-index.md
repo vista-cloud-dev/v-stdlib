@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 35 public labels.
+v-stdlib unversioned; 6 modules; 36 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -75,6 +75,7 @@ _raises: `U-VSL-SEC-ARG`_
 
 VistA TaskMan persistent-listener adapter (the process seam).
 
+- `$$askStop^VSLTASK(ztsk)` — Request that queued/running task `ztsk` stop (cooperative-stop WRITE side).
 - `$$lastError^VSLTASK()` — The last VSLTASK error message (the composed malformed-call / fault detail).
 - `$$persist^VSLTASK(ztsk)` — Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 - `$$queue^VSLTASK(entry, desc, when)` — (private) headless ^%ZTLOAD queue (no device); return the task number, else 0.

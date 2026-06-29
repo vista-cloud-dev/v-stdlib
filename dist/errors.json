@@ -27,6 +27,7 @@
   },
   "U-VSL-TASK-ARG": {
     "labels": [
+      "askStop",
       "persist",
       "schedule"
     ],

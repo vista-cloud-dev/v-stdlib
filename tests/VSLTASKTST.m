@@ -35,6 +35,8 @@ VSLTASKTST	; v-stdlib — VSLTASK (TaskMan persistent-listener adapter) test sui
 	do tStopIsCleanOutsideTask(.pass,.fail)
 	do tPersistRejectsBadArg(.pass,.fail)
 	do tScheduleRejectsBadArg(.pass,.fail)
+	do tAskStopRejectsBadArg(.pass,.fail)
+	do tAskStopMissingTaskCallable(.pass,.fail)
 	do tSelfRestartIsWiredSoftSkip(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
@@ -63,6 +65,25 @@ tScheduleRejectsBadArg(pass,fail)	;@TEST "$$schedule with an empty entry raises 
 	do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")",",U-VSL-TASK-ARG,","$$schedule with no entry raises exactly ,U-VSL-TASK-ARG,")
 	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped schedule raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
+	quit
+	;
+tAskStopRejectsBadArg(pass,fail)	;@TEST "$$askStop on a missing task# raises a clean ,U-VSL-TASK-ARG, with detail in $$lastError"
+	do raises^STDASSERT(.pass,.fail,"set x=$$askStop^VSLTASK("""")",",U-VSL-TASK-ARG,","$$askStop with no task# raises exactly ,U-VSL-TASK-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped askStop raise (clean unwind)")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
+	quit
+	;
+tAskStopMissingTaskCallable(pass,fail)	;@TEST "$$askStop on a non-existent task is callable on a live engine (returns without raising, no side effect)"
+	; The WRITE side of the cooperative stop; asking a REAL running task is a live side
+	; effect (sets STOP FLAG #59.1) — soft-skipped (same posture as $$persist/$$schedule).
+	; A bogus/non-existent task number changes nothing, so this safely confirms the binding
+	; resolves $$ASKSTOP^%ZTLOAD live on BOTH engines. The exact return for an ABSENT task is
+	; engine-specific and undocumented (the corpus's nominal 0/1/2 describe a KNOWN task), so
+	; assert only that the call returned (reaching here = no raise), not a specific value.
+	new r
+	set DUZ=1,DUZ(0)="@",U="^"
+	set r=$$askStop^VSLTASK(999999999)
+	do true^STDASSERT(.pass,.fail,$data(r),"$$askStop is callable live for a non-existent task — returned without raising (no side effect)")
 	quit
 	;
 tSelfRestartIsWiredSoftSkip(pass,fail)	;@TEST "self-restart binding is wired + documented; the live restart observation is integration-gated (SOFT-SKIP)"

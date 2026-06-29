@@ -13,6 +13,7 @@ VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process se
 	; Public API:
 	;   $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)
 	;   $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)
+	;   $$askStop^VSLTASK(ztsk)      — ask task `ztsk` to stop (=$$ASKSTOP^%ZTLOAD; 0/1/2)
 	;   $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)
 	;   $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#
 	;   $$lastError^VSLTASK()         — last error detail, else ""
@@ -48,6 +49,22 @@ stop()	; 1 iff a stop has been requested of the currently-running task (cooperat
 	; doc: @example         do true^STDASSERT(.pass,.fail,$$stop^VSLTASK()=0,"$$stop=0 when not running as a TaskMan task (the cooperative-stop check)")
 	; doc: @icr 10063 @call $$S^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#sztload-check-for-task-stop-request
 	quit ''$$S^%ZTLOAD
+	;
+askStop(ztsk)	; Request that queued/running task `ztsk` stop (cooperative-stop WRITE side).
+	; doc: @param   ztsk     numeric  the task number to ask to stop
+	; doc: @returns          numeric  the ^%ZTLOAD ASKSTOP result for a KNOWN task: 0 = busy
+	; doc:    (task locked or TaskMan starting to run it); 1 = task missing / already finished;
+	; doc:    2 = asked to stop (STOP FLAG set; stops at the next $$stop check) or unscheduled.
+	; doc:    The value for an absent/never-scheduled task is engine-specific and not part of
+	; doc:    this contract.
+	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
+	; doc: @illustrative   the success path asks a REAL running task to stop — it sets the STOP
+	; doc:    FLAG (#59.1) / unschedules, a live side effect not cleanly undone; only the
+	; doc:    malformed-call contract and the task-missing (code 1) probe are safely shown
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$askStop^VSLTASK("""")","U-VSL-TASK-ARG","$$askStop with no task# raises U-VSL-TASK-ARG")
+	; doc: @icr 10063 @call $$ASKSTOP^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#askstopztload-stop-taskman-task
+	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","askStop: a positive task number is required") quit ""
+	quit $$ASKSTOP^%ZTLOAD(ztsk)
 	;
 persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 	; doc: @param   ztsk     numeric  the task number (from $$schedule / ^%ZTLOAD)
