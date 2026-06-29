@@ -87,6 +87,42 @@ loops to the `for  quit  do` house idiom to clear M-MOD-009 4-commands/line) +
 gold corpus — DI/fm22_2dg anchors verified)** + check-namespaces (3 VSL routines)
 + **check-msl-pin (v0.9.0)** + check-engine-access. No KIDS/VSLBLD (that's M5).
 
+## F1 internal-filing hazard — `$$set` SILENTLY corrupts on `^` / over-width (2026-06-29 adversarial)
+`$$set` files INTERNAL (`UPDATE^DIE`, no `"E"` flag → no input transform), so it
+does **NOT** validate the `^` piece delimiter or the field width, and the corruption
+is **SILENT (no DIERR)** — confirmed live on vehu (YDB) + foia (IRIS):
+- A `^`-bearing value files with no error; `$$get` reads back only the **first
+  `^`-piece** (silent truncation / data loss).
+- **Severe**: when the target field shares its storage node with sibling fields, the
+  extra `^`-pieces silently **OVERWRITE the siblings** (cross-field corruption). Ground
+  truth on the canonical #999001 VSL AUDIT: `.01` is at node `0;1`, TIMESTAMP at `0;2`
+  (SAME node), so `$$set(.01,"A^B^C")` lands `"B"` in TIMESTAMP and `"C"` in USER — and
+  a later external/`GETS` read of the now-non-date TIMESTAMP **faults**. (This is what a
+  `^`-bearing VSLLOG `event` does before its own field-sets overwrite the pieces back.)
+- An over-width value files **oversize** (the 30-char DD width is not enforced).
+- **CORRECTION**: do NOT believe "FileMan raises loud when `^` would overflow a sibling"
+  — an earlier first-pass note claimed that; the clean canonical file proves it is
+  silent. (The transient "raise" seen earlier was an artifact of an already-damaged file.)
+- Pinned: `tests/VSLFSTST.m` tCaretSilentlyTruncates / tOverWidthSilentlyStored /
+  tCaretSilentlyCorruptsSibling + the `$$set` doc + module-header HAZARD notes.
+- **Why:** callers must never pass `^`-bearing or over-width values to a free-text DBS
+  field through `$$set`; there is no guard and the failure is silent.
+
+## v-pkg KIDS install of #999001 on vehu — the env incantation (operational, 2026-06-29)
+`v pkg install … --engine ydb --transport docker` against **vehu** fails with
+`stage ZVPKGRD: driver loaded no routine` UNLESS the m-ydb docker driver is told the
+container AND a writable routine path via env:
+`M_YDB_CONTAINER=vehu M_YDB_ROUTINES='/home/vehu/r/r2.02_x86_64*(/home/vehu/r) /home/vehu/p/r2.02_x86_64*(/home/vehu/p)' v pkg install --engine ydb --transport docker --allow-overwrite dist/kids/VSL.kids`.
+(The m-cli `m test --docker vehu` path stages routines on its own; the SDK-client path
+v-pkg uses does not yet — "Load staging lands in M2/M3", m-ydb session.go.) **Caution:**
+heavy adversarial `$$set`/`$$kill` on #999001 can leave/delete the file — a destructive
+run **wiped `^DD/^DIZ/^DIC(999001)` entirely**; restore with the install above, then the
+full vehu suite is green again (130/130). The #999001-dependent suite tests are
+**unguarded** (abort 0/0 if the DD is absent), so #999001 must be RESIDENT to run
+VSLFSTST/VSLLOGTST. Read live globals for diagnosis via the sanctioned `m vista exec
+--engine ydb --transport docker` (needs `M_YDB_CONTAINER=vehu`; it DOES capture device
+output, unlike a bare default-transport exec).
+
 ## Owed / next
 - **M2 tail** (parallel, unblocked): STDNET IRIS leg + tier-3 TLS.
 - **DD-install enabler + re-test — DONE (M3.T1, 2026-06-17).** v-pkg learned the

@@ -35,13 +35,14 @@ VSLFS ; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
  ; passes an explicit MSG_ROOT ("ERR") so errors land in this adapter's own
  ; array, never the shared ^TMP("DIERR",$J).
  ;
- ; *** INTERNAL FILING HAZARD — loud is not guaranteed for ^ / over-width ***
+ ; *** INTERNAL FILING HAZARD — silent corruption for ^ / over-width ***
  ; $$set files INTERNAL (no input transform), so it does NOT validate the ^ piece
- ; delimiter or the field width, and the failure is field/DD-dependent and often
- ; SILENT: a ^ in a value is truncated on read (last-piece field) or raised loud
- ; (would overflow a sibling), and an over-width value stores oversize with no error.
- ; Callers must not pass ^-bearing or over-width values to free-text fields. See the
- ; $$set doc HAZARD note + tests/VSLFSTST.m (tCaretSilentlyTruncates et al.).
+ ; delimiter or the field width, and the corruption is SILENT (no DIERR): a ^ in a
+ ; value is truncated on read, and — worse — when the field shares its storage node
+ ; with sibling fields (e.g. #999001 .01 at 0;1, TIMESTAMP at 0;2) the extra ^-pieces
+ ; silently OVERWRITE those siblings (cross-field corruption). An over-width value
+ ; stores oversize. Callers must not pass ^-bearing or over-width values to free-text
+ ; fields. See the $$set doc HAZARD note + tests/VSLFSTST.m (tCaretSilentlyTruncates et al.).
  ;
  ; ICR note: the FileMan DBS API is the public DBS programmer API (FileMan
  ; Developer's Guide, custodian DI). Real published DBIA numbers DO exist (the
@@ -70,14 +71,16 @@ set(file,iens,field,value) ; File `value` into (file,iens,field); return the res
  ; doc: Asymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to
  ; doc: round-trip a transformed field, read it back with $$get(...,"I").
  ; doc: HAZARD — internal filing runs NO input validation, so it does NOT guard the ^
- ; doc: piece delimiter or the field width, and the failure is field/DD-dependent and
- ; doc: often SILENT: a value containing ^ files with no error, but $$get reads back only
- ; doc: the first ^-piece (silent truncation) when the field is the LAST piece of its
- ; doc: storage node; when the ^ would overflow into a SIBLING field's piece, FileMan
- ; doc: instead rejects it with a loud U-VSL-FS-DIERR. An over-width value files oversize
- ; doc: (the DD width is not enforced). Do NOT pass ^-bearing or over-width values to a
- ; doc: free-text field. (Regression: tests/VSLFSTST.m tCaretSilentlyTruncates /
- ; doc: tOverWidthSilentlyStored / tCaretOverflowRaises; confirmed YDB + IRIS.)
+ ; doc: piece delimiter or the field width, and the corruption is SILENT (no DIERR): a
+ ; doc: value containing ^ files with no error, but $$get reads back only the first
+ ; doc: ^-piece (silent truncation). Worse, when the field shares its storage node with
+ ; doc: sibling fields (e.g. #999001 .01 at 0;1, with TIMESTAMP at 0;2), the extra
+ ; doc: ^-pieces silently OVERWRITE those siblings — cross-field corruption, still no
+ ; doc: error (filing .01="A^B^C" lands "B" in TIMESTAMP and "C" in USER). An over-width
+ ; doc: value files oversize (the DD width is not enforced). Do NOT pass ^-bearing or
+ ; doc: over-width values to a free-text field. (Regression: tests/VSLFSTST.m
+ ; doc: tCaretSilentlyTruncates / tOverWidthSilentlyStored / tCaretSilentlyCorruptsSibling;
+ ; doc: confirmed YDB + IRIS.)
  ; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
  ; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
  new FDA,IEN,ERR

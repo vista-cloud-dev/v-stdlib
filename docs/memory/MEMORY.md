@@ -7,7 +7,7 @@ tracker, or git). Active R-item status lives in the tracker
 
 ## Modules (VistA-binding adapters — the durable canon)
 - [m2-vslio](m2-vslio.md) — VSLIO binds STDNET → Kernel device handler; outbound TCP via `CALL^%ZISTCP` (**ICR #2118**, argument-passed not input-var); no Supported listen/accept.
-- [m3-vslfs](m3-vslfs.md) — VSLFS binds STDKV → FileMan DBS (`UPDATE^DIE`/`$$GET1^DIQ`/`FILE^DIE` with FDA `.01="@"`; **no `DELETE^DIE` exists**); DIERR→`,U-VSL-FS-DIERR,`; ICR notional (DBS marker).
+- [m3-vslfs](m3-vslfs.md) — VSLFS binds STDKV → FileMan DBS (`UPDATE^DIE`/`$$GET1^DIQ`/`FILE^DIE` with FDA `.01="@"`; **no `DELETE^DIE` exists**); DIERR→`,U-VSL-FS-DIERR,`; ICR notional (DBS marker). **F1 hazard: `$$set` SILENTLY truncates / cross-field-corrupts a `^`-bearing value (no DIERR) and stores over-width oversize** (adversarial 2026-06-29) + the vehu `v pkg install` env incantation (`M_YDB_CONTAINER`+`M_YDB_ROUTINES`) & #999001 restore.
 - [m4-vslsec-vsllog](m4-vslsec-vsllog.md) — VSLSEC (authz over `^XUSEC`, no portable Kernel hash → crypto stays in STDCRYPTO) + VSLLOG (first v→v composition, reuses VSLFS); the zgoto-`$ETRAP` harness-abort gotcha → use flag-based `$ETRAP`.
 - [m5-vsltask-vslbld](m5-vsltask-vslbld.md) — VSLTASK (`^%ZTLOAD` **#10063**) + VSLENV + VSLBLD (KIDS base build); TaskMan live on both engines; destructive self-restart soft-skipped (runaway-unsafe).
 - [m6.5-vslsec-secid-binding](m6.5-vslsec-secid-binding.md) — VSLSEC `$$bySecid` (SecID → #200 IEN via `EN1^XUPSQRY`, **ICR 4575** CS, by-ref result array); the VistA half of validate-token-not-PIV auth.

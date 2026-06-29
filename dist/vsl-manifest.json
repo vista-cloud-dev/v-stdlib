@@ -114,7 +114,7 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
+          "description": "HAZARD — XPAR treats \"@\" as the FileMan delete sentinel, so $$set(key,\"@\")\nSILENTLY clears the SYS instance (equivalent to $$delete) instead of storing a\nliteral \"@\", and does NOT raise. A literal \"@\" payload cannot be round-tripped\nthrough $$set. (Regression: tests/VSLCFGTST.m tSetAtSignSilentlyClears.)\n@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
             "line": 63
@@ -152,7 +152,7 @@
           "description": "Clears the SYS instance via DEL^XPAR (which files the FileMan \"@\" delete sentinel).\nA deleted parameter then reads exactly like a never-set one ($$get returns the\ndefault). NOTE: DEL^XPAR is NOT idempotent — deleting a non-existent SYS instance\nraises U-VSL-CFG-DEL; guard with $$get if you need an idempotent clear.\n@icr 2263 @call DEL^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#delxpar-delete-parameter-value",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 79
+            "line": 83
           },
           "illustrative": "the success path clears a real SYS parameter instance — a live config mutation; exercised on live VistA by tests/VSLCFGTST.m tDeleteClears"
         },
@@ -176,7 +176,7 @@
           "description": "",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 98
+            "line": 102
           },
           "illustrative": "$$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check"
         }
@@ -191,7 +191,7 @@
     },
     "VSLFS": {
       "synopsis": "v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays\n(FDA / IEN / ERR, written by the called DBS routine by-reference) as\nlocals-before-def; they are the documented GETS/UPDATE/FILE convention.\nSame suppression as VSLIO/STDNET.\n\nBinds the MSL storage seam (STDKV, S1) to VistA's FileMan Database Server\n(DBS) API: a record store addressed by (file, iens, field). It exposes the\nsame four-verb signature as STDKV — $$set/$$get/$$exists/$$kill — backed by\nFileMan DBS calls, never direct global access (architecture §3.2). The\nadapter contains ONLY the VistA binding; any non-FileMan logic stays in the\nMSL seam, called up (m/v waterline §9 no-duplication).\n\nPublic API (the handle is a FileMan IENS; values are field values):\n  $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no\n                                        transform); \"+1,\" adds -> resolved IENS\n  $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default\n                                        is the EXTERNAL value, flags \"I\" the internal\n  $$gets^VSLFS(file,iens,fields,.out,flags)— read many fields in one call (GETS^DIQ)\n                                        -> out(field)=value; returns the count\n  $$exists^VSLFS(file,iens)           — 1 iff the record exists\n  $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01=\"@\")\n  $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)\n  $$list^VSLFS(file,.out,index)       — list every record's IENS into out (LIST^DIC)\n  $$lastError^VSLFS()                 — last FileMan DIERR detail, else \"\"\n\n*** ERROR CONTRACT — loud, never a silent wrong value ***\nA FileMan DIERR on a write maps to a clean ,U-VSL-FS-DIERR, $ECODE, with the\nDIERR text composed into ^TMP($job,\"vslfs\",\"err\") for $$lastError. Reads of\nan absent record/field are NOT errors — $$get returns the default and\n$$exists returns 0 (the STDKV \"absent -> default\" semantics). Every DBS call\npasses an explicit MSG_ROOT (\"ERR\") so errors land in this adapter's own\narray, never the shared ^TMP(\"DIERR\",$J).\n\nICR note: the FileMan DBS API is the public DBS programmer API (FileMan\nDeveloper's Guide, custodian DI). Real published DBIA numbers DO exist (the\nROR Technical Manual DBIA table: LIST^DIC / FIND1^DIC = 2051, UPDATE^DIE /\nFILE^DIE = 2053, $$GET1^DIQ / GETS^DIQ = 2056) — but our @source doc\n(DI/fm22_2dg) carries the API contract, not the per-call number, so each call\nis tagged `@icr DBS` (a marker meaning \"no number in the cited doc,\" NOT \"no\nreal ICR\"), with a real @status/@custodian/@source. See docs/memory\nnotional-dbia-not-a-blocker + plan §5.4.",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays\n(FDA / IEN / ERR, written by the called DBS routine by-reference) as\nlocals-before-def; they are the documented GETS/UPDATE/FILE convention.\nSame suppression as VSLIO/STDNET.\n\nBinds the MSL storage seam (STDKV, S1) to VistA's FileMan Database Server\n(DBS) API: a record store addressed by (file, iens, field). It exposes the\nsame four-verb signature as STDKV — $$set/$$get/$$exists/$$kill — backed by\nFileMan DBS calls, never direct global access (architecture §3.2). The\nadapter contains ONLY the VistA binding; any non-FileMan logic stays in the\nMSL seam, called up (m/v waterline §9 no-duplication).\n\nPublic API (the handle is a FileMan IENS; values are field values):\n  $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no\n                                        transform); \"+1,\" adds -> resolved IENS\n  $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default\n                                        is the EXTERNAL value, flags \"I\" the internal\n  $$gets^VSLFS(file,iens,fields,.out,flags)— read many fields in one call (GETS^DIQ)\n                                        -> out(field)=value; returns the count\n  $$exists^VSLFS(file,iens)           — 1 iff the record exists\n  $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01=\"@\")\n  $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)\n  $$list^VSLFS(file,.out,index)       — list every record's IENS into out (LIST^DIC)\n  $$lastError^VSLFS()                 — last FileMan DIERR detail, else \"\"\n\n*** ERROR CONTRACT — loud, never a silent wrong value ***\nA FileMan DIERR on a write maps to a clean ,U-VSL-FS-DIERR, $ECODE, with the\nDIERR text composed into ^TMP($job,\"vslfs\",\"err\") for $$lastError. Reads of\nan absent record/field are NOT errors — $$get returns the default and\n$$exists returns 0 (the STDKV \"absent -> default\" semantics). Every DBS call\npasses an explicit MSG_ROOT (\"ERR\") so errors land in this adapter's own\narray, never the shared ^TMP(\"DIERR\",$J).\n\n*** INTERNAL FILING HAZARD — silent corruption for ^ / over-width ***\n$$set files INTERNAL (no input transform), so it does NOT validate the ^ piece\ndelimiter or the field width, and the corruption is SILENT (no DIERR): a ^ in a\nvalue is truncated on read, and — worse — when the field shares its storage node\nwith sibling fields (e.g. #999001 .01 at 0;1, TIMESTAMP at 0;2) the extra ^-pieces\nsilently OVERWRITE those siblings (cross-field corruption). An over-width value\nstores oversize. Callers must not pass ^-bearing or over-width values to free-text\nfields. See the $$set doc HAZARD note + tests/VSLFSTST.m (tCaretSilentlyTruncates et al.).\n\nICR note: the FileMan DBS API is the public DBS programmer API (FileMan\nDeveloper's Guide, custodian DI). Real published DBIA numbers DO exist (the\nROR Technical Manual DBIA table: LIST^DIC / FIND1^DIC = 2051, UPDATE^DIE /\nFILE^DIE = 2053, $$GET1^DIQ / GETS^DIQ = 2056) — but our @source doc\n(DI/fm22_2dg) carries the API contract, not the per-call number, so each call\nis tagged `@icr DBS` (a marker meaning \"no number in the cited doc,\" NOT \"no\nreal ICR\"), with a real @status/@custodian/@source. See docs/memory\nnotional-dbia-not-a-blocker + plan §5.4.",
       "errors": [
         "U-VSL-FS-DIERR"
       ],
@@ -239,10 +239,10 @@
           "see_also": [],
           "deprecated": "",
           "seam": null,
-          "description": "UPDATE^DIE is called with NO \"E\" flag, so `value` is filed as the FileMan\nINTERNAL value and NO input transform runs. For transformed fields (DATE,\nPOINTER, SET OF CODES) pass the internal form (e.g. an $$NOW^XLFDT date),\nnot the external string; .01 free text is transform-invariant either way.\nAsymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to\nround-trip a transformed field, read it back with $$get(...,\"I\").\n@icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater",
+          "description": "UPDATE^DIE is called with NO \"E\" flag, so `value` is filed as the FileMan\nINTERNAL value and NO input transform runs. For transformed fields (DATE,\nPOINTER, SET OF CODES) pass the internal form (e.g. an $$NOW^XLFDT date),\nnot the external string; .01 free text is transform-invariant either way.\nAsymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to\nround-trip a transformed field, read it back with $$get(...,\"I\").\nHAZARD — internal filing runs NO input validation, so it does NOT guard the ^\npiece delimiter or the field width, and the corruption is SILENT (no DIERR): a\nvalue containing ^ files with no error, but $$get reads back only the first\n^-piece (silent truncation). Worse, when the field shares its storage node with\nsibling fields (e.g. #999001 .01 at 0;1, with TIMESTAMP at 0;2), the extra\n^-pieces silently OVERWRITE those siblings — cross-field corruption, still no\nerror (filing .01=\"A^B^C\" lands \"B\" in TIMESTAMP and \"C\" in USER). An over-width\nvalue files oversize (the DD width is not enforced). Do NOT pass ^-bearing or\nover-width values to a free-text field. (Regression: tests/VSLFSTST.m\ntCaretSilentlyTruncates / tOverWidthSilentlyStored / tCaretSilentlyCorruptsSibling;\nconfirmed YDB + IRIS.)\n@icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 51
+            "line": 60
           },
           "illustrative": "a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner"
         },
@@ -295,7 +295,7 @@
           "description": "Default (\"\" flags) reads the EXTERNAL value; \"I\" reads the INTERNAL value.\nSince $$set files INTERNAL, read a transformed field back with \"I\" to get\nexactly what was filed (the external default applies the output transform).\n@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 72
+            "line": 92
           }
         },
         "gets": {
@@ -349,7 +349,7 @@
           "description": "One round-trip for a whole record vs N $$get calls. Reads SCALAR top-level fields;\nword-processing and sub-multiple fields are out of scope (scalar flatten only).\n@icr 2056 @call GETS^DIQ @status Supported @custodian DI @source DI/fm22_2dg#getsdiq-data-retriever-multiple-fields",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 90
+            "line": 110
           },
           "illustrative": "reads real FileMan records; needs a throwaway test DD with records — exercised on live VistA by tests/VSLFSTST.m tGetsMultiField"
         },
@@ -387,7 +387,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 113
+            "line": 133
           }
         },
         "kill": {
@@ -421,7 +421,7 @@
           "description": "This swallow-vs-raise asymmetry with $$set is deliberate (a delete is\nidempotent). A caller that needs delete-or-fail semantics must check\n$$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 125
+            "line": 145
           },
           "illustrative": "deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner"
         },
@@ -461,7 +461,7 @@
           "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 140
+            "line": 160
           },
           "illustrative": "resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName"
         },
@@ -506,7 +506,7 @@
           "description": "@icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 151
+            "line": 171
           },
           "illustrative": "lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords"
         },
@@ -530,7 +530,7 @@
           "description": "",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 172
+            "line": 192
           },
           "illustrative": "$$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check"
         }

@@ -29,7 +29,7 @@ VSLFSTST ; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
  do tInternalFilingRoundtrip(.pass,.fail)
  do tCaretSilentlyTruncates(.pass,.fail)
  do tOverWidthSilentlyStored(.pass,.fail)
- do tCaretOverflowRaises(.pass,.fail)
+ do tCaretSilentlyCorruptsSibling(.pass,.fail)
  ;
  do report^STDASSERT(pass,fail)
  quit
@@ -176,8 +176,8 @@ tCaretSilentlyTruncates(pass,fail) ;@TEST "ADVERSARIAL (F1): a ^-bearing value f
  ; #999000 .01 (the only piece of its node) FileMan stores "A^B^C" with no DIERR, but
  ; $$GET1^DIQ reads back only the first ^-piece ("A"). Confirmed on YDB+IRIS. The
  ; hazard: callers must not pass ^-bearing values to internal filing (see VSLFS
- ; header "INTERNAL FILING HAZARDS"). Contrast tCaretOverflowRaises (loud when ^
- ; would overflow a sibling field).
+ ; header "INTERNAL FILING HAZARDS"). See tCaretSilentlyCorruptsSibling for the
+ ; severe form (a ^ silently overwriting an adjacent field that shares the node).
  new file,iens,got,raised,$etrap
  do setup(.file)
  set raised=0,$etrap="set raised=1,$ecode="""" quit"
@@ -206,16 +206,25 @@ tOverWidthSilentlyStored(pass,fail) ;@TEST "ADVERSARIAL (F1): a value wider than
  do teardown(file,iens)
  quit
  ;
-tCaretOverflowRaises(pass,fail) ;@TEST "ADVERSARIAL (F1 contrast): a ^-bearing value RAISES U-VSL-FS-DIERR when the ^ would overflow into a sibling field's node-piece (FileMan guards cross-field corruption)"
- ; In #999001 (VSL AUDIT; .01..DETAIL share node 0 pieces) a ^ in .01 would clobber
- ; TIMESTAMP/USER, so FileMan rejects it loudly. This is why the SAME ^ value is
- ; silent on #999000 but loud here — the safety is field/DD-dependent. Soft-skips if
- ; the VSL AUDIT DD (#999001) is not resident.
- new file
+tCaretSilentlyCorruptsSibling(pass,fail) ;@TEST "ADVERSARIAL (F1, severe): a ^-bearing .01 silently OVERWRITES sibling fields sharing the same storage node — cross-field corruption, NO raise"
+ ; In #999001 (VSL AUDIT) the .01 is stored at node 0;1 and TIMESTAMP at 0;2 — SAME
+ ; node. Internal filing of "A^B^C" into .01 sets node 0 = "A^B^C", so "B" lands in the
+ ; TIMESTAMP slot and "C" in USER, with NO DIERR. $$get(.01) truncates to "A"; the
+ ; siblings read back the injected ^-pieces. This is the severe form of the F1 hazard:
+ ; one field's ^ silently corrupts adjacent fields. Confirmed on the canonical VSL AUDIT
+ ; build (vehu). Soft-skips if the VSL AUDIT DD (#999001) is not resident.
+ new file,iens,raised,ts,$etrap
  do setup(.file)
- if '$data(^DD(999001,0)) do true^STDASSERT(.pass,.fail,1,"VSL AUDIT (#999001) DD not resident here - ^-overflow raise verified on vehu") quit
- do raises^STDASSERT(.pass,.fail,"set x=$$set^VSLFS(999001,""+1,"","".01"",""A^B^C"")",",U-VSL-FS-DIERR,","a ^ that would overflow a sibling field raises exactly ,U-VSL-FS-DIERR,")
- do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped raise (clean unwind)")
+ if '$data(^DD(999001,0)) do true^STDASSERT(.pass,.fail,1,"VSL AUDIT (#999001) DD not resident here - sibling corruption verified on vehu") quit
+ set raised=0,$etrap="set raised=1,$ecode="""" quit"
+ set iens=$$set^VSLFS(999001,"+1,",".01","A^B^C")
+ set $etrap=""
+ do false^STDASSERT(.pass,.fail,raised,"a ^-bearing .01 files into a shared node with NO raise (silent — no DIERR guard)")
+ quit:iens=""
+ do eq^STDASSERT(.pass,.fail,$$get^VSLFS(999001,iens,".01","MISS"),"A",".01 reads back truncated to its first ^-piece (A)")
+ set ts=$$get^VSLFS(999001,iens,"1","","I")
+ do eq^STDASSERT(.pass,.fail,ts,"B","the sibling TIMESTAMP field (node 0;2) is silently corrupted to the injected ^-piece (B) — cross-field corruption")
+ do teardown(999001,iens)
  quit
  ;
  ; ---------- fixtures ----------
