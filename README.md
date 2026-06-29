@@ -17,13 +17,13 @@ below.
 FileMan storage (`VSLFS`), file I/O (`VSLIO`), audit-sink logging (`VSLLOG`),
 and TaskMan (`VSLTASK`).
 
-> **The prior RPC + HL7 → S3 traffic tap is quarantined.** The earlier tap
+> **The prior RPC + HL7 → S3 traffic tap was removed.** The earlier tap
 > subsystem (`VSLTAP` / `VSLRPCTAP` / `VSLRPCWRAP` / `VSLS3` / `VSLHL7TAP` /
 > `VSLTAPFC` / `VSLTAPHL`) was built against the now-retired `CALLP^XWBBRK`
-> `{XWB}` callback seam. It has been moved to [`quarantine/`](quarantine/) and
-> will be **replaced by the greenfield `v-rpc-tap` effort**, specified fresh
-> against the live `CALLP^XWBPRS` path (`docs` repo:
-> `proposals/v-rpc-tap-scalable.md`). Do not build on the quarantined code.
+> `{XWB}` callback seam and has been **deleted from the tree** (it remains in git
+> history). It will be **replaced by the greenfield `v-rpc-tap` effort**, specified
+> fresh against the live `CALLP^XWBPRS` path (`docs` repo:
+> `proposals/v-rpc-tap-scalable.md`). Do not build on the old code.
 
 - **New here?** [`docs/guides/quick-start.md`](docs/guides/quick-start.md) (5 min).
 - **Per-module API:** [`docs/modules/index.md`](docs/modules/index.md) (generated from source).
@@ -34,7 +34,6 @@ and TaskMan (`VSLTASK`).
 | Path | Contents |
 |---|---|
 | `src/` | `VSL*` M routines (6 modules) |
-| `quarantine/` | the retired RPC/HL7→S3 tap subsystem, pending greenfield replacement |
 | `examples/` | runnable demos (e.g. `vslcfg-demo.m`) |
 | `tests/` | hand-written `VSL*TST.m` suites (`^STDASSERT`) |
 | `dist/repo.meta.json` | the committed meta artifact — carries `"layer": "v"` |

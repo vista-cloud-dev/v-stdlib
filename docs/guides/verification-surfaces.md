@@ -44,13 +44,6 @@ driver stack — never a bare engine — so the two surfaces deliberately use
 - **Demos:** only `examples/vslcfg-demo.m` ships today — an interactive
   read-modify-restore walkthrough against a real SYS-level parameter.
 
-## Not a surface: `docs/quarantine/`
-
-`docs/quarantine/tests/` holds `*TST.m` suites for **future `VSL*` modules not
-yet in `src/`** (HL7 tap, RPC wrap, S3, …). They are parked, not deployed, and do
-not run in `make test`. They are not duplication of the active suites — they are
-the TDD-red head start for modules that haven't graduated.
-
 ## Decision rule
 
 ```

@@ -13,10 +13,9 @@ doc_type: [GUIDE]
 FileMan / XPAR / Broker to the engine-neutral [`m-stdlib`](https://github.com/vista-cloud-dev/m-stdlib)
 (`STD*`) base, one-way `v → m`.
 
-> The prior RPC + HL7 → S3 traffic tap has been **quarantined** (see
-> [`../../quarantine/`](../../quarantine/)) pending its greenfield rewrite as
-> `v-rpc-tap` against the live `CALLP^XWBPRS` path. This guide covers the
-> current six-module library.
+> The prior RPC + HL7 → S3 traffic tap has been **removed** (it remains in git
+> history) pending its greenfield rewrite as `v-rpc-tap` against the live
+> `CALLP^XWBPRS` path. This guide covers the current six-module library.
 
 ## 1. Two tiers — what needs VistA, what doesn't
 
@@ -62,10 +61,10 @@ The library ships as the **VSL KIDS build** (`dist/kids/VSL.kids`), installed
 and backed-out **strictly via v-pkg** (`v-pkg install`/`uninstall`,
 snapshot/restore class-aware) — no bespoke installer.
 
-> The prior RPC/HL7→S3 tap (its `tap-architecture.md` / `traffic-tap-dibrg.md`
-> runbooks and engine code) now lives under [`../../quarantine/`](../../quarantine/).
-> Its replacement is the greenfield `v-rpc-tap` (a separate `VSL RPC TAP`
-> package; see the `docs` repo `proposals/v-rpc-tap-scalable.md`).
+> The prior RPC/HL7→S3 tap (its runbooks and engine code) has been removed from
+> the tree (it remains in git history). Its replacement is the greenfield
+> `v-rpc-tap` (a separate `VSL RPC TAP` package; see the `docs` repo
+> `proposals/v-rpc-tap-scalable.md`).
 
 ## 5. Where next
 

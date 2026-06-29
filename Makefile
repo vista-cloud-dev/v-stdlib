@@ -30,7 +30,7 @@ ENGINE_FLAGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(DOCKER),--docker $(DOC
 # CI gate (`make ci`). The VistA-dependent suites (VSLCFG/VSLFS/VSLIO/
 # VSLLOG/VSLTASK — they need #-files + Kernel APIs and report 0/0 on a bare
 # engine) are NOT here; run them via `make test` on a VistA-equipped engine.
-# NOTE: the prior RPC/HL7-tap + S3 suites were quarantined (see quarantine/) —
+# NOTE: the prior RPC/HL7-tap + S3 suites were removed (kept in git history) —
 # they will be replaced by the greenfield v-rpc-tap effort and are no longer
 # part of the active library or its gates.
 BARE_TESTS := tests/VSLSMOKETST.m tests/VSLSECTST.m
@@ -84,8 +84,8 @@ test-bare:
 	$(M) test $(ENGINE_FLAGS) --routines $(SRC) --routines $(MSTDLIB)/src $(BARE_TESTS)
 
 # NOTE: the prior S3 round-trip targets (`test-s3` / `test-s3-matrix`, harness
-# VSLS3E2ETST + scripts/s3-testbed.sh) were quarantined with the rest of the
-# prior tap subsystem (see quarantine/). The greenfield v-rpc-tap effort egresses
+# VSLS3E2ETST + scripts/s3-testbed.sh) were removed with the rest of the
+# prior tap subsystem (kept in git history). The greenfield v-rpc-tap effort egresses
 # host-side and will bring its own validation.
 
 # Bare-tier line coverage. Measures the bare-runnable routines ($(BARE_SRC)) while

@@ -29,8 +29,8 @@ jobs:
   # engine. Self-contained: the reusable m-ci.yml can't host a sibling-MSL
   # checkout + engine, so this job provisions them (mirroring m-ci.yml's build-`m`
   # / start-engine steps).
-  # NOTE: the prior S3 round-trip (VSLS3E2ETST + MinIO testbed) was quarantined
-  # with the rest of the prior tap subsystem (see quarantine/).
+  # NOTE: the prior S3 round-trip (VSLS3E2ETST + MinIO testbed) was removed
+  # with the rest of the prior tap subsystem (kept in git history).
   engine-ydb:
     runs-on: ubuntu-latest
     env:

@@ -14,9 +14,7 @@ than left silently untested.
 This is one of three verification surfaces — see
 [`docs/guides/verification-surfaces.md`](../docs/guides/verification-surfaces.md).
 
-- **Run:** `make test` · `make coverage`. All engine access is through the driver
-  stack only (m/v waterline) — never raw `docker exec`.
+- **Run:** `make test` · `make coverage`. All engine access goes through the driver
+  stack only (m/v waterline) — never a hand-rolled engine call into a container.
 - **Add a test:** write the failing `VSL*TST.m` case first, then implement in
   `src/VSL*.m` until green.
-- **Note:** `docs/quarantine/tests/` holds parked suites for future modules not
-  yet in `src/` — not run by `make test`.
