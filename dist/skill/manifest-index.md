@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 38 public labels.
+v-stdlib unversioned; 6 modules; 39 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -63,6 +63,7 @@ _raises: `U-VSL-LOG-WRITE`_
 
 VistA identity/authorization adapter (Kernel).
 
+- `$$active^VSLSEC(duz)` — 1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on.
 - `$$bySecid^VSLSEC(secid)` — The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 - `$$duz^VSLSEC()` — The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
 - `$$hasKey^VSLSEC(key, duz)` — 1 iff `duz` (default: the ambient DUZ) holds security key `key`.

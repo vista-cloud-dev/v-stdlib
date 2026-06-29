@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*17^
+**KIDS**:VSL*1.0*18^
 
 **INSTALL NAME**
-VSL*1.0*17
+VSL*1.0*18
 "BLD",1,0)
-VSL*1.0*17^VSL^0^0
+VSL*1.0*18^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -1137,7 +1137,7 @@ lastError()	; The last VSLLOG error message (the composed FileMan detail).
 "RTN","VSLLOG",133,0)
 	quit $get(^TMP($job,"vsllog","err"))
 "RTN","VSLSEC")
-0^113^0^0
+0^129^0^0
 "RTN","VSLSEC",1,0)
 VSLSEC	; v-stdlib — VistA identity/authorization adapter (Kernel).
 "RTN","VSLSEC",2,0)
@@ -1189,180 +1189,212 @@ VSLSEC	; v-stdlib — VistA identity/authorization adapter (Kernel).
 "RTN","VSLSEC",25,0)
 	;   $$user^VSLSEC(duz)       — the #200 NAME for `duz` (via VSLFS), else ""
 "RTN","VSLSEC",26,0)
-	;   $$lastError^VSLSEC()     — last error detail, else ""
+	;   $$active^VSLSEC(duz)     — 1 iff `duz` can sign on (=$$ACTIVE^XUSER; fail-closed)
 "RTN","VSLSEC",27,0)
-	;
+	;   $$lastError^VSLSEC()     — last error detail, else ""
 "RTN","VSLSEC",28,0)
-	; *** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***
+	;
 "RTN","VSLSEC",29,0)
-	; An authorization DENY is a normal `0` from $$hasKey — NOT an error. A
+	; *** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***
 "RTN","VSLSEC",30,0)
-	; malformed call (an empty key name) maps to a clean ,U-VSL-SEC-ARG, $ECODE,
+	; An authorization DENY is a normal `0` from $$hasKey — NOT an error. A
 "RTN","VSLSEC",31,0)
-	; with the detail in ^TMP($job,"vslsec","err") for $$lastError. This mirrors
+	; malformed call (an empty key name) maps to a clean ,U-VSL-SEC-ARG, $ECODE,
 "RTN","VSLSEC",32,0)
-	; VSLFS's loud-failure posture (a real fault is loud; an absent value is not).
+	; with the detail in ^TMP($job,"vslsec","err") for $$lastError. This mirrors
 "RTN","VSLSEC",33,0)
-	;
+	; VSLFS's loud-failure posture (a real fault is loud; an absent value is not).
 "RTN","VSLSEC",34,0)
-	; ICR note: ^XUSEC is the documented Supported *reference* for security-key
+	;
 "RTN","VSLSEC",35,0)
-	; membership ("do not reference the SECURITY KEY (#19.1) file ... check the
+	; ICR note: ^XUSEC is the documented Supported *reference* for security-key
 "RTN","VSLSEC",36,0)
-	; ^XUSEC global ... this is (and continues to be) a supported reference" —
+	; membership ("do not reference the SECURITY KEY (#19.1) file ... check the
 "RTN","VSLSEC",37,0)
-	; Kernel DG, Security Keys). It carries no numeric DBIA in the gold corpus, so
+	; ^XUSEC global ... this is (and continues to be) a supported reference" —
 "RTN","VSLSEC",38,0)
-	; the call is tagged with the notional ICR marker (a read, never a write — the
+	; Kernel DG, Security Keys). It carries no numeric DBIA in the gold corpus, so
 "RTN","VSLSEC",39,0)
-	; no-direct-global rule forbids set/kill, not the Supported $D reference). See
+	; the call is tagged with the notional ICR marker (a read, never a write — the
 "RTN","VSLSEC",40,0)
-	; docs/memory notional-dbia-not-a-blocker + plan §5.4.
+	; no-direct-global rule forbids set/kill, not the Supported $D reference). See
 "RTN","VSLSEC",41,0)
-	;
+	; docs/memory notional-dbia-not-a-blocker + plan §5.4.
 "RTN","VSLSEC",42,0)
-	quit
+	;
 "RTN","VSLSEC",43,0)
-	;
+	quit
 "RTN","VSLSEC",44,0)
-	; ---------- the authorization decision (the VistA binding) ----------
+	;
 "RTN","VSLSEC",45,0)
-	;
+	; ---------- the authorization decision (the VistA binding) ----------
 "RTN","VSLSEC",46,0)
-hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key`.
+	;
 "RTN","VSLSEC",47,0)
-	; doc: @param   key      string   security-key name (SECURITY KEY #19.1 .01)
+hasKey(key,duz)	; 1 iff `duz` (default: the ambient DUZ) holds security key `key`.
 "RTN","VSLSEC",48,0)
-	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
+	; doc: @param   key      string   security-key name (SECURITY KEY #19.1 .01)
 "RTN","VSLSEC",49,0)
-	; doc: @returns          bool     1 iff the user holds the key; 0 (a normal DENY) otherwise
-"RTN","VSLSEC",50,0)
-	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty key name)
-"RTN","VSLSEC",51,0)
-	; doc: @icr notional @call ^XUSEC @status Supported @custodian XU @source XU/krn_8_0_dg_security_keys_ug#key-lookup
-"RTN","VSLSEC",52,0)
-	; doc: @example  do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC("ZZ NO SUCH KEY",1),0,"hasKey is 0 (a normal DENY) for an unheld key")
-"RTN","VSLSEC",53,0)
-	; doc: @illustrative  the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion
-"RTN","VSLSEC",54,0)
-	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
-"RTN","VSLSEC",55,0)
-	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
-"RTN","VSLSEC",56,0)
-	quit ''$data(^XUSEC(key,$$pduz($get(duz))))
-"RTN","VSLSEC",57,0)
-	;
-"RTN","VSLSEC",58,0)
-duz()	; The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
-"RTN","VSLSEC",59,0)
-	; doc: @returns          numeric  the ambient DUZ (0 when no signon context is set)
-"RTN","VSLSEC",60,0)
-	; doc: @example  new DUZ set DUZ=1 do eq^STDASSERT(.pass,.fail,$$duz^VSLSEC(),1,"$$duz returns the ambient DUZ (NEWed, no side effect)")
-"RTN","VSLSEC",61,0)
-	quit +$get(DUZ)
-"RTN","VSLSEC",62,0)
-	;
-"RTN","VSLSEC",63,0)
-user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
-"RTN","VSLSEC",64,0)
 	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
+"RTN","VSLSEC",50,0)
+	; doc: @returns          bool     1 iff the user holds the key; 0 (a normal DENY) otherwise
+"RTN","VSLSEC",51,0)
+	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty key name)
+"RTN","VSLSEC",52,0)
+	; doc: @icr notional @call ^XUSEC @status Supported @custodian XU @source XU/krn_8_0_dg_security_keys_ug#key-lookup
+"RTN","VSLSEC",53,0)
+	; doc: @example  do eq^STDASSERT(.pass,.fail,$$hasKey^VSLSEC("ZZ NO SUCH KEY",1),0,"hasKey is 0 (a normal DENY) for an unheld key")
+"RTN","VSLSEC",54,0)
+	; doc: @illustrative  the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion
+"RTN","VSLSEC",55,0)
+	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC-ARG","$$hasKey with an empty key raises U-VSL-SEC-...")
+"RTN","VSLSEC",56,0)
+	if $get(key)="" do raiseArg("hasKey","a key name is required") quit ""
+"RTN","VSLSEC",57,0)
+	quit ''$data(^XUSEC(key,$$pduz($get(duz))))
+"RTN","VSLSEC",58,0)
+	;
+"RTN","VSLSEC",59,0)
+duz()	; The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN.
+"RTN","VSLSEC",60,0)
+	; doc: @returns          numeric  the ambient DUZ (0 when no signon context is set)
+"RTN","VSLSEC",61,0)
+	; doc: @example  new DUZ set DUZ=1 do eq^STDASSERT(.pass,.fail,$$duz^VSLSEC(),1,"$$duz returns the ambient DUZ (NEWed, no side effect)")
+"RTN","VSLSEC",62,0)
+	quit +$get(DUZ)
+"RTN","VSLSEC",63,0)
+	;
+"RTN","VSLSEC",64,0)
+user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS.
 "RTN","VSLSEC",65,0)
-	; doc: @returns          string   the NEW PERSON (#200) .01 NAME, or "" if absent
+	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
 "RTN","VSLSEC",66,0)
-	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
+	; doc: @returns          string   the NEW PERSON (#200) .01 NAME, or "" if absent
 "RTN","VSLSEC",67,0)
-	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
+	; doc: Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without
 "RTN","VSLSEC",68,0)
-	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
+	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 "RTN","VSLSEC",69,0)
-	quit $$get^VSLFS(200,$$pduz($get(duz))_",",".01","")
+	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
 "RTN","VSLSEC",70,0)
-	;
+	quit $$get^VSLFS(200,$$pduz($get(duz))_",",".01","")
 "RTN","VSLSEC",71,0)
-bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
+	;
 "RTN","VSLSEC",72,0)
-	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
+active(duz)	; 1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on.
 "RTN","VSLSEC",73,0)
-	; doc: @returns          numeric  the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
+	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
 "RTN","VSLSEC",74,0)
-	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty SecID)
+	; doc: @returns          bool     1 iff the user can currently sign on (active or new); 0 if
 "RTN","VSLSEC",75,0)
-	; doc: @icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file
+	; doc:    terminated, DISUSER'd, cannot sign on, or no such #200 record (fail-closed)
 "RTN","VSLSEC",76,0)
-	; doc: The SSOi/2FA identity binding: a federated subject (the SecID claim of a
+	; doc: An authz decision must DENY a terminated/DISUSER'd principal even if a stale ^XUSEC
 "RTN","VSLSEC",77,0)
-	; doc: validated token) -> the local #200 IEN, the way Kernel's own XUSAML/
+	; doc: key xref lingers — so check $$ACTIVE^XUSER, not just $$hasKey. $$ACTIVE^XUSER returns
 "RTN","VSLSEC",78,0)
-	; doc: XUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID
+	; doc: ""/0/0^DISUSER/0^TERMINATED^date for inactive, 1^NEW/1^ACTIVE^date for active; piece 1
 "RTN","VSLSEC",79,0)
-	; doc: (param 2; null last name in param 3) and stuffs a by-ref result array
+	; doc: is collapsed with + (the "" no-record case collapses to 0 too). Absent on a bare
 "RTN","VSLSEC",80,0)
-	; doc: (result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare
+	; doc: engine -> 0 (fail-closed).
 "RTN","VSLSEC",81,0)
-	; doc: engine (EN1^XUPSQRY absent) this returns "" — the caller $text-gates the
+	; doc: @icr 2343 @call $$ACTIVE^XUSER @status Supported @custodian XU @source XU/krn_8_0_dg_user_ug#activexuser-status-indicator
 "RTN","VSLSEC",82,0)
-	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
+	; doc: @example  do eq^STDASSERT(.pass,.fail,$$active^VSLSEC(999999999),0,"$$active is 0 for a non-existent #200 IEN")
 "RTN","VSLSEC",83,0)
-	; doc: Subscription API and the IEN is read from the returned array (waterline).
+	; doc: @illustrative  the active-principal positive path needs a known active #200 user on live VistA — exercised by tests/VSLSECTST.m; $$ACTIVE^XUSER is absent on a bare engine, so not a portable one-liner
 "RTN","VSLSEC",84,0)
-	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
+	if $text(ACTIVE^XUSER)="" quit 0
 "RTN","VSLSEC",85,0)
-	; doc: @illustrative  the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it
+	quit +$$ACTIVE^XUSER($$pduz($get(duz)))
 "RTN","VSLSEC",86,0)
-	new RESULT
+	;
 "RTN","VSLSEC",87,0)
-	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
+bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 "RTN","VSLSEC",88,0)
-	if $text(EN1^XUPSQRY)="" quit ""
+	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)
 "RTN","VSLSEC",89,0)
-	do EN1^XUPSQRY(.RESULT,secid,"")
+	; doc: @returns          numeric  the #200 IEN bound to that SecID, or "" if none / not on a VistA engine
 "RTN","VSLSEC",90,0)
-	quit $$parseQry(.RESULT)
+	; doc: @raises  U-VSL-SEC-ARG  the call is malformed (an empty SecID)
 "RTN","VSLSEC",91,0)
-	;
+	; doc: @icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file
 "RTN","VSLSEC",92,0)
-parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
+	; doc: The SSOi/2FA identity binding: a federated subject (the SecID claim of a
 "RTN","VSLSEC",93,0)
-	; doc: @internal
+	; doc: validated token) -> the local #200 IEN, the way Kernel's own XUSAML/
 "RTN","VSLSEC",94,0)
-	; doc: result(1) is the found-flag (1 found / 0 not found); result(1,0) is the
+	; doc: XUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID
 "RTN","VSLSEC",95,0)
-	; doc: first record, VPID^IEN^LastName~First~Middle^SSN^DOB^SEX^ — the IEN is
+	; doc: (param 2; null last name in param 3) and stuffs a by-ref result array
 "RTN","VSLSEC",96,0)
-	; doc: ^-piece 2. Pure (no VistA) so it is unit-tested on a bare engine.
+	; doc: (result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare
 "RTN","VSLSEC",97,0)
-	if +$get(result(1))'=1 quit ""
+	; doc: engine (EN1^XUPSQRY absent) this returns "" — the caller $text-gates the
 "RTN","VSLSEC",98,0)
-	quit $piece($get(result(1,0)),"^",2)
+	; doc: live path. No direct ^VA(200 read: the lookup is the Controlled-
 "RTN","VSLSEC",99,0)
-	;
+	; doc: Subscription API and the IEN is read from the returned array (waterline).
 "RTN","VSLSEC",100,0)
-lastError()	; The last VSLSEC error message (the composed malformed-call detail).
+	; doc: @example  do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC-ARG","$$bySecid("""") raises U-VSL-SEC-...")
 "RTN","VSLSEC",101,0)
-	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
+	; doc: @illustrative  the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it
 "RTN","VSLSEC",102,0)
-	; doc: @illustrative  $$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check
+	new RESULT
 "RTN","VSLSEC",103,0)
-	quit $get(^TMP($job,"vslsec","err"))
+	if $get(secid)="" do raiseArg("bySecid","a SecID is required") quit ""
 "RTN","VSLSEC",104,0)
-	;
+	if $text(EN1^XUPSQRY)="" quit ""
 "RTN","VSLSEC",105,0)
-	; ---------- internals ----------
+	do EN1^XUPSQRY(.RESULT,secid,"")
 "RTN","VSLSEC",106,0)
-	;
+	quit $$parseQry(.RESULT)
 "RTN","VSLSEC",107,0)
-pduz(duz)	; Resolve the effective principal: `duz` if supplied, else the ambient DUZ.
-"RTN","VSLSEC",108,0)
-	quit $select($get(duz)'="":duz,1:+$get(DUZ))
-"RTN","VSLSEC",109,0)
 	;
+"RTN","VSLSEC",108,0)
+parseQry(result)	; Extract the #200 IEN from an EN1^XUPSQRY result array, or "".
+"RTN","VSLSEC",109,0)
+	; doc: @internal
 "RTN","VSLSEC",110,0)
-raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
+	; doc: result(1) is the found-flag (1 found / 0 not found); result(1,0) is the
 "RTN","VSLSEC",111,0)
-	set ^TMP($job,"vslsec","err")=who_": "_msg
+	; doc: first record, VPID^IEN^LastName~First~Middle^SSN^DOB^SEX^ — the IEN is
 "RTN","VSLSEC",112,0)
-	set $ecode=",U-VSL-SEC-ARG,"
+	; doc: ^-piece 2. Pure (no VistA) so it is unit-tested on a bare engine.
 "RTN","VSLSEC",113,0)
+	if +$get(result(1))'=1 quit ""
+"RTN","VSLSEC",114,0)
+	quit $piece($get(result(1,0)),"^",2)
+"RTN","VSLSEC",115,0)
+	;
+"RTN","VSLSEC",116,0)
+lastError()	; The last VSLSEC error message (the composed malformed-call detail).
+"RTN","VSLSEC",117,0)
+	; doc: @returns          string   ^TMP($job,"vslsec","err"), or "" if none
+"RTN","VSLSEC",118,0)
+	; doc: @illustrative  $$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check
+"RTN","VSLSEC",119,0)
+	quit $get(^TMP($job,"vslsec","err"))
+"RTN","VSLSEC",120,0)
+	;
+"RTN","VSLSEC",121,0)
+	; ---------- internals ----------
+"RTN","VSLSEC",122,0)
+	;
+"RTN","VSLSEC",123,0)
+pduz(duz)	; Resolve the effective principal: `duz` if supplied, else the ambient DUZ.
+"RTN","VSLSEC",124,0)
+	quit $select($get(duz)'="":duz,1:+$get(DUZ))
+"RTN","VSLSEC",125,0)
+	;
+"RTN","VSLSEC",126,0)
+raiseArg(who,msg)	; Stash the detail, then raise the clean ,U-VSL-SEC-ARG,.
+"RTN","VSLSEC",127,0)
+	set ^TMP($job,"vslsec","err")=who_": "_msg
+"RTN","VSLSEC",128,0)
+	set $ecode=",U-VSL-SEC-ARG,"
+"RTN","VSLSEC",129,0)
 	quit
 "RTN","VSLTASK")
 0^152^0^0

@@ -139,6 +139,16 @@
       "status": "Supported"
     },
     {
+      "call": "$$ACTIVE^XUSER",
+      "custodian": "XU",
+      "icr": 2343,
+      "source": {
+        "anchor": "activexuser-status-indicator",
+        "doc_key": "XU/krn_8_0_dg_user_ug"
+      },
+      "status": "Supported"
+    },
+    {
       "call": "EN1^XUPSQRY",
       "custodian": "XU",
       "icr": 4575,

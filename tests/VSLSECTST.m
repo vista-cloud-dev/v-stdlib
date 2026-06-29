@@ -30,12 +30,17 @@ VSLSECTST	; v-stdlib — VSLSEC (VistA identity/authorization adapter) test suit
 	do tParseQry(.pass,.fail)
 	do tBySecidEmptyIsLoud(.pass,.fail)
 	do tBySecidNoMatch(.pass,.fail)
+	do tActiveDenyNonexistent(.pass,.fail)
+	do tActiveCallableForLiveUser(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
 	;
 hasXupsqry()	; 1 iff the SecID lookup API (EN1^XUPSQRY) is present (a live VistA).
 	quit $text(EN1^XUPSQRY)'=""
+	;
+hasActive()	; 1 iff the user active-status API ($$ACTIVE^XUSER) is present (a live VistA).
+	quit $text(ACTIVE^XUSER)'=""
 	;
 hasFileMan()	; 1 iff the FileMan DBS API ($$GET1^DIQ) is present (a live VistA).
 	quit $text(GET1^DIQ)'=""
@@ -118,6 +123,29 @@ tBySecidNoMatch(pass,fail)	;@TEST "$$bySecid for a non-existent SecID returns ""
 	do setup
 	if '$$hasXupsqry() do true^STDASSERT(.pass,.fail,1,"EN1^XUPSQRY absent (bare engine) - SecID lookup verified on vehu/foia") quit
 	do eq^STDASSERT(.pass,.fail,$$bySecid^VSLSEC("ZZNO-SUCH-SECID-99999"),"","an unprovisioned SecID resolves to no #200 IEN")
+	quit
+	;
+tActiveDenyNonexistent(pass,fail)	;@TEST "$$active denies a non-existent #200 IEN (returns 0) — read-only, fail-closed"
+	; The authz active-status check: $$ACTIVE^XUSER is a read-only #200 lookup, so a
+	; non-existent IEN is safe to probe live and is a deterministic 0 (corpus: an absent
+	; IEN yields "" -> +"" = 0). The point of $$active is to DENY terminated / DISUSER'd /
+	; absent principals even when a stale ^XUSEC key xref lingers.
+	new r
+	set DUZ=1,DUZ(0)="@",U="^"
+	if '$$hasActive() do true^STDASSERT(.pass,.fail,1,"$$ACTIVE^XUSER absent (bare engine) - verified on vehu/foia") quit
+	set r=$$active^VSLSEC(999999999)
+	do eq^STDASSERT(.pass,.fail,r,0,"$$active(non-existent IEN) = 0 (deny — absent/terminated/DISUSER all collapse to 0)")
+	quit
+	;
+tActiveCallableForLiveUser(pass,fail)	;@TEST "$$active is callable on a real #200 IEN and returns a clean boolean (live)"
+	; A real #200 IEN (postmaster, IEN 1) — assert the binding resolves $$ACTIVE^XUSER live
+	; and returns a clean 0/1. Whether the postmaster can interactively sign on is
+	; engine/site-dependent (often DISUSER'd), so do not pin a specific value here.
+	new r
+	set DUZ=1,DUZ(0)="@",U="^"
+	if '$$hasActive() do true^STDASSERT(.pass,.fail,1,"$$ACTIVE^XUSER absent (bare engine) - verified on vehu/foia") quit
+	set r=$$active^VSLSEC(1)
+	do true^STDASSERT(.pass,.fail,(r=0)!(r=1),"$$active(1) returns a clean boolean (the binding resolves $$ACTIVE^XUSER live)")
 	quit
 	;
 	; ---------- fixtures ----------

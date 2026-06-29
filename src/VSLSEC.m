@@ -23,6 +23,7 @@ VSLSEC	; v-stdlib — VistA identity/authorization adapter (Kernel).
 	;   $$hasKey^VSLSEC(key,duz) — 1 iff `duz` holds security key `key`, else 0
 	;   $$duz^VSLSEC()           — the ambient principal (+$GET(DUZ), the #200 IEN)
 	;   $$user^VSLSEC(duz)       — the #200 NAME for `duz` (via VSLFS), else ""
+	;   $$active^VSLSEC(duz)     — 1 iff `duz` can sign on (=$$ACTIVE^XUSER; fail-closed)
 	;   $$lastError^VSLSEC()     — last error detail, else ""
 	;
 	; *** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***
@@ -67,6 +68,21 @@ user(duz)	; The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSL
 	; doc: re-binding the DBS (v->v composition; waterline §9 no-duplication).
 	; doc: @illustrative  resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner
 	quit $$get^VSLFS(200,$$pduz($get(duz))_",",".01","")
+	;
+active(duz)	; 1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on.
+	; doc: @param   duz      numeric  the user's #200 IEN; defaults to +$GET(DUZ)
+	; doc: @returns          bool     1 iff the user can currently sign on (active or new); 0 if
+	; doc:    terminated, DISUSER'd, cannot sign on, or no such #200 record (fail-closed)
+	; doc: An authz decision must DENY a terminated/DISUSER'd principal even if a stale ^XUSEC
+	; doc: key xref lingers — so check $$ACTIVE^XUSER, not just $$hasKey. $$ACTIVE^XUSER returns
+	; doc: ""/0/0^DISUSER/0^TERMINATED^date for inactive, 1^NEW/1^ACTIVE^date for active; piece 1
+	; doc: is collapsed with + (the "" no-record case collapses to 0 too). Absent on a bare
+	; doc: engine -> 0 (fail-closed).
+	; doc: @icr 2343 @call $$ACTIVE^XUSER @status Supported @custodian XU @source XU/krn_8_0_dg_user_ug#activexuser-status-indicator
+	; doc: @example  do eq^STDASSERT(.pass,.fail,$$active^VSLSEC(999999999),0,"$$active is 0 for a non-existent #200 IEN")
+	; doc: @illustrative  the active-principal positive path needs a known active #200 user on live VistA — exercised by tests/VSLSECTST.m; $$ACTIVE^XUSER is absent on a bare engine, so not a portable one-liner
+	if $text(ACTIVE^XUSER)="" quit 0
+	quit +$$ACTIVE^XUSER($$pduz($get(duz)))
 	;
 bySecid(secid)	; The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "".
 	; doc: @param   secid    string   the IAM Security ID (SECID, NEW PERSON #200 field #205.1)

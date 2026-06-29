@@ -17,7 +17,7 @@ Generated from v-stdlib's `dist/vsl-manifest.json` — every public
 module + label, the canonical-idiom library, and the full U-VSL* error
 surface, all rendered for AI / agent context loading.
 
-**Catalogue:** 6 modules, 38 public labels,
+**Catalogue:** 6 modules, 39 public labels,
 7 error codes.
 
 ## When to use this skill

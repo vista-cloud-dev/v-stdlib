@@ -4,7 +4,7 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA identity/authorization adapter (Kernel)'
-labels: ['bySecid', 'duz', 'hasKey', 'lastError', 'user']
+labels: ['active', 'bySecid', 'duz', 'hasKey', 'lastError', 'user']
 errors: ['U-VSL-SEC-ARG']
 see_also: []
 doc_type: [REFERENCE]
@@ -23,11 +23,29 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 
 | Label | Signature | Summary |
 |---|---|---|
+| `active` | `$$active^VSLSEC(duz)` | 1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on. |
 | `bySecid` | `$$bySecid^VSLSEC(secid)` | The #200 IEN for a SecID via EN1^XUPSQRY (RPC XUPS PERSONQUERY), else "". |
 | `duz` | `$$duz^VSLSEC()` | The ambient principal — +$GET(DUZ), the caller's NEW PERSON (#200) IEN. |
 | `hasKey` | `$$hasKey^VSLSEC(key, duz)` | 1 iff `duz` (default: the ambient DUZ) holds security key `key`. |
 | `lastError` | `$$lastError^VSLSEC()` | The last VSLSEC error message (the composed malformed-call detail). |
 | `user` | `$$user^VSLSEC(duz)` | The #200 NAME for `duz` (default: the ambient DUZ), resolved via VSLFS. |
+
+### `$$active^VSLSEC(duz)`
+
+1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on.
+
+**Parameters**
+
+- `duz` _(numeric)_ — the user's #200 IEN; defaults to +$GET(DUZ)
+
+**Returns** _bool_ — 1 iff the user can currently sign on (active or new); 0 if
+terminated, DISUSER'd, cannot sign on, or no such #200 record (fail-closed)
+
+**Example**
+
+```m
+do eq^STDASSERT(.pass,.fail,$$active^VSLSEC(999999999),0,"$$active is 0 for a non-existent #200 IEN")
+```
 
 ### `$$bySecid^VSLSEC(secid)`
 

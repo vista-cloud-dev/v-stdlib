@@ -941,7 +941,7 @@
     },
     "VSLSEC": {
       "synopsis": "v-stdlib — VistA identity/authorization adapter (Kernel).",
-      "description": "Binds the VistA *authorization decision* — the part of the security seam\nthat has NO portable analog and so cannot live below the waterline. Three\nbindings, each VistA-only:\n  - the security-key check ($$hasKey, over Kernel's ^XUSEC);\n  - the ambient principal ($$duz, the NEW PERSON #200 IEN);\n  - the principal -> #200 NAME resolution ($$user), which REUSES VSLFS\n    (v->v composition; no FileMan DBS re-bind — waterline §9 no-duplication\n    applies within `v` too).\n\n*** NO portable crypto here — STDCRYPTO owns it. *** Portable token crypto\n(SHA digests, HMAC, constant-time compare) lives in STDCRYPTO (libcrypto on\nYDB / $SYSTEM.Encryption on IRIS, dual-engine proven) and is called up by a\nconsumer that needs it. VSLSEC binds NO Kernel hash back end: grounded\n2026-06-16, there is no portable Kernel generic-hash entry point —\n$$SHAHASH^XUSHSH is absent on the YDB-VistA test engine (pre XU*8.0*655)\nand the classic top-level ^XUSHSH returns a constant on both engines. The\narchitecture (§3.4) is explicit: \"Portable token crypto stays in STD*; the\nVistA authorization decision lives in VSL.\" This module is that decision.\n\nPublic API:\n  $$hasKey^VSLSEC(key,duz) — 1 iff `duz` holds security key `key`, else 0\n  $$duz^VSLSEC()           — the ambient principal (+$GET(DUZ), the #200 IEN)\n  $$user^VSLSEC(duz)       — the #200 NAME for `duz` (via VSLFS), else \"\"\n  $$lastError^VSLSEC()     — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***\nAn authorization DENY is a normal `0` from $$hasKey — NOT an error. A\nmalformed call (an empty key name) maps to a clean ,U-VSL-SEC-ARG, $ECODE,\nwith the detail in ^TMP($job,\"vslsec\",\"err\") for $$lastError. This mirrors\nVSLFS's loud-failure posture (a real fault is loud; an absent value is not).\n\nICR note: ^XUSEC is the documented Supported *reference* for security-key\nmembership (\"do not reference the SECURITY KEY (#19.1) file ... check the\n^XUSEC global ... this is (and continues to be) a supported reference\" —\nKernel DG, Security Keys). It carries no numeric DBIA in the gold corpus, so\nthe call is tagged with the notional ICR marker (a read, never a write — the\nno-direct-global rule forbids set/kill, not the Supported $D reference). See\ndocs/memory notional-dbia-not-a-blocker + plan §5.4.",
+      "description": "Binds the VistA *authorization decision* — the part of the security seam\nthat has NO portable analog and so cannot live below the waterline. Three\nbindings, each VistA-only:\n  - the security-key check ($$hasKey, over Kernel's ^XUSEC);\n  - the ambient principal ($$duz, the NEW PERSON #200 IEN);\n  - the principal -> #200 NAME resolution ($$user), which REUSES VSLFS\n    (v->v composition; no FileMan DBS re-bind — waterline §9 no-duplication\n    applies within `v` too).\n\n*** NO portable crypto here — STDCRYPTO owns it. *** Portable token crypto\n(SHA digests, HMAC, constant-time compare) lives in STDCRYPTO (libcrypto on\nYDB / $SYSTEM.Encryption on IRIS, dual-engine proven) and is called up by a\nconsumer that needs it. VSLSEC binds NO Kernel hash back end: grounded\n2026-06-16, there is no portable Kernel generic-hash entry point —\n$$SHAHASH^XUSHSH is absent on the YDB-VistA test engine (pre XU*8.0*655)\nand the classic top-level ^XUSHSH returns a constant on both engines. The\narchitecture (§3.4) is explicit: \"Portable token crypto stays in STD*; the\nVistA authorization decision lives in VSL.\" This module is that decision.\n\nPublic API:\n  $$hasKey^VSLSEC(key,duz) — 1 iff `duz` holds security key `key`, else 0\n  $$duz^VSLSEC()           — the ambient principal (+$GET(DUZ), the #200 IEN)\n  $$user^VSLSEC(duz)       — the #200 NAME for `duz` (via VSLFS), else \"\"\n  $$active^VSLSEC(duz)     — 1 iff `duz` can sign on (=$$ACTIVE^XUSER; fail-closed)\n  $$lastError^VSLSEC()     — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call, never on a normal DENY ***\nAn authorization DENY is a normal `0` from $$hasKey — NOT an error. A\nmalformed call (an empty key name) maps to a clean ,U-VSL-SEC-ARG, $ECODE,\nwith the detail in ^TMP($job,\"vslsec\",\"err\") for $$lastError. This mirrors\nVSLFS's loud-failure posture (a real fault is loud; an absent value is not).\n\nICR note: ^XUSEC is the documented Supported *reference* for security-key\nmembership (\"do not reference the SECURITY KEY (#19.1) file ... check the\n^XUSEC global ... this is (and continues to be) a supported reference\" —\nKernel DG, Security Keys). It carries no numeric DBIA in the gold corpus, so\nthe call is tagged with the notional ICR marker (a read, never a write — the\nno-direct-global rule forbids set/kill, not the Supported $D reference). See\ndocs/memory notional-dbia-not-a-blocker + plan §5.4.",
       "errors": [
         "U-VSL-SEC-ARG"
       ],
@@ -985,7 +985,7 @@
           "description": "@icr notional @call ^XUSEC @status Supported @custodian XU @source XU/krn_8_0_dg_security_keys_ug#key-lookup",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 46
+            "line": 47
           },
           "illustrative": "the held-key positive path (an existing ^XUSEC(key,duz) pair) is exercised on live VistA by tests/VSLSECTST.m; the inline ^XUSEC probe duplicated that canonical assertion"
         },
@@ -1011,7 +1011,7 @@
           "description": "",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 58
+            "line": 59
           }
         },
         "user": {
@@ -1040,9 +1040,41 @@
           "description": "Reuses $$get^VSLFS (FileMan DBS) — the principal->#200 binding without\nre-binding the DBS (v->v composition; waterline §9 no-duplication).",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 63
+            "line": 64
           },
           "illustrative": "resolves the #200 NAME via $$GET1^DIQ (FileMan DBS) — exercised on live VistA by tests/VSLSECTST.m; faults on a bare engine ($$GET1^DIQ absent), so not a portable one-liner"
+        },
+        "active": {
+          "form": "extrinsic",
+          "signature": "$$active^VSLSEC(duz)",
+          "synopsis": "1 iff principal `duz` (default: ambient DUZ) is an active user who can sign on.",
+          "params": [
+            {
+              "name": "duz",
+              "type": "numeric",
+              "doc": "the user's #200 IEN; defaults to +$GET(DUZ)"
+            }
+          ],
+          "returns": {
+            "type": "bool",
+            "doc": "1 iff the user can currently sign on (active or new); 0 if\nterminated, DISUSER'd, cannot sign on, or no such #200 record (fail-closed)"
+          },
+          "raises": [],
+          "raised_in_body": [],
+          "examples": [
+            "do eq^STDASSERT(.pass,.fail,$$active^VSLSEC(999999999),0,\"$$active is 0 for a non-existent #200 IEN\")"
+          ],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "An authz decision must DENY a terminated/DISUSER'd principal even if a stale ^XUSEC\nkey xref lingers — so check $$ACTIVE^XUSER, not just $$hasKey. $$ACTIVE^XUSER returns\n\"\"/0/0^DISUSER/0^TERMINATED^date for inactive, 1^NEW/1^ACTIVE^date for active; piece 1\nis collapsed with + (the \"\" no-record case collapses to 0 too). Absent on a bare\nengine -> 0 (fail-closed).\n@icr 2343 @call $$ACTIVE^XUSER @status Supported @custodian XU @source XU/krn_8_0_dg_user_ug#activexuser-status-indicator",
+          "source": {
+            "file": "src/VSLSEC.m",
+            "line": 72
+          },
+          "illustrative": "the active-principal positive path needs a known active #200 user on live VistA — exercised by tests/VSLSECTST.m; $$ACTIVE^XUSER is absent on a bare engine, so not a portable one-liner"
         },
         "bySecid": {
           "form": "extrinsic",
@@ -1077,7 +1109,7 @@
           "description": "@icr 4575 @call EN1^XUPSQRY @status Controlled Subscription @custodian XU @source XU/krn_8_0_dg_common_services_ug#en1xupsqry-query-new-person-file\nThe SSOi/2FA identity binding: a federated subject (the SecID claim of a\nvalidated token) -> the local #200 IEN, the way Kernel's own XUSAML/\nXUESSO2 resolve an STS SAML token. EN1^XUPSQRY queries #200 by SecID\n(param 2; null last name in param 3) and stuffs a by-ref result array\n(result(1)=1/0 found-flag; result(1,0)=VPID^IEN^name~...). On a bare\nengine (EN1^XUPSQRY absent) this returns \"\" — the caller $text-gates the\nlive path. No direct ^VA(200 read: the lookup is the Controlled-\nSubscription API and the IEN is read from the returned array (waterline).",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 71
+            "line": 87
           },
           "illustrative": "the live SecID->#200 lookup (EN1^XUPSQRY, absent on a bare engine) is exercised on live VistA by tests/VSLSECTST.m; the inline $text-gated probe duplicated it"
         },
@@ -1101,7 +1133,7 @@
           "description": "",
           "source": {
             "file": "src/VSLSEC.m",
-            "line": 100
+            "line": 116
           },
           "illustrative": "$$lastError is exercised by the malformed-call assertion in tests/VSLSECTST.m; the inline $etrap round-trip duplicated that canonical check"
         }

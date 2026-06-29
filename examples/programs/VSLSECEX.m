@@ -5,12 +5,17 @@ VSLSECEX ; Living examples for VSLSEC — generated from @example tags.
         new pass,fail
         do start^STDASSERT(.pass,.fail)
         ;
+        do tExampleActive(.pass,.fail)
         do tExampleBySecid(.pass,.fail)
         do tExampleDuz(.pass,.fail)
         do tExampleHasKey(.pass,.fail)
         do tExampleHasKey2(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
+        quit
+        ;
+tExampleActive(pass,fail)       ;@TEST "example: VSLSEC.active"
+        do eq^STDASSERT(.pass,.fail,$$active^VSLSEC(999999999),0,"$$active is 0 for a non-existent #200 IEN")
         quit
         ;
 tExampleBySecid(pass,fail)      ;@TEST "example: VSLSEC.bySecid"
