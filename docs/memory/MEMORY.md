@@ -27,3 +27,6 @@ tracker, or git). Active R-item status lives in the tracker
 - [stdlib-docs-pipeline](stdlib-docs-pipeline.md) — the doc-generation pipeline (manifest/skill/module-pages/examples) + its drift gates + reusable gotchas; tools are byte-identical siblings of m-stdlib's except gen-manifest/write-module-frontmatter.
 - [docs-governance-regime-b](docs-governance-regime-b.md) — generated module pages are Regime B (own schema + `check-frontmatter` gate; excluded from the prose validator); grammar is a thin pointer to m-stdlib's canonical.
 - [r6-fallthrough-gate](r6-fallthrough-gate.md) — `tools/check-fallthrough.py`, the engine-free empty-body/fall-through lint gate (the R1 `$$user^VSLSEC` bug class); string/paren-aware tokenizer.
+
+## Retired subsystems / housekeeping
+- [tap-subsystem-retired](tap-subsystem-retired.md) — the RPC/HL7→S3 traffic-tap (VSLTAP*/VSLS3/…) is fully REMOVED (`29b07a0`, 2026-06-29; replaced by greenfield `v-rpc-tap` on `CALLP^XWBPRS`). Durable trap: quarantine lived in TWO desynced states (tracked-at-root-but-rm'd-from-disk + untracked `docs/quarantine` copy) → a local folder is NOT proof of what CI sees (`git ls-files` first); run the FULL gate before commit (a `docker exec` doc mention had silently failed `check-engine-access`).
