@@ -53,6 +53,16 @@
       "status": "Supported"
     },
     {
+      "call": "GETS^DIQ",
+      "custodian": "DI",
+      "icr": 2056,
+      "source": {
+        "anchor": "getsdiq-data-retriever-multiple-fields",
+        "doc_key": "DI/fm22_2dg"
+      },
+      "status": "Supported"
+    },
+    {
       "call": "$$GET1^DIQ",
       "custodian": "DI",
       "icr": "DBS",

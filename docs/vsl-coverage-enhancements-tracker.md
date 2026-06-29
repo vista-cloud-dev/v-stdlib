@@ -49,7 +49,7 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
-  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **18** (P1b→14, P1d→15, P2-i→16, P2-ii→17, P2-iii→18).
+  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **19** (P1b→14 … P2-iii→18, P2-iv→19).
 - **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
   suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
   (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
@@ -80,8 +80,11 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
   `PCLEAR^%ZTLOAD` (void inverse of `$$persist`). VSLTASK P2 verbs complete. KIDS 16→17.
 - **P2-iii active DONE 2026-06-29:** `$$active^VSLSEC(duz)` over `$$ACTIVE^XUSER`
   (ICR 2343) — fail-closed authz active-status check. KIDS 17→18.
+- **P2-iv gets DONE 2026-06-29:** `$$gets^VSLFS(file,iens,fields,.out,flags)` over
+  `GETS^DIQ` (ICR 2056) — whole-record/multi-field read, one round-trip, scalar flatten.
+  KIDS 18→19.
 - **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
-  VSLFS 22/22, VSLIO 11/11, VSLLOG 22/22, VSLSEC 21/21, VSLTASK 21/21 (109 total).
+  VSLFS 29/29, VSLIO 11/11, VSLLOG 22/22, VSLSEC 21/21, VSLTASK 21/21 (116 total).
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -131,10 +134,12 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   over `PCLEAR^%ZTLOAD` (void inverse of `$$persist`; P2-ii). All ICR 10063, Supported.
   Arg-gate raises tested for each; the live success paths (ask/clear a real task) are
   soft-skipped (side-effecting); `$$stat` undefined-task probe is asserted live (read-only).
-- **VSLFS:** `$$gets` over `GETS^DIQ` (whole-record / multi-field read — reading a
-  record currently costs N single-field round-trips); `$$setWp`/WP support over
-  `WP^DIE` (word-processing fields can't be filed through the scalar signature today),
-  or scope the docstring to scalar fields.
+- **VSLFS:** ✅ `$$gets` over `GETS^DIQ` DONE 2026-06-29 (P2-iv) — whole-record /
+  multi-field read in one DBS round-trip (ICR 2056, Supported); flattens top-level
+  SCALAR fields into `out(field)=value`, default external / `"I"` internal; DIERR →
+  `,U-VSL-FS-DIERR,`. ⏳ `$$setWp`/WP support over `WP^DIE` (word-processing fields
+  can't be filed through the scalar signature today) — still open; `$$gets` is
+  explicitly scoped to scalar fields (WP/sub-multiple out of scope).
 - **✅ VSLSEC `$$active` DONE 2026-06-29 (P2-iii):** over `$$ACTIVE^XUSER` (ICR 2343,
   Supported) — `+` collapses ""/0/0^DISUSER/0^TERMINATED to 0, 1^NEW/1^ACTIVE to 1;
   fail-closed (absent routine → 0). Read-only, so the non-existent-IEN deny (→0) is

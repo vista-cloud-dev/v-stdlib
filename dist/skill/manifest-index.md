@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 39 public labels.
+v-stdlib unversioned; 6 modules; 40 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -25,6 +25,7 @@ VistA FileMan storage adapter (FileMan DBS record store).
 - `$$exists^VSLFS(file, iens)` — Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
 - `$$find^VSLFS(file, value, index)` — The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
 - `$$get^VSLFS(file, iens, field, default, flags)` — Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+- `$$gets^VSLFS(file, iens, fields, out, flags)` — Read several fields of one record in a single DBS round-trip (GETS^DIQ); count into out.
 - `$$kill^VSLFS(file, iens)` — Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
 - `$$lastError^VSLFS()` — The last VSLFS error message (the composed FileMan DIERR detail).
 - `$$list^VSLFS(file, out, index)` — List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.

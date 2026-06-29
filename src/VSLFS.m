@@ -19,6 +19,8 @@ VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 	;                                         transform); "+1," adds -> resolved IENS
 	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default
 	;                                         is the EXTERNAL value, flags "I" the internal
+	;   $$gets^VSLFS(file,iens,fields,.out,flags)— read many fields in one call (GETS^DIQ)
+	;                                         -> out(field)=value; returns the count
 	;   $$exists^VSLFS(file,iens)           — 1 iff the record exists
 	;   $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01="@")
 	;   $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)
@@ -81,6 +83,29 @@ get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; retu
 	set val=$$GET1^DIQ(file,iens,field,$get(flags),"","ERR")
 	if $data(ERR("DIERR")) quit default
 	quit $select(val="":default,1:val)
+	;
+gets(file,iens,fields,out,flags)	; Read several fields of one record in a single DBS round-trip (GETS^DIQ); count into out.
+	; doc: @param   file     numeric  FileMan file number
+	; doc: @param   iens     string   IENS of the record (e.g. "1,")
+	; doc: @param   fields   string   GETS field spec: ".01;.02" list, "M:N" range, or "*" (all top-level); default "*"
+	; doc: @param   out      array    (by ref) set out(field)=value for each top-level field read (killed first)
+	; doc: @param   flags    string   optional; "I" internal values (default external). Do NOT pass "R" (it renames the subscripts).
+	; doc: @returns          numeric  the number of top-level fields placed into out
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	; doc: One round-trip for a whole record vs N $$get calls. Reads SCALAR top-level fields;
+	; doc: word-processing and sub-multiple fields are out of scope (scalar flatten only).
+	; doc: @icr 2056 @call GETS^DIQ @status Supported @custodian DI @source DI/fm22_2dg#getsdiq-data-retriever-multiple-fields
+	; doc: @illustrative  reads real FileMan records; needs a throwaway test DD with records — exercised on live VistA by tests/VSLFSTST.m tGetsMultiField
+	new FDA,ERR,f,cnt,fl,leaf
+	kill out
+	set fl=$get(flags),leaf=$select(fl["I":"I",fl["E":"E",1:"")
+	do GETS^DIQ(file,iens,$get(fields,"*"),fl,"FDA","ERR")
+	if $data(ERR("DIERR")) do raiseDierr("gets",.ERR) quit 0
+	set cnt=0,f=""
+	for  set f=$order(FDA(file,iens,f)) quit:f=""  do
+	. set out(f)=$select(leaf="":$get(FDA(file,iens,f)),1:$get(FDA(file,iens,f,leaf)))
+	. set cnt=cnt+1
+	quit cnt
 	;
 exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
 	; doc: @param   file     numeric  FileMan file number

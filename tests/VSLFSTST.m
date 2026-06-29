@@ -24,6 +24,8 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	do tFindAmbiguousIsEmpty(.pass,.fail)
 	do tListAllRecords(.pass,.fail)
 	do tListVolumeNoResidue(.pass,.fail)
+	do tGetsMultiField(.pass,.fail)
+	do tGetsDierrIsLoud(.pass,.fail)
 	do tInternalFilingRoundtrip(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
@@ -117,6 +119,33 @@ tListVolumeNoResidue(pass,fail)	;@TEST "$$list counts every record and leaves no
 	do true^STDASSERT(.pass,.fail,cnt>=5,"$$list count covers at least the 5 filed records")
 	do true^STDASSERT(.pass,.fail,'$data(^TMP("DILIST",$job)),"$$list leaves no ^TMP(DILIST,$job) scratch residue")
 	for i=1:1:5 do teardown(file,ids(i))
+	quit
+	;
+tGetsMultiField(pass,fail)	;@TEST "$$gets reads multiple fields of one record in a single DBS round-trip (GETS^DIQ)"
+	; Whole-record read: file a #999001 VSL AUDIT record with .01 + HOST(field 3), then read
+	; ALL top-level fields in ONE call and confirm they flatten into out(field)=value (vs N
+	; single-field $$get round-trips). Self-restoring: the throwaway record is killed.
+	new file,iens,nm,out,cnt,x
+	do setup(.file)
+	set file=999001
+	set nm="ZZVSLFS-GETS "_$job
+	set iens=$$set^VSLFS(file,"+1,",".01",nm)
+	do true^STDASSERT(.pass,.fail,iens'="","VSL AUDIT record created for the gets probe")
+	quit:iens=""
+	set x=$$set^VSLFS(file,iens,"3","HOST.X")
+	set cnt=$$gets^VSLFS(file,iens,"*",.out)
+	do true^STDASSERT(.pass,.fail,cnt>=2,"$$gets returned at least the 2 set fields (.01 + HOST) in one call")
+	do eq^STDASSERT(.pass,.fail,$get(out(".01")),nm,"$$gets flattened the .01 NAME into out(.01)")
+	do eq^STDASSERT(.pass,.fail,$get(out(3)),"HOST.X","$$gets flattened field 3 (HOST) into out(3)")
+	set x=$$kill^VSLFS(file,iens)
+	quit
+	;
+tGetsDierrIsLoud(pass,fail)	;@TEST "$$gets on a bogus file raises a clean ,U-VSL-FS-DIERR, with detail in $$lastError"
+	new file
+	do setup(.file)
+	do raises^STDASSERT(.pass,.fail,"set x=$$gets^VSLFS(99999999,""1,"",""*"",.zz)",",U-VSL-FS-DIERR,","$$gets on a bogus file raises exactly ,U-VSL-FS-DIERR,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped gets raise (clean unwind)")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLFS()'="","lastError carries the FileMan DIERR detail")
 	quit
 	;
 tInternalFilingRoundtrip(pass,fail)	;@TEST "$$set files the INTERNAL value (no transform): $$get ""I"" round-trips it; the external default differs (a transform applies)"

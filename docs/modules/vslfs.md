@@ -4,7 +4,7 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA FileMan storage adapter (FileMan DBS record store)'
-labels: ['exists', 'find', 'get', 'kill', 'lastError', 'list', 'set']
+labels: ['exists', 'find', 'get', 'gets', 'kill', 'lastError', 'list', 'set']
 errors: ['U-VSL-FS-DIERR']
 see_also: []
 doc_type: [REFERENCE]
@@ -26,6 +26,7 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 | `exists` | `$$exists^VSLFS(file, iens)` | Return 1 iff record (file,iens) exists (its .01 reads without a DIERR). |
 | `find` | `$$find^VSLFS(file, value, index)` | The IENS of the UNIQUE record whose `index` lookup equals `value`, else "". |
 | `get` | `$$get^VSLFS(file, iens, field, default, flags)` | Read (file,iens,field) via $$GET1^DIQ; return value, else `default`. |
+| `gets` | `$$gets^VSLFS(file, iens, fields, out, flags)` | Read several fields of one record in a single DBS round-trip (GETS^DIQ); count into out. |
 | `kill` | `$$kill^VSLFS(file, iens)` | Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1. |
 | `lastError` | `$$lastError^VSLFS()` | The last VSLFS error message (the composed FileMan DIERR detail). |
 | `list` | `$$list^VSLFS(file, out, index)` | List the IENS of every record (via LIST^DIC) into out("ien,"); return the count. |
@@ -81,6 +82,24 @@ Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
 set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
 ```
+
+### `$$gets^VSLFS(file, iens, fields, out, flags)`
+
+Read several fields of one record in a single DBS round-trip (GETS^DIQ); count into out.
+
+**Parameters**
+
+- `file` _(numeric)_ — FileMan file number
+- `iens` _(string)_ — IENS of the record (e.g. "1,")
+- `fields` _(string)_ — GETS field spec: ".01;.02" list, "M:N" range, or "*" (all top-level); default "*"
+- `out` _(array)_ — (by ref) set out(field)=value for each top-level field read (killed first)
+- `flags` _(string)_ — optional; "I" internal values (default external). Do NOT pass "R" (it renames the subscripts).
+
+**Returns** _numeric_ — the number of top-level fields placed into out
+
+**Raises**
+
+- `U-VSL-FS-DIERR` — a FileMan DIERR (detail in $$lastError)
 
 ### `$$kill^VSLFS(file, iens)`
 
