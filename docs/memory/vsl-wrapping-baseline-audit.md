@@ -70,6 +70,8 @@ the 7-category model in the doc — happy-path green is necessary, not sufficien
 
 The audit deliverable was analysis-only; **all four High defects were then fixed as
 TDD increments (2026-06-28)** — VSLIO, VSLSEC, VSLFS, VSLTASK all green dual-engine.
-**Remaining (enhancement, not defects):** the in-scope missing verbs above, the
-coverage-model test categories (exact-ecode, default-arg, boundary, volume/residue)
-added to the six suites, and the corpus empty-anchor re-extraction (v-pkg/vdocs).
+**Remaining (enhancement, not defects)** — tracked + prioritized with a paste-ready
+resume prompt in **`docs/vsl-coverage-enhancements-tracker.md`**: P1 coverage-model
+test backfill (exact-ecode, default-arg, boundary, volume/residue), P2 in-scope
+missing verbs, P3 corpus empty-anchor re-extraction + doc-accuracy, P4 the
+`KILL^%ZTLOAD`-vs-persistent discrepancy. New session: read that tracker first.
