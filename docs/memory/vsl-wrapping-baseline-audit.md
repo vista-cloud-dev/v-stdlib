@@ -30,6 +30,16 @@ all on the first line (`set a=$get(a),b=$get(b),c=$get(c)`) rather than guarding
 use site. When adding any VSL verb, test the omit-the-optional path, not just the
 all-args-supplied path.
 
+**Supported VistA APIs have UNDOCUMENTED edge behaviors — verify edges against the live
+engine.** Found while adding P2 verbs (2026-06-29): `$$ASKSTOP^%ZTLOAD` returns an
+undocumented value for an ABSENT task (corpus says 0/1/2 incl. 1=missing; live returns
+something else), and `DEL^XPAR` is NOT idempotent — deleting a non-existent instance
+raises, the corpus doesn't say so. The GOLD corpus documents the happy-path contract;
+edge inputs (absent task, missing instance, omitted optional) are where live behavior
+diverges. So: when wrapping a verb, drive the edge cases through a live `m test` and
+document what the engine actually does (scope the doc, e.g. "absent-task value is
+engine-specific"), rather than enshrining the corpus's nominal codes.
+
 ## Four defects (verified) — ✅ ALL FIXED 2026-06-28 (commits 0acedb0, c56df66, f0df013, + this)
 1. **VSLSEC default-duz UNDEF — ✅ FIXED 2026-06-28.** single-arg
    `$$hasKey(key)`/`$$user()` raised UNDEF on BOTH engines: `$$pduz(duz)` evaluated an

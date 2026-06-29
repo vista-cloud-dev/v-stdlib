@@ -49,7 +49,7 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
-  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **19** (P1b→14 … P2-iii→18, P2-iv→19).
+  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **20** (P1b→14 … P2-iv→19, P2-v→20).
 - **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
   suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
   (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
@@ -83,8 +83,12 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 - **P2-iv gets DONE 2026-06-29:** `$$gets^VSLFS(file,iens,fields,.out,flags)` over
   `GETS^DIQ` (ICR 2056) — whole-record/multi-field read, one round-trip, scalar flatten.
   KIDS 18→19.
-- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
-  VSLFS 29/29, VSLIO 11/11, VSLLOG 22/22, VSLSEC 21/21, VSLTASK 21/21 (116 total).
+- **P2-v delete DONE 2026-06-29:** `$$delete^VSLCFG(key)` over `DEL^XPAR` (ICR 2263) —
+  clear the SYS instance, loud on failure; DEL^XPAR not idempotent (missing instance
+  raises). Settles the deferred empty-vs-unset item (deleted reads as default). **P2
+  effectively complete** (only the larger VSLFS `WP^DIE` write-support deferred). KIDS 19→20.
+- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 15/15,
+  VSLFS 29/29, VSLIO 11/11, VSLLOG 22/22, VSLSEC 21/21, VSLTASK 21/21 (121 total).
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -112,9 +116,9 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
 - **🔶 PARTIAL 2026-06-29 — Boundary / ambiguous / absent.** ✅ VSLFS ambiguous
   `$$find` (>1 match → "", `tFindAmbiguousIsEmpty`); ✅ VSLLOG 80-char HOST
   truncation (`tHostTruncatedTo80`, the `$extract(...,1,80)` path). ⏳ DEFERRED:
-  VSLCFG empty-stored vs unset — XPAR's `""` semantics (store-empty vs delete) are
-  engine/filer-dependent; needs a live probe to pin down before asserting (not
-  guessed).
+  VSLCFG empty-stored vs unset — ✅ SETTLED 2026-06-29 by P2-v `$$delete`: a
+  cleared/deleted param reads exactly like a never-set one (`$$get` → default); XPAR
+  stores no distinct empty value (the `@` sentinel deletes). See `tDeleteClears`.
 - **✅ DONE 2026-06-29 — De-circularize** VSLCFG `tGetEffectiveResolvesSys`. Was a
   tautology (`getEffective == $$GET^XPAR("ALL")`, the very call it wraps). Now reads
   `ALL` once and asserts `getEffective` against a KNOWN literal, branching on the
@@ -127,7 +131,7 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   throwaway records — count integrity + `^TMP("DILIST",$job)` zero-residue asserted.
   Found + fixed the `$$query` omitted-optional UNDEF (event/fromDt/toDt) in passing.
 
-### P2 — In-scope missing wrapped-API verbs (each its own TDD increment)
+### P2 — In-scope missing wrapped-API verbs (each its own TDD increment) — ✅ COMPLETE 2026-06-29 (1 larger item deferred: VSLFS WP^DIE write-support)
 - **✅ VSLTASK COMPLETE 2026-06-29** (the stop/retire/observe half is now bound):
   ✅ `$$askStop` over `$$ASKSTOP^%ZTLOAD` (P2-i); ✅ `$$stat` over `STAT^%ZTLOAD`
   (read-only status code 0..5; absent task → deterministic 0; P2-ii); ✅ `pclear`
@@ -146,9 +150,13 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   asserted live deterministically; the postmaster (IEN 1) clean-boolean smoke confirms
   the live binding. An authz decision now denies terminated/`DISUSER`'d principals even
   if a stale `^XUSEC` xref lingers.
-- **VSLCFG:** `$$delete`/`$$unset` over `EN^XPAR("SYS",key,1,"@")` — the read/**write**
-  scalar seam can't clear a value today (`DEL^XPAR` gap). (Entity-aware verbs stay
-  deferred to a future `VSLPARM`.)
+- **✅ VSLCFG `$$delete` DONE 2026-06-29 (P2-v):** clears the SYS instance via
+  `DEL^XPAR("SYS",key,1,.err)` (ICR 2263, Supported); loud on failure
+  (`,U-VSL-CFG-DEL,`, via the generalized `raiseXpar(op,...)` helper). GOTCHA: DEL^XPAR
+  is NOT idempotent — deleting a non-existent instance raises (verified live; corpus
+  silent on this). This also **settles the deferred empty-vs-unset P1 item**: a deleted
+  param reads exactly like a never-set one (`$$get` → default); XPAR has no distinct
+  stored-empty. (Entity-aware verbs stay deferred to a future `VSLPARM`.)
 
 ### P3 — Provenance / corpus cleanup
 - **GOLD-corpus empty-body anchors** (systematic): all five VSLFS DBS anchors

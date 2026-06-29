@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 40 public labels.
+v-stdlib unversioned; 6 modules; 41 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -11,12 +11,13 @@ examples, source location), read the manifest entry directly.
 
 VistA configuration adapter over XPAR (Parameter Tools).
 
+- `do delete^VSLCFG(key)` — Clear the SYS-level instance of parameter `key`; raise on a failed delete.
 - `$$get^VSLCFG(key, default)` — Read parameter `key` at the SYS entity; return `default` when unset.
 - `$$getEffective^VSLCFG(key, default)` — Read the effective value across the parameter's entity precedence; else `default`.
 - `$$lastError^VSLCFG()` — The last VSLCFG error message (the composed XPAR failure detail).
 - `do set^VSLCFG(key, value)` — Set parameter `key` to `value` at the SYS entity; raise on a failed write.
 
-_raises: `U-VSL-CFG-SET`_
+_raises: `U-VSL-CFG-DEL`, `U-VSL-CFG-SET`_
 
 ## `VSLFS`
 

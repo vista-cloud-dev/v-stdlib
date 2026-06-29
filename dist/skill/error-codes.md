@@ -1,6 +1,6 @@
 # v-stdlib — error codes
 
-v-stdlib unversioned; 7 error codes across 6 modules.
+v-stdlib unversioned; 8 error codes across 6 modules.
 
 Inverted index over the manifest's `@raises` arrays. Every
 `,U-VSL...-,` code a v-stdlib label sets via `set $ecode=`
@@ -9,6 +9,7 @@ that needs to disambiguate sources, this is the lookup table.
 
 ## `VSLCFG`
 
+- **`U-VSL-CFG-DEL`** — raised by: `delete`
 - **`U-VSL-CFG-SET`** — raised by: `set`
 
 ## `VSLFS`

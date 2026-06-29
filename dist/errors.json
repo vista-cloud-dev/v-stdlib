@@ -1,4 +1,10 @@
 {
+  "U-VSL-CFG-DEL": {
+    "labels": [
+      "delete"
+    ],
+    "module": "VSLCFG"
+  },
   "U-VSL-CFG-SET": {
     "labels": [
       "set"

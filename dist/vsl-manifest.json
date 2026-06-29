@@ -3,9 +3,10 @@
   "modules": {
     "VSLCFG": {
       "synopsis": "v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic API:\n  $$get^VSLCFG(key,default)          — read the SYS-level instance, else default\n  $$getEffective^VSLCFG(key,default) — read the effective value across the\n                                       parameter's entity precedence (GET^XPAR\n                                       \"ALL\"), else default\n  $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)\n  $$lastError^VSLCFG()               — last XPAR failure detail, else \"\"\n\n$$get reads ONLY the SYS instance ($$GET^XPAR(\"SYS\",...)) — the faithful flat\nSTDENV analog. $$getEffective resolves the value XPAR would actually use in\ncontext (first-found across the parameter's own precedence chain via the \"ALL\"\nentity). Use $$getEffective when you want \"what value applies here?\", $$get\nwhen you specifically want the SYS-level setting.\n\n*** ERROR CONTRACT — loud on a failed write, never a silent lost set ***\nEN^XPAR returns its error by reference as a scalar `0` (no error) or\n`#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a\nnon-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,\n$ECODE, with the detail in ^TMP($job,\"vslcfg\",\"err\") for $$lastError. Reads of\nan unset parameter are NOT errors ($$get/$$getEffective return the default).\nThe flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR\nalike.",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic API:\n  $$get^VSLCFG(key,default)          — read the SYS-level instance, else default\n  $$getEffective^VSLCFG(key,default) — read the effective value across the\n                                       parameter's entity precedence (GET^XPAR\n                                       \"ALL\"), else default\n  $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)\n  $$delete^VSLCFG(key)               — clear the SYS instance (DEL^XPAR; loud on failure)\n  $$lastError^VSLCFG()               — last XPAR failure detail, else \"\"\n\n$$get reads ONLY the SYS instance ($$GET^XPAR(\"SYS\",...)) — the faithful flat\nSTDENV analog. $$getEffective resolves the value XPAR would actually use in\ncontext (first-found across the parameter's own precedence chain via the \"ALL\"\nentity). Use $$getEffective when you want \"what value applies here?\", $$get\nwhen you specifically want the SYS-level setting.\n\n*** ERROR CONTRACT — loud on a failed write, never a silent lost set ***\nEN^XPAR returns its error by reference as a scalar `0` (no error) or\n`#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a\nnon-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,\n$ECODE, with the detail in ^TMP($job,\"vslcfg\",\"err\") for $$lastError. Reads of\nan unset parameter are NOT errors ($$get/$$getEffective return the default).\nThe flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR\nalike.",
       "errors": [
-        "U-VSL-CFG-SET"
+        "U-VSL-CFG-SET",
+        "U-VSL-CFG-DEL"
       ],
       "labels": {
         "get": {
@@ -41,7 +42,7 @@
           "description": "@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 37
+            "line": 38
           }
         },
         "getEffective": {
@@ -77,7 +78,7 @@
           "description": "The \"ALL\" entity tells XPAR to walk the precedence multiple defined on the\nparameter (#8989.51) and return the first level that has a value — what the\nvalue would actually resolve to in context. Contrast $$get, which reads only SYS.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 47
+            "line": 48
           }
         },
         "set": {
@@ -116,9 +117,44 @@
           "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 60
+            "line": 61
           },
           "illustrative": "the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion"
+        },
+        "delete": {
+          "form": "procedure",
+          "signature": "do delete^VSLCFG(key)",
+          "synopsis": "Clear the SYS-level instance of parameter `key`; raise on a failed delete.",
+          "params": [
+            {
+              "name": "key",
+              "type": "string",
+              "doc": "XPAR parameter name (#8989.51)"
+            }
+          ],
+          "returns": {
+            "type": "void",
+            "doc": "side-effecting; no return value (loud on failure)"
+          },
+          "raises": [
+            {
+              "code": "U-VSL-CFG-DEL",
+              "doc": "the XPAR delete failed (detail in $$lastError)"
+            }
+          ],
+          "raised_in_body": [],
+          "examples": [],
+          "since": "",
+          "stable": "",
+          "see_also": [],
+          "deprecated": "",
+          "seam": null,
+          "description": "Clears the SYS instance via DEL^XPAR (which files the FileMan \"@\" delete sentinel).\nA deleted parameter then reads exactly like a never-set one ($$get returns the\ndefault). NOTE: DEL^XPAR is NOT idempotent — deleting a non-existent SYS instance\nraises U-VSL-CFG-DEL; guard with $$get if you need an idempotent clear.\n@icr 2263 @call DEL^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#delxpar-delete-parameter-value",
+          "source": {
+            "file": "src/VSLCFG.m",
+            "line": 77
+          },
+          "illustrative": "the success path clears a real SYS parameter instance — a live config mutation; exercised on live VistA by tests/VSLCFGTST.m tDeleteClears"
         },
         "lastError": {
           "form": "extrinsic",
@@ -140,7 +176,7 @@
           "description": "",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 76
+            "line": 96
           },
           "illustrative": "$$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check"
         }
@@ -1523,6 +1559,12 @@
       "module": "VSLCFG",
       "labels": [
         "set"
+      ]
+    },
+    "U-VSL-CFG-DEL": {
+      "module": "VSLCFG",
+      "labels": [
+        "delete"
       ]
     },
     "U-VSL-FS-DIERR": {

@@ -16,6 +16,8 @@ VSLCFGTST	; v-stdlib — VSLCFG (XPAR config adapter) test suite.
 	do tGetOmittedDefaultIsEmpty(.pass,.fail)
 	do tGetEffectiveResolvesSys(.pass,.fail)
 	do tSetFailureIsLoud(.pass,.fail)
+	do tDeleteClears(.pass,.fail)
+	do tDeleteFailureIsLoud(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -71,6 +73,29 @@ tSetFailureIsLoud(pass,fail)	;@TEST "a failed $$set maps to a clean ,U-VSL-CFG-.
 	do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")",",U-VSL-CFG-SET,","$$set into an undefined parameter raises exactly ,U-VSL-CFG-SET,")
 	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped set raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLCFG()'="","lastError carries the XPAR failure detail")
+	quit
+	;
+tDeleteClears(pass,fail)	;@TEST "$$delete clears the SYS instance — a subsequent $$get returns the default (deleted == unset)"
+	; Success path + settles the deferred empty-vs-unset question: after $$delete, the
+	; parameter reads exactly like a never-set one (the default). Self-restoring: setup picks
+	; an already-empty SYS-settable param; we set, delete, then teardown.
+	new key
+	do setup(.key)
+	quit:key=""
+	do set^VSLCFG(key,"todelete")
+	do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(key,"MISS"),"todelete","precondition: the value is set at SYS")
+	do delete^VSLCFG(key)
+	do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(key,"MISS"),"MISS","$$delete cleared the SYS instance — $$get returns the default (deleted reads as unset)")
+	do teardown(key)
+	quit
+	;
+tDeleteFailureIsLoud(pass,fail)	;@TEST "a failed $$delete maps to a clean ,U-VSL-CFG-DEL, $ECODE with the detail in $$lastError"
+	; Same loud path covers a non-existent SYS instance — DEL^XPAR is NOT idempotent, so
+	; deleting where there is nothing to delete (here, an undefined parameter) raises.
+	set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT
+	do raises^STDASSERT(.pass,.fail,"do delete^VSLCFG(""ZZNOSUCHVSLCFGPARAM"")",",U-VSL-CFG-DEL,","$$delete of an undefined parameter raises exactly ,U-VSL-CFG-DEL,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped delete raise (clean unwind)")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLCFG()'="","lastError carries the XPAR delete-failure detail")
 	quit
 	;
 	; ---------- fixtures ----------

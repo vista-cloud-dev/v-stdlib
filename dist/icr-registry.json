@@ -29,6 +29,16 @@
         "doc_key": "XU/krn_8_0_dg_toolkit_ug"
       },
       "status": "Supported"
+    },
+    {
+      "call": "DEL^XPAR",
+      "custodian": "XU",
+      "icr": 2263,
+      "source": {
+        "anchor": "delxpar-delete-parameter-value",
+        "doc_key": "XU/krn_8_0_dg_toolkit_ug"
+      },
+      "status": "Supported"
     }
   ],
   "VSLFS": [

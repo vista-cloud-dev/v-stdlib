@@ -4,8 +4,8 @@ layer: v
 since: 
 stable: stable
 synopsis: 'VistA configuration adapter over XPAR (Parameter Tools)'
-labels: ['get', 'getEffective', 'lastError', 'set']
-errors: ['U-VSL-CFG-SET']
+labels: ['delete', 'get', 'getEffective', 'lastError', 'set']
+errors: ['U-VSL-CFG-DEL', 'U-VSL-CFG-SET']
 see_also: []
 doc_type: [REFERENCE]
 ---
@@ -23,10 +23,25 @@ _Generated from `dist/vsl-manifest.json` — the canonical, always-current signa
 
 | Label | Signature | Summary |
 |---|---|---|
+| `delete` | `do delete^VSLCFG(key)` | Clear the SYS-level instance of parameter `key`; raise on a failed delete. |
 | `get` | `$$get^VSLCFG(key, default)` | Read parameter `key` at the SYS entity; return `default` when unset. |
 | `getEffective` | `$$getEffective^VSLCFG(key, default)` | Read the effective value across the parameter's entity precedence; else `default`. |
 | `lastError` | `$$lastError^VSLCFG()` | The last VSLCFG error message (the composed XPAR failure detail). |
 | `set` | `do set^VSLCFG(key, value)` | Set parameter `key` to `value` at the SYS entity; raise on a failed write. |
+
+### `do delete^VSLCFG(key)`
+
+Clear the SYS-level instance of parameter `key`; raise on a failed delete.
+
+**Parameters**
+
+- `key` _(string)_ — XPAR parameter name (#8989.51)
+
+**Returns** _void_ — side-effecting; no return value (loud on failure)
+
+**Raises**
+
+- `U-VSL-CFG-DEL` — the XPAR delete failed (detail in $$lastError)
 
 ### `$$get^VSLCFG(key, default)`
 

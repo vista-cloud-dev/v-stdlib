@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*19^
+**KIDS**:VSL*1.0*20^
 
 **INSTALL NAME**
-VSL*1.0*19
+VSL*1.0*20
 "BLD",1,0)
-VSL*1.0*19^VSL^0^0
+VSL*1.0*20^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -35,7 +35,7 @@ MSL*0.1*1^2
 "RTN")
 6
 "RTN","VSLCFG")
-0^86^0^0
+0^106^0^0
 "RTN","VSLCFG",1,0)
 VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 "RTN","VSLCFG",2,0)
@@ -67,146 +67,186 @@ VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 "RTN","VSLCFG",15,0)
 	;   $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)
 "RTN","VSLCFG",16,0)
-	;   $$lastError^VSLCFG()               — last XPAR failure detail, else ""
+	;   $$delete^VSLCFG(key)               — clear the SYS instance (DEL^XPAR; loud on failure)
 "RTN","VSLCFG",17,0)
-	;
+	;   $$lastError^VSLCFG()               — last XPAR failure detail, else ""
 "RTN","VSLCFG",18,0)
-	; $$get reads ONLY the SYS instance ($$GET^XPAR("SYS",...)) — the faithful flat
+	;
 "RTN","VSLCFG",19,0)
-	; STDENV analog. $$getEffective resolves the value XPAR would actually use in
+	; $$get reads ONLY the SYS instance ($$GET^XPAR("SYS",...)) — the faithful flat
 "RTN","VSLCFG",20,0)
-	; context (first-found across the parameter's own precedence chain via the "ALL"
+	; STDENV analog. $$getEffective resolves the value XPAR would actually use in
 "RTN","VSLCFG",21,0)
-	; entity). Use $$getEffective when you want "what value applies here?", $$get
+	; context (first-found across the parameter's own precedence chain via the "ALL"
 "RTN","VSLCFG",22,0)
-	; when you specifically want the SYS-level setting.
+	; entity). Use $$getEffective when you want "what value applies here?", $$get
 "RTN","VSLCFG",23,0)
-	;
+	; when you specifically want the SYS-level setting.
 "RTN","VSLCFG",24,0)
-	; *** ERROR CONTRACT — loud on a failed write, never a silent lost set ***
+	;
 "RTN","VSLCFG",25,0)
-	; EN^XPAR returns its error by reference as a scalar `0` (no error) or
+	; *** ERROR CONTRACT — loud on a failed write, never a silent lost set ***
 "RTN","VSLCFG",26,0)
-	; `#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a
+	; EN^XPAR returns its error by reference as a scalar `0` (no error) or
 "RTN","VSLCFG",27,0)
-	; non-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,
+	; `#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a
 "RTN","VSLCFG",28,0)
-	; $ECODE, with the detail in ^TMP($job,"vslcfg","err") for $$lastError. Reads of
+	; non-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,
 "RTN","VSLCFG",29,0)
-	; an unset parameter are NOT errors ($$get/$$getEffective return the default).
+	; $ECODE, with the detail in ^TMP($job,"vslcfg","err") for $$lastError. Reads of
 "RTN","VSLCFG",30,0)
-	; The flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).
+	; an unset parameter are NOT errors ($$get/$$getEffective return the default).
 "RTN","VSLCFG",31,0)
-	;
+	; The flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).
 "RTN","VSLCFG",32,0)
-	; XPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR
+	;
 "RTN","VSLCFG",33,0)
-	; alike.
+	; XPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR
 "RTN","VSLCFG",34,0)
-	;
+	; alike.
 "RTN","VSLCFG",35,0)
-	quit
+	;
 "RTN","VSLCFG",36,0)
-	;
-"RTN","VSLCFG",37,0)
-get(key,default)	; Read parameter `key` at the SYS entity; return `default` when unset.
-"RTN","VSLCFG",38,0)
-	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
-"RTN","VSLCFG",39,0)
-	; doc: @param default  string  value returned when the parameter is unset (optional; empty when omitted)
-"RTN","VSLCFG",40,0)
-	; doc: @returns        string  the SYS-level value, or `default` when unset
-"RTN","VSLCFG",41,0)
-	; doc: @example        do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH","fallback"),"fallback","get: unset parameter returns the default")
-"RTN","VSLCFG",42,0)
-	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
-"RTN","VSLCFG",43,0)
-	new v
-"RTN","VSLCFG",44,0)
-	set v=$$GET^XPAR("SYS",key,1)
-"RTN","VSLCFG",45,0)
-	quit $select(v="":$get(default),1:v)
-"RTN","VSLCFG",46,0)
-	;
-"RTN","VSLCFG",47,0)
-getEffective(key,default)	; Read the effective value across the parameter's entity precedence; else `default`.
-"RTN","VSLCFG",48,0)
-	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
-"RTN","VSLCFG",49,0)
-	; doc: @param default  string  value returned when the parameter is unset at every level (optional; empty when omitted)
-"RTN","VSLCFG",50,0)
-	; doc: @returns        string  the first value found in the parameter's precedence chain, or `default`
-"RTN","VSLCFG",51,0)
-	; doc: The "ALL" entity tells XPAR to walk the precedence multiple defined on the
-"RTN","VSLCFG",52,0)
-	; doc: parameter (#8989.51) and return the first level that has a value — what the
-"RTN","VSLCFG",53,0)
-	; doc: value would actually resolve to in context. Contrast $$get, which reads only SYS.
-"RTN","VSLCFG",54,0)
-	; doc: @example        do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","getEffective: unset parameter returns the default")
-"RTN","VSLCFG",55,0)
-	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
-"RTN","VSLCFG",56,0)
-	new v
-"RTN","VSLCFG",57,0)
-	set v=$$GET^XPAR("ALL",key,1)
-"RTN","VSLCFG",58,0)
-	quit $select(v="":$get(default),1:v)
-"RTN","VSLCFG",59,0)
-	;
-"RTN","VSLCFG",60,0)
-set(key,value)	; Set parameter `key` to `value` at the SYS entity; raise on a failed write.
-"RTN","VSLCFG",61,0)
-	; doc: @param key    string  XPAR parameter name (#8989.51)
-"RTN","VSLCFG",62,0)
-	; doc: @param value  string  value to store at the SYS level
-"RTN","VSLCFG",63,0)
-	; doc: @returns      void    side-effecting; no return value (loud on failure)
-"RTN","VSLCFG",64,0)
-	; doc: @raises  U-VSL-CFG-SET  the XPAR write failed (detail in $$lastError)
-"RTN","VSLCFG",65,0)
-	; doc: @illustrative  the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion
-"RTN","VSLCFG",66,0)
-	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
-"RTN","VSLCFG",67,0)
-	new ERR,$etrap,ok
-"RTN","VSLCFG",68,0)
-	set ok=1
-"RTN","VSLCFG",69,0)
-	set $etrap="set ok=0,$ecode="""" quit"
-"RTN","VSLCFG",70,0)
-	do EN^XPAR("SYS",key,1,value,.ERR)
-"RTN","VSLCFG",71,0)
-	set $etrap=""
-"RTN","VSLCFG",72,0)
-	if 'ok do raiseSet(key,"EN^XPAR faulted") quit
-"RTN","VSLCFG",73,0)
-	if +$get(ERR)>0 do raiseSet(key,ERR) quit
-"RTN","VSLCFG",74,0)
 	quit
+"RTN","VSLCFG",37,0)
+	;
+"RTN","VSLCFG",38,0)
+get(key,default)	; Read parameter `key` at the SYS entity; return `default` when unset.
+"RTN","VSLCFG",39,0)
+	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
+"RTN","VSLCFG",40,0)
+	; doc: @param default  string  value returned when the parameter is unset (optional; empty when omitted)
+"RTN","VSLCFG",41,0)
+	; doc: @returns        string  the SYS-level value, or `default` when unset
+"RTN","VSLCFG",42,0)
+	; doc: @example        do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH","fallback"),"fallback","get: unset parameter returns the default")
+"RTN","VSLCFG",43,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLCFG",44,0)
+	new v
+"RTN","VSLCFG",45,0)
+	set v=$$GET^XPAR("SYS",key,1)
+"RTN","VSLCFG",46,0)
+	quit $select(v="":$get(default),1:v)
+"RTN","VSLCFG",47,0)
+	;
+"RTN","VSLCFG",48,0)
+getEffective(key,default)	; Read the effective value across the parameter's entity precedence; else `default`.
+"RTN","VSLCFG",49,0)
+	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
+"RTN","VSLCFG",50,0)
+	; doc: @param default  string  value returned when the parameter is unset at every level (optional; empty when omitted)
+"RTN","VSLCFG",51,0)
+	; doc: @returns        string  the first value found in the parameter's precedence chain, or `default`
+"RTN","VSLCFG",52,0)
+	; doc: The "ALL" entity tells XPAR to walk the precedence multiple defined on the
+"RTN","VSLCFG",53,0)
+	; doc: parameter (#8989.51) and return the first level that has a value — what the
+"RTN","VSLCFG",54,0)
+	; doc: value would actually resolve to in context. Contrast $$get, which reads only SYS.
+"RTN","VSLCFG",55,0)
+	; doc: @example        do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","getEffective: unset parameter returns the default")
+"RTN","VSLCFG",56,0)
+	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
+"RTN","VSLCFG",57,0)
+	new v
+"RTN","VSLCFG",58,0)
+	set v=$$GET^XPAR("ALL",key,1)
+"RTN","VSLCFG",59,0)
+	quit $select(v="":$get(default),1:v)
+"RTN","VSLCFG",60,0)
+	;
+"RTN","VSLCFG",61,0)
+set(key,value)	; Set parameter `key` to `value` at the SYS entity; raise on a failed write.
+"RTN","VSLCFG",62,0)
+	; doc: @param key    string  XPAR parameter name (#8989.51)
+"RTN","VSLCFG",63,0)
+	; doc: @param value  string  value to store at the SYS level
+"RTN","VSLCFG",64,0)
+	; doc: @returns      void    side-effecting; no return value (loud on failure)
+"RTN","VSLCFG",65,0)
+	; doc: @raises  U-VSL-CFG-SET  the XPAR write failed (detail in $$lastError)
+"RTN","VSLCFG",66,0)
+	; doc: @illustrative  the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion
+"RTN","VSLCFG",67,0)
+	; doc: @icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters
+"RTN","VSLCFG",68,0)
+	new ERR,$etrap,ok
+"RTN","VSLCFG",69,0)
+	set ok=1
+"RTN","VSLCFG",70,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLCFG",71,0)
+	do EN^XPAR("SYS",key,1,value,.ERR)
+"RTN","VSLCFG",72,0)
+	set $etrap=""
+"RTN","VSLCFG",73,0)
+	if 'ok do raiseXpar("SET",key,"EN^XPAR faulted") quit
+"RTN","VSLCFG",74,0)
+	if +$get(ERR)>0 do raiseXpar("SET",key,ERR) quit
 "RTN","VSLCFG",75,0)
-	;
+	quit
 "RTN","VSLCFG",76,0)
-lastError()	; The last VSLCFG error message (the composed XPAR failure detail).
+	;
 "RTN","VSLCFG",77,0)
-	; doc: @returns      string  ^TMP($job,"vslcfg","err"), or "" if none
+delete(key)	; Clear the SYS-level instance of parameter `key`; raise on a failed delete.
 "RTN","VSLCFG",78,0)
-	; doc: @illustrative  $$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check
+	; doc: @param key    string  XPAR parameter name (#8989.51)
 "RTN","VSLCFG",79,0)
-	quit $get(^TMP($job,"vslcfg","err"))
+	; doc: @returns      void    side-effecting; no return value (loud on failure)
 "RTN","VSLCFG",80,0)
-	;
+	; doc: @raises  U-VSL-CFG-DEL  the XPAR delete failed (detail in $$lastError)
 "RTN","VSLCFG",81,0)
-	; ---------- internals ----------
+	; doc: Clears the SYS instance via DEL^XPAR (which files the FileMan "@" delete sentinel).
 "RTN","VSLCFG",82,0)
-	;
+	; doc: A deleted parameter then reads exactly like a never-set one ($$get returns the
 "RTN","VSLCFG",83,0)
-raiseSet(key,detail)	; (private) stash the detail, then raise the clean ,U-VSL-CFG-SET,.
+	; doc: default). NOTE: DEL^XPAR is NOT idempotent — deleting a non-existent SYS instance
 "RTN","VSLCFG",84,0)
-	set ^TMP($job,"vslcfg","err")="set("_key_"): XPAR failed ("_detail_")"
+	; doc: raises U-VSL-CFG-DEL; guard with $$get if you need an idempotent clear.
 "RTN","VSLCFG",85,0)
-	set $ecode=",U-VSL-CFG-SET,"
+	; doc: @illustrative  the success path clears a real SYS parameter instance — a live config mutation; exercised on live VistA by tests/VSLCFGTST.m tDeleteClears
 "RTN","VSLCFG",86,0)
+	; doc: @icr 2263 @call DEL^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#delxpar-delete-parameter-value
+"RTN","VSLCFG",87,0)
+	new ERR,$etrap,ok
+"RTN","VSLCFG",88,0)
+	set ok=1
+"RTN","VSLCFG",89,0)
+	set $etrap="set ok=0,$ecode="""" quit"
+"RTN","VSLCFG",90,0)
+	do DEL^XPAR("SYS",key,1,.ERR)
+"RTN","VSLCFG",91,0)
+	set $etrap=""
+"RTN","VSLCFG",92,0)
+	if 'ok do raiseXpar("DEL",key,"DEL^XPAR faulted") quit
+"RTN","VSLCFG",93,0)
+	if +$get(ERR)>0 do raiseXpar("DEL",key,ERR) quit
+"RTN","VSLCFG",94,0)
+	quit
+"RTN","VSLCFG",95,0)
+	;
+"RTN","VSLCFG",96,0)
+lastError()	; The last VSLCFG error message (the composed XPAR failure detail).
+"RTN","VSLCFG",97,0)
+	; doc: @returns      string  ^TMP($job,"vslcfg","err"), or "" if none
+"RTN","VSLCFG",98,0)
+	; doc: @illustrative  $$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check
+"RTN","VSLCFG",99,0)
+	quit $get(^TMP($job,"vslcfg","err"))
+"RTN","VSLCFG",100,0)
+	;
+"RTN","VSLCFG",101,0)
+	; ---------- internals ----------
+"RTN","VSLCFG",102,0)
+	;
+"RTN","VSLCFG",103,0)
+raiseXpar(op,key,detail)	; (private) stash the detail, then raise a clean ,U-VSL-CFG-<op>,.
+"RTN","VSLCFG",104,0)
+	set ^TMP($job,"vslcfg","err")=op_"("_key_"): XPAR failed ("_detail_")"
+"RTN","VSLCFG",105,0)
+	set $ecode=",U-VSL-CFG-"_op_","
+"RTN","VSLCFG",106,0)
 	quit
 "RTN","VSLFS")
 0^206^0^0

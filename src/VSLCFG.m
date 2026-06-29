@@ -13,6 +13,7 @@ VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 	;                                        parameter's entity precedence (GET^XPAR
 	;                                        "ALL"), else default
 	;   $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)
+	;   $$delete^VSLCFG(key)               — clear the SYS instance (DEL^XPAR; loud on failure)
 	;   $$lastError^VSLCFG()               — last XPAR failure detail, else ""
 	;
 	; $$get reads ONLY the SYS instance ($$GET^XPAR("SYS",...)) — the faithful flat
@@ -69,8 +70,27 @@ set(key,value)	; Set parameter `key` to `value` at the SYS entity; raise on a fa
 	set $etrap="set ok=0,$ecode="""" quit"
 	do EN^XPAR("SYS",key,1,value,.ERR)
 	set $etrap=""
-	if 'ok do raiseSet(key,"EN^XPAR faulted") quit
-	if +$get(ERR)>0 do raiseSet(key,ERR) quit
+	if 'ok do raiseXpar("SET",key,"EN^XPAR faulted") quit
+	if +$get(ERR)>0 do raiseXpar("SET",key,ERR) quit
+	quit
+	;
+delete(key)	; Clear the SYS-level instance of parameter `key`; raise on a failed delete.
+	; doc: @param key    string  XPAR parameter name (#8989.51)
+	; doc: @returns      void    side-effecting; no return value (loud on failure)
+	; doc: @raises  U-VSL-CFG-DEL  the XPAR delete failed (detail in $$lastError)
+	; doc: Clears the SYS instance via DEL^XPAR (which files the FileMan "@" delete sentinel).
+	; doc: A deleted parameter then reads exactly like a never-set one ($$get returns the
+	; doc: default). NOTE: DEL^XPAR is NOT idempotent — deleting a non-existent SYS instance
+	; doc: raises U-VSL-CFG-DEL; guard with $$get if you need an idempotent clear.
+	; doc: @illustrative  the success path clears a real SYS parameter instance — a live config mutation; exercised on live VistA by tests/VSLCFGTST.m tDeleteClears
+	; doc: @icr 2263 @call DEL^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#delxpar-delete-parameter-value
+	new ERR,$etrap,ok
+	set ok=1
+	set $etrap="set ok=0,$ecode="""" quit"
+	do DEL^XPAR("SYS",key,1,.ERR)
+	set $etrap=""
+	if 'ok do raiseXpar("DEL",key,"DEL^XPAR faulted") quit
+	if +$get(ERR)>0 do raiseXpar("DEL",key,ERR) quit
 	quit
 	;
 lastError()	; The last VSLCFG error message (the composed XPAR failure detail).
@@ -80,7 +100,7 @@ lastError()	; The last VSLCFG error message (the composed XPAR failure detail).
 	;
 	; ---------- internals ----------
 	;
-raiseSet(key,detail)	; (private) stash the detail, then raise the clean ,U-VSL-CFG-SET,.
-	set ^TMP($job,"vslcfg","err")="set("_key_"): XPAR failed ("_detail_")"
-	set $ecode=",U-VSL-CFG-SET,"
+raiseXpar(op,key,detail)	; (private) stash the detail, then raise a clean ,U-VSL-CFG-<op>,.
+	set ^TMP($job,"vslcfg","err")=op_"("_key_"): XPAR failed ("_detail_")"
+	set $ecode=",U-VSL-CFG-"_op_","
 	quit
