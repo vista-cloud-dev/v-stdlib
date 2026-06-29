@@ -19,6 +19,7 @@ docs/
 ## Key docs
 
 - [`guides/quick-start.md`](guides/quick-start.md) — fastest path to calling `VSL*` code.
+- [`guides/verification-surfaces.md`](guides/verification-surfaces.md) — what `tests/`, `examples/programs/*EX.m`, and the demos each verify, and where new code belongs (v-specifics + pointer to the canonical m-stdlib model).
 - [`guides/m-doc-grammar.md`](guides/m-doc-grammar.md) — the `; doc:` tag grammar driving the generated manifest + `modules/`.
 - [`modules/`](modules/) — generated per-module reference (one page per `VSL*` module).
 
