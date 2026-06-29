@@ -1116,7 +1116,7 @@
     },
     "VSLTASK": {
       "synopsis": "v-stdlib — VistA TaskMan persistent-listener adapter (the process seam).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the persistent-listener seam to Kernel TaskMan. A long-running VSL/\nVWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks\na queued task persistent, so TaskMan automatically RE-RUNS it when the lock\non ^%ZTSCH(\"TASK\",n) is dropped — a self-healing listener (architecture\n§3.5). VSLTASK is a thin binding over the Supported ^%ZTLOAD programmer API\n(ICR #10063), NOT new machinery; portable diagnostics belong in STDLOG (v->m),\nnever re-implemented here.\n\nPublic API:\n  $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)\n  $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)\n  $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)\n  $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#\n  $$lastError^VSLTASK()         — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call / a real TaskMan fault ***\nA malformed call (no entry / no task#) or a TaskMan queue fault maps to a\nclean ,U-VSL-TASK-ARG, / ,U-VSL-TASK-QUEUE, $ECODE, with the detail in\n^TMP($job,\"vsltask\",\"err\") for $$lastError. A normal negative — \"the\nscheduler is not running here\" ($$running=0) or \"no stop requested\"\n($$stop=0) — is NOT an error (kickoff decision 4). The flag-based $ETRAP\npattern is used (NEVER zgoto — a zgoto trap aborts the resident harness 0/0,\nthe M4 VSLLOG gotcha); OUR trap is cleared before any re-raise.\n\nSelf-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks\n^%ZTSCH(\"TASK\",n,\"P\"); TaskMan re-runs on a lock drop). Observing a live\nrestart needs the task body installed as a RESIDENT routine (the v-pkg\ninstall path) + lock manipulation, and a persistent task is deliberately\nun-KILLable — out of scope for a safe unit test (see VSLTASKTST).",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the persistent-listener seam to Kernel TaskMan. A long-running VSL/\nVWEB socket listener is a TaskMan **persistent task**: $$PSET^%ZTLOAD marks\na queued task persistent, so TaskMan automatically RE-RUNS it when the lock\non ^%ZTSCH(\"TASK\",n) is dropped — a self-healing listener (architecture\n§3.5). VSLTASK is a thin binding over the Supported ^%ZTLOAD programmer API\n(ICR #10063), NOT new machinery; portable diagnostics belong in STDLOG (v->m),\nnever re-implemented here.\n\nPublic API:\n  $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)\n  $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)\n  $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)\n  $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#\n  $$lastError^VSLTASK()         — last error detail, else \"\"\n\n*** ERROR CONTRACT — loud on a malformed call / a real TaskMan fault ***\nA malformed call (no entry / no task#) or a TaskMan queue fault maps to a\nclean ,U-VSL-TASK-ARG, / ,U-VSL-TASK-QUEUE, $ECODE, with the detail in\n^TMP($job,\"vsltask\",\"err\") for $$lastError. A normal negative — \"the\nscheduler is not running here\" ($$running=0) or \"no stop requested\"\n($$stop=0) — is NOT an error (kickoff decision 4). The flag-based $ETRAP\npattern is used (NEVER zgoto — a zgoto trap aborts the resident harness 0/0,\nthe M4 VSLLOG gotcha); OUR trap is cleared before any re-raise.\n\nSelf-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks\n^%ZTSCH(\"TASK\",n,\"P\"); TaskMan re-runs on a lock drop). Observing a live\nrestart needs the task body installed as a RESIDENT routine (the v-pkg\ninstall path) + lock manipulation. Queuing a real persistent task is a live\nside effect that cannot be cleanly undone on a shared engine — out of scope for\na safe unit test (see VSLTASKTST).",
       "errors": [
         "U-VSL-TASK-ARG",
         "U-VSL-TASK-QUEUE"
@@ -1144,7 +1144,7 @@
           "description": "@icr 10063 @call $$TM^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#tmztload-check-if-taskman-is-running",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 39
+            "line": 40
           }
         },
         "stop": {
@@ -1169,7 +1169,7 @@
           "description": "@icr 10063 @call $$S^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#sztload-check-for-task-stop-request",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 45
+            "line": 46
           }
         },
         "persist": {
@@ -1205,9 +1205,9 @@
           "description": "@icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 51
+            "line": 52
           },
-          "illustrative": "the success path marks a queued task persistent (un-KILLable) on a shared live TaskMan; only the malformed-call contract is safely shown"
+          "illustrative": "the success path marks a real queued task persistent on a shared live TaskMan (a side effect not cleanly undone); only the malformed-call contract is safely shown"
         },
         "schedule": {
           "form": "extrinsic",
@@ -1227,7 +1227,7 @@
             {
               "name": "when",
               "type": "string",
-              "doc": "TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or \"@\" for ASAP — not a bare day number."
+              "doc": "TaskMan ZTDTH start time (optional; default\n$HOROLOG = run now). A full $H value (`days,secs`, e.g. $HOROLOG), not a\nbare day number. NOTE: ZTDTH \"@\" means do NOT schedule (defer for later\nmanual scheduling) — it is NOT \"ASAP\"; omit `when` (or pass $HOROLOG) to\nrun a persistent listener now."
             }
           ],
           "returns": {
@@ -1256,9 +1256,9 @@
           "description": "",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 61
+            "line": 62
           },
-          "illustrative": "the success path queues a real, un-KILLable persistent TaskMan task — a side effect not cleanly undone; only the malformed-call contract is safely shown",
+          "illustrative": "the success path queues a real persistent TaskMan task — a side effect not cleanly undone on a shared engine; only the malformed-call contract is safely shown",
           "raises_nodemo": [
             {
               "code": "U-VSL-TASK-QUEUE",
@@ -1286,7 +1286,7 @@
           "description": "",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 81
+            "line": 86
           },
           "illustrative": "$$lastError is exercised by the malformed-call assertions in tests/VSLTASKTST.m; the inline raise round-trip duplicated that canonical check"
         },
@@ -1307,7 +1307,7 @@
           "description": "@icr 10063 @call ^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_tm#callable-entry-points",
           "source": {
             "file": "src/VSLTASK.m",
-            "line": 88
+            "line": 93
           },
           "illustrative": "private; runs ^%ZTLOAD which queues a real TaskMan task on a shared live VistA — a side effect that cannot be cleanly undone in a unit test"
         }

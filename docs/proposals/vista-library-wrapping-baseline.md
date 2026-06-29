@@ -48,8 +48,19 @@ straight over. Each is verified below.
 > R5a ("`@` for ASAP"). The audit caught its own house's error — exactly what an
 > adversarial, corpus-grounded pass is for.
 
-> **✅ UPDATE — defects (1), (2), (3) FIXED (2026-06-28).** Defect (4) VSLTASK
-> remains open.
+> **✅ UPDATE — ALL FOUR High defects (1)–(4) FIXED (2026-06-28).** The audit's
+> High-severity list is closed; the in-scope coverage gaps (missing verbs, the
+> coverage-model test categories) remain as enhancement work.
+> - **(4) VSLTASK:** the `schedule()` `when` docstring no longer claims `"@"` = ASAP
+>   — corpus `XU/krn_8_0_dg_taskman_ug#example-7` is explicit that `ZTDTH="@"` means
+>   *do NOT schedule* (defer); omit `when` (→ `$HOROLOG`, the code default) to run
+>   now. Also dropped the "persistent task is deliberately un-KILLable" wording — the
+>   corpus `KILL^%ZTLOAD` contract documents only success / invalid-task (no
+>   persistence exemption), so the user-facing doc no longer asserts un-killability;
+>   the real testability obstacle is a side effect that can't be cleanly undone on a
+>   shared engine. (The `m5-vsltask-vslbld` memory has a *code-derived* "KILL refuses
+>   a persistent task" note — undocumented in the corpus; left as a known discrepancy,
+>   not resolved here.) Doc-only; `VSLTASKTST` stays **8/8 on both engines**.
 > - **(3) VSLFS:** the contract was the doc, not the code — `$$set` files INTERNAL
 >   (VSLLOG depends on that; "pass `E`" would break it), so the docstring is
 >   corrected from "external value" to "internal value" with the

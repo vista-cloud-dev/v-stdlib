@@ -1,6 +1,6 @@
 ---
 name: vsl-wrapping-baseline-audit
-description: 2026-06-28 dual-engine adversarial audit of all six VSL* modules → the VistA-library wrapping baseline (coverage model + stress policy + 9 gates) and FOUR verified-open defects (VSLSEC default-duz UNDEF, VSLIO RED on IRIS, VSLFS E-flag doc/code, VSLTASK "@"). Green YDB suites masked them.
+description: 2026-06-28 dual-engine adversarial audit of all six VSL* modules → the VistA-library wrapping baseline (coverage model + stress policy + 9 gates) and four defects, ALL FIXED 2026-06-28 (VSLSEC default-duz UNDEF, VSLIO RED on IRIS, VSLFS internal-doc, VSLTASK "@"). Green YDB suites had masked them. Remaining = enhancements (missing verbs, coverage-model test categories).
 metadata:
   type: project
 ---
@@ -19,7 +19,7 @@ explicit-arg / valid-input / transform-invariant / prefix-`$ECODE`-match paths a
 never reached the contract edges. "Comprehensive coverage" for a VistA wrapper is
 the 7-category model in the doc — happy-path green is necessary, not sufficient.
 
-## Four OPEN defects (verified; true until fixed — keep until each lands)
+## Four defects (verified) — ✅ ALL FIXED 2026-06-28 (commits 0acedb0, c56df66, f0df013, + this)
 1. **VSLSEC default-duz UNDEF — ✅ FIXED 2026-06-28.** single-arg
    `$$hasKey(key)`/`$$user()` raised UNDEF on BOTH engines: `$$pduz(duz)` evaluated an
    omitted formal by value before its `$get`. Fix: call sites pass `$$pduz($get(duz))`.
@@ -46,9 +46,18 @@ the 7-category model in the doc — happy-path green is necessary, not sufficien
    transform-invariant). VSLFSTST 16/16 dual-engine. **"Pass E" would have broken
    VSLLOG — the doc was the bug.** Deferred: a DATE field on #999000 (v-pkg testdata,
    cross-repo).
-4. **VSLTASK schedule `@`** — docstring "`@` = ASAP" is backwards; corpus
-   `XU/krn_8_0_dg_taskman_ug#example-7` = `ZTDTH="@"` means do-NOT-schedule. (This
-   was wording R5a introduced — the audit caught its own house's error.)
+4. **VSLTASK schedule `@` — ✅ FIXED 2026-06-28 (doc-only).** docstring "`@` = ASAP"
+   was backwards; corpus `XU/krn_8_0_dg_taskman_ug#example-7` = `ZTDTH="@"` means
+   do-NOT-schedule (defer). Fixed: `when` doc says omit it (→ `$HOROLOG`, the code
+   default) to run now; `"@"` defers. Also dropped the "deliberately un-KILLable"
+   wording from the user-facing doc — the corpus `KILL^%ZTLOAD` contract documents
+   only success/invalid-task (no persistence exemption), so the doc no longer asserts
+   un-killability; the real obstacle is the un-undoable side effect on a shared
+   engine. **Discrepancy (unresolved):** [[m5-vsltask-vslbld]] has a *code-derived*
+   "`KILL` refuses a persistent task (`I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q`)" note —
+   undocumented in the corpus; could be real undocumented routine behavior, left
+   neutral in the doc rather than asserting either way. `VSLTASKTST` 8/8 dual-engine.
+   (The `"@"`=ASAP wording was R5a's — the audit caught its own house's error.)
 
 ## Cross-cutting
 - **Corpus empty-body anchors** (systematic, not per-module): `VSLCFG set()`,
@@ -59,6 +68,8 @@ the 7-category model in the doc — happy-path green is necessary, not sufficien
   `$$ACTIVE^XUSER`, VSLTASK `$$ASKSTOP`/`PCLEAR`/`STAT` (the stop/retire/observe
   half), VSLCFG `DEL^XPAR`.
 
-Deliverable was analysis-only (no code/test changes). Forward path: fix the four
-High defects as TDD increments (VSLIO first — it's CI-red on IRIS), then adopt the
-coverage model + add the missing test categories to the six suites.
+The audit deliverable was analysis-only; **all four High defects were then fixed as
+TDD increments (2026-06-28)** — VSLIO, VSLSEC, VSLFS, VSLTASK all green dual-engine.
+**Remaining (enhancement, not defects):** the in-scope missing verbs above, the
+coverage-model test categories (exact-ecode, default-arg, boundary, volume/residue)
+added to the six suites, and the corpus empty-anchor re-extraction (v-pkg/vdocs).

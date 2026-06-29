@@ -29,8 +29,9 @@ VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process se
 	; Self-restart note: the restart CONTRACT is bound here ($$PSET^%ZTLOAD marks
 	; ^%ZTSCH("TASK",n,"P"); TaskMan re-runs on a lock drop). Observing a live
 	; restart needs the task body installed as a RESIDENT routine (the v-pkg
-	; install path) + lock manipulation, and a persistent task is deliberately
-	; un-KILLable — out of scope for a safe unit test (see VSLTASKTST).
+	; install path) + lock manipulation. Queuing a real persistent task is a live
+	; side effect that cannot be cleanly undone on a shared engine — out of scope for
+	; a safe unit test (see VSLTASKTST).
 	;
 	quit
 	;
@@ -52,7 +53,7 @@ persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it o
 	; doc: @param   ztsk     numeric  the task number (from $$schedule / ^%ZTLOAD)
 	; doc: @returns          bool     1 iff the task was marked persistent, else 0 (task not queued)
 	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
-	; doc: @illustrative   the success path marks a queued task persistent (un-KILLable) on a shared live TaskMan; only the malformed-call contract is safely shown
+	; doc: @illustrative   the success path marks a real queued task persistent on a shared live TaskMan (a side effect not cleanly undone); only the malformed-call contract is safely shown
 	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK-ARG","$$persist with no task# raises U-VSL-TASK-ARG")
 	; doc: @icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent
 	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","persist: a positive task number is required") quit ""
@@ -61,12 +62,16 @@ persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it o
 schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; return its task number.
 	; doc: @param   entry    string   the task entry reference (TAG^ROUTINE)
 	; doc: @param   desc     string   a human description (optional)
-	; doc: @param   when     string   TaskMan ZTDTH start time (optional; default $HOROLOG = now). A full $H value (`days,secs`, e.g. $HOROLOG), or "@" for ASAP — not a bare day number.
+	; doc: @param   when     string   TaskMan ZTDTH start time (optional; default
+	; doc:    $HOROLOG = run now). A full $H value (`days,secs`, e.g. $HOROLOG), not a
+	; doc:    bare day number. NOTE: ZTDTH "@" means do NOT schedule (defer for later
+	; doc:    manual scheduling) — it is NOT "ASAP"; omit `when` (or pass $HOROLOG) to
+	; doc:    run a persistent listener now.
 	; doc: @returns          numeric  the queued task number
 	; doc: @raises  U-VSL-TASK-ARG    no entry reference supplied
 	; doc: @raises  U-VSL-TASK-QUEUE  the TaskMan queue / persist failed
 	; doc: @raisesnodemo U-VSL-TASK-QUEUE  reachable only via a genuinely-failed live TaskMan queue (side-effecting, non-deterministic); not safely triggerable in an example
-	; doc: @illustrative   the success path queues a real, un-KILLable persistent TaskMan task — a side effect not cleanly undone; only the malformed-call contract is safely shown
+	; doc: @illustrative   the success path queues a real persistent TaskMan task — a side effect not cleanly undone on a shared engine; only the malformed-call contract is safely shown
 	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
 	new $etrap,ztsk,ok
 	if $get(entry)="" do raise("U-VSL-TASK-ARG","schedule: an entry reference is required") quit ""
