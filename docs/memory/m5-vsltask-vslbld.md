@@ -34,12 +34,43 @@ for two grounded reasons read off the live `^%ZTLOAD` source:
    the task in a separate process off the engine's resident routine path; a
    test-staged VSLTASK is invisible to it. A real sentinel task needs VSLBLD/v-pkg
    to install it resident first — an integration test, beyond M5's unit scope.
-2. **A PSET-persistent task is deliberately un-KILLable.** `^%ZTLOAD` `KILL`
-   refuses a persistent task (`I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q`) — exactly the
-   runaway the kickoff forbids ("never leave a runaway task").
+2. **A queued persistent task self-restarts — leaving one is a runaway.** A
+   PSET'd task re-runs whenever its `^%ZTSK(n)` lock drops, so an automated unit
+   test that queues+PSETs one risks leaving exactly the runaway the kickoff forbids
+   ("never leave a runaway task"). (NOTE — the earlier "deliberately un-KILLable"
+   sub-claim was **REFUTED** by a live read 2026-06-29; see the P4 verdict below. The
+   soft-skip still holds on this runaway-safety ground, not on KILL protection.)
 The restart CONTRACT is bound + documented (`$$PSET^%ZTLOAD` sets
 `^%ZTSCH("TASK",n,"P")`; TaskMan re-runs on a lock drop) and asserted *wired*;
 the live observation is an infra/integration-gated follow-up.
+
+### P4 VERDICT (2026-06-29, live vehu YDB) — the `KILL`-persistent guard is VESTIGIAL
+Settled the long-open `KILL^%ZTLOAD`-vs-persistent discrepancy by reading the live
+resident Kernel source over the driver (`m vista exec --engine ydb --transport docker
+-o text '<$text scan>'`; needs `M_YDB_CONTAINER/_GBLDIR/_ROUTINES` exported — they are
+NOT in `~/data/vista-cloud-dev/auth.env`, which only carries `M_IRIS_*`). Findings:
+- **The guard exists but does nothing.** `KILL^%ZTLOAD` really does contain
+  `I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q` (comment "Don't kill running persistent tasks") —
+  so the old quote was faithful to source. BUT that node `^%ZTSCH("ZTSK",n,"P")` is
+  **read at exactly one site (the guard itself) and SET nowhere** — scanned the whole
+  TaskMan core (`%ZTLOAD*`,`%ZTM`,`%ZTM0..4`,`%ZTMS*`,`%ZTPP`) + option family
+  (`XUTM*`); only occurrence is `%ZTLOAD+27`. It is also **absent from the live
+  `^%ZTSCH`** at rest (top subscripts: numeric slots + ER/HOUR/IDLE/LOAD/RUN/STARTUP/
+  STATUS/SUB/TASK/UPDATE — no `ZTSK`), even while persistent listeners ARE scheduled.
+- **PSET writes a DIFFERENT node.** `$$PSET^%ZTLOAD` sets `^%ZTSCH("TASK",n,"P")`
+  (subscript `TASK`, not `ZTSK`) — verified PRESENT on the live HL AUTOSTART LINK
+  MANAGER (task 1808: `^%ZTSCH("TASK",1808,"P")=""`). So persistence is stored under
+  `TASK`; the KILL guard tests `ZTSK`. They never meet.
+- **⇒ A PSET-persistent task is NOT protected from `KILL` by this guard** — it is dead
+  code (a latent Kernel quirk). The corpus contract (`KILL` = success/invalid-task, no
+  persistence exemption) thus matches *observable* behavior; the m5 "deliberately
+  un-KILLable" claim was operationally false. Also: KILL's decline path is a SILENT
+  no-op (`ZTSK(0)=0` vs `=1` on a real delete), never a raise.
+- **Impact: none on v-stdlib code.** VSLTASK does not wrap `KILL`; the VSLTASK.m
+  header's `$$PSET → ^%ZTSCH("TASK",n,"P")` line is CORRECT (verified). Pure
+  memory/doc reconciliation. **Durable lesson:** a code-derived "the engine does X"
+  claim must be verified against the *running* globals, not just the source text — a
+  guard can reference a node that nothing populates.
 
 ### Headless-queue gotcha (for the future live integration test)
 `^%ZTLOAD` (QUEUE→`^%ZTLOAD1`) **prompts interactively** (`ASK^%ZTLOAD2`) unless

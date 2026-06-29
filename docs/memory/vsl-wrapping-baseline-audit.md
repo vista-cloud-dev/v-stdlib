@@ -74,10 +74,14 @@ engine-specific"), rather than enshrining the corpus's nominal codes.
    wording from the user-facing doc — the corpus `KILL^%ZTLOAD` contract documents
    only success/invalid-task (no persistence exemption), so the doc no longer asserts
    un-killability; the real obstacle is the un-undoable side effect on a shared
-   engine. **Discrepancy (unresolved):** [[m5-vsltask-vslbld]] has a *code-derived*
-   "`KILL` refuses a persistent task (`I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q`)" note —
-   undocumented in the corpus; could be real undocumented routine behavior, left
-   neutral in the doc rather than asserting either way. `VSLTASKTST` 8/8 dual-engine.
+   engine. **Discrepancy — ✅ RESOLVED (P4, 2026-06-29, live vehu read):** the
+   [[m5-vsltask-vslbld]] code-derived "`KILL` refuses a persistent task" note is
+   **REFUTED operationally** — the guard `I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q` exists in
+   live `KILL^%ZTLOAD` but its node `^%ZTSCH("ZTSK",…)` is read at that one site and
+   **set by no TaskMan routine** (scanned `%ZTLOAD*`/`%ZTM*`/`XUTM*`); PSET writes a
+   *different* node `^%ZTSCH("TASK",n,"P")` (verified live on task 1808). So the guard
+   is vestigial — the corpus's no-exemption contract matches observable behavior. See
+   the P4 VERDICT in [[m5-vsltask-vslbld]]. `VSLTASKTST` 8/8 dual-engine.
    (The `"@"`=ASAP wording was R5a's — the audit caught its own house's error.)
 
 ## Cross-cutting

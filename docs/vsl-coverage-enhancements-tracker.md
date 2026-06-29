@@ -12,12 +12,13 @@ scope: the post-baseline enhancement backlog for the 6 VSL* modules (missing wra
 
 Live tracker (Tier D) for the **enhancement** work that follows the
 [VistA library wrapping baseline](proposals/vista-library-wrapping-baseline.md). The
-baseline's four High defects are CLOSED, and as of **2026-06-29 both P1
-(coverage-model backfill) and P2 (missing wrapped-API verbs) are COMPLETE** — plus
-two more UNDEF defects fixed in passing (VSLCFG `$$get` default, VSLLOG `$$query`
+baseline's four High defects are CLOSED, and as of **2026-06-29 P1
+(coverage-model backfill), P2 (missing wrapped-API verbs), and P4 (the
+`KILL^%ZTLOAD`-vs-persistent-task discrepancy) are all COMPLETE** — plus two more
+UNDEF defects fixed in passing (VSLCFG `$$get` default, VSLLOG `$$query`
 dates). All six suites are **121/121 dual-engine**, KIDS patch **20**. What remains is
-**P3** (provenance/corpus cleanup — mostly doc-accuracy + a cross-repo vdocs
-re-extraction) and **P4** (settle the `KILL^%ZTLOAD`-vs-persistent-task discrepancy),
+**P3** (provenance/corpus cleanup — the in-repo doc-accuracy items are doable here;
+the GOLD-corpus empty-anchor re-extraction is **cross-repo vdocs**, not this session),
 plus two deferred larger items (VSLFS `WP^DIE` write-support; entity-aware XPAR verbs →
 a future `VSLPARM`).
 
@@ -26,22 +27,25 @@ a future `VSLPARM`).
 ## ▶ Resume prompt (paste into a NEW session, cwd `~/vista-cloud-dev/v-stdlib`)
 
 > Resume the v-stdlib wrapping-baseline **enhancement** work. **P1 (coverage-model
-> backfill) and P2 (missing verbs) are DONE** — all six suites 121/121 dual-engine,
-> KIDS 20. Read this tracker + the baseline
-> `docs/proposals/vista-library-wrapping-baseline.md` + the memory
-> `docs/memory/vsl-wrapping-baseline-audit.md` (and `MEMORY.md`) first.
+> backfill), P2 (missing verbs), and P4 (the `KILL^%ZTLOAD`-vs-persistent-task
+> discrepancy) are all DONE** — all six suites 121/121 dual-engine, KIDS 20. Read this
+> tracker + the baseline `docs/proposals/vista-library-wrapping-baseline.md` + the
+> memory `docs/memory/vsl-wrapping-baseline-audit.md` + the P4 verdict in
+> `docs/memory/m5-vsltask-vslbld.md` (and `MEMORY.md`) first.
 >
 > Work the **remaining** backlog below, one increment per item, lightest-touch first:
-> **P4** (settle the `KILL^%ZTLOAD`-vs-persistent-task discrepancy) is a self-contained
-> READ-ONLY verification — do it here: read the live `^%ZTLOAD` routine via
-> `m vista exec --engine ydb --transport docker "..."` (note: it does NOT layer local
-> `--routines`, so inspect resident Kernel code, not VSL), reconcile
-> `docs/memory/m5-vsltask-vslbld.md` ⇄ corpus ⇄ the `VSLTASK.m` neutral wording, and
-> record the verdict. Then **P3** (provenance/corpus cleanup): the doc-accuracy items
-> (VSLIO `CALL^%ZISTCP` / TLS ICRs, VSLCFG `#^errortext` prose, VSLFS ICR-note) are
-> in-repo; the GOLD-corpus empty-anchor re-extraction is **cross-repo (vdocs)** — do
-> that in the vdocs session, not here. The two deferred larger items (VSLFS `WP^DIE`
-> write-support; entity-aware XPAR → `VSLPARM`) are new-surface, schedule separately.
+> only **P3** (provenance/corpus cleanup) is left for this session — the in-repo
+> doc-accuracy items (VSLIO `CALL^%ZISTCP` / TLS ICRs, VSLCFG `#^errortext` prose, VSLFS
+> ICR-note) are doable here; the GOLD-corpus empty-anchor re-extraction is **cross-repo
+> (vdocs)** — do that in the vdocs session, not here. The two deferred larger items
+> (VSLFS `WP^DIE` write-support; entity-aware XPAR → `VSLPARM`) are new-surface,
+> schedule separately. (P4 verdict: the live `KILL^%ZTLOAD` persistent-task guard is
+> vestigial — it tests `^%ZTSCH("ZTSK",…)` which no TaskMan routine sets, whereas PSET
+> writes `^%ZTSCH("TASK",…)`; the corpus's no-exemption contract was right. To re-read
+> live Kernel source: `m vista exec --engine ydb --transport docker -o text '<$text
+> scan>'` with `M_YDB_CONTAINER=vehu`/`_GBLDIR=/home/vehu/g/vehu.gld`/`_ROUTINES` set —
+> those YDB knobs are NOT in `auth.env`, only `M_IRIS_*` is; and use `-o text` or
+> `write` output is dropped.)
 >
 > For any NEW verb/test, TDD: write the test first; for a brand-new verb add a
 > **safe-default stub** (`quit ""`/`quit 0`/void) FIRST so red shows per-test counts —
@@ -205,13 +209,25 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   return-value contracts against the live engine — corpus code enumerations may not cover
   edge inputs.
 
-### P4 — Unresolved factual discrepancy to settle
-- **`KILL^%ZTLOAD` vs persistent tasks.** The corpus `KILL^%ZTLOAD` contract
-  documents only success/invalid-task (no persistence exemption), but
-  `docs/memory/m5-vsltask-vslbld.md` carries a *code-derived* claim that `KILL`
-  refuses a persistent task (`I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q`). VSLTASK.m's doc was
-  left **neutral** pending resolution. Verify against the live `^%ZTLOAD` routine
-  (read-only) and reconcile the memory ⇄ corpus ⇄ doc.
+### P4 — Factual discrepancy to settle — ✅ RESOLVED 2026-06-29 (live read; no code change)
+- **`KILL^%ZTLOAD` vs persistent tasks — SETTLED.** Read the live resident Kernel
+  source over the driver (`m vista exec --engine ydb --transport docker -o text`, with
+  `M_YDB_CONTAINER=vehu`/`_GBLDIR`/`_ROUTINES` exported — those YDB knobs are NOT in
+  `~/data/vista-cloud-dev/auth.env`, only `M_IRIS_*` is). **Verdict: the memory's
+  code-derived "`KILL` refuses a persistent task" claim is REFUTED operationally.** The
+  guard `I $D(^%ZTSCH("ZTSK",ZTSK,"P")) Q` ("Don't kill running persistent tasks") does
+  exist in `KILL^%ZTLOAD`, but its node `^%ZTSCH("ZTSK",n,"P")` is **read at that one
+  site and set by NO TaskMan routine** (scanned `%ZTLOAD*`/`%ZTM*`/`XUTM*`) and is
+  absent from the live `^%ZTSCH` even while persistent listeners run. PSET stores
+  persistence at a **different** node `^%ZTSCH("TASK",n,"P")` (verified live on the HL
+  AUTOSTART LINK MANAGER, task 1808). So the guard is **vestigial/dead** — the corpus's
+  no-exemption contract matches observable behavior, and KILL's decline path (when it
+  fired) is a silent `ZTSK(0)=0` no-op, not a raise. **No code change** — VSLTASK does
+  not wrap `KILL`; VSLTASK.m's header `^%ZTSCH("TASK",n,"P")` PSET line is correct.
+  Full write-up: the P4 VERDICT block in `docs/memory/m5-vsltask-vslbld.md`; audit note
+  in `docs/memory/vsl-wrapping-baseline-audit.md` updated to RESOLVED. **Durable lesson:**
+  verify a "the engine does X" code-derived claim against the *running* globals, not
+  just the source text — a guard can test a node nothing populates.
 
 ---
 
