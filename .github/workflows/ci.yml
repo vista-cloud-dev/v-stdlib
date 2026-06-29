@@ -36,7 +36,7 @@ jobs:
     env:
       M: m
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Clone m-cli + read its Go pin
         id: mcli
@@ -45,7 +45,7 @@ jobs:
             https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           echo "go-version=$(cat "$RUNNER_TEMP/m-cli/.go-version")" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.mcli.outputs.go-version }}
           check-latest: true
@@ -97,7 +97,7 @@ jobs:
     env:
       M: m
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Clone m-cli + read its Go pin
         id: mcli
@@ -106,7 +106,7 @@ jobs:
             https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           echo "go-version=$(cat "$RUNNER_TEMP/m-cli/.go-version")" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.mcli.outputs.go-version }}
           check-latest: true
