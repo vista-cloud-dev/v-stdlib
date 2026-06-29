@@ -23,6 +23,7 @@ VSLLOGTST	; v-stdlib — VSLLOG (dedicated VistA FileMan audit-sink) test suite.
 	do start^STDASSERT(.pass,.fail)
 	;
 	do tWriteReadRoundtrip(.pass,.fail)
+	do tHostTruncatedTo80(.pass,.fail)
 	do tSystemContextWrites(.pass,.fail)
 	do tWriteFailureIsLoud(.pass,.fail)
 	do tQueryFilters(.pass,.fail)
@@ -44,6 +45,22 @@ tWriteReadRoundtrip(pass,fail)	;@TEST "$$write files a structured audit record a
 	do eq^STDASSERT(.pass,.fail,$get(rec("user")),1,"rec(user) is the acting DUZ")
 	do eq^STDASSERT(.pass,.fail,$get(rec("host")),"TEST.HOST","rec(host) round-trips")
 	do true^STDASSERT(.pass,.fail,$get(rec("timestamp"))'="","rec(timestamp) is populated (generated)")
+	do teardown(iens)
+	quit
+	;
+tHostTruncatedTo80(pass,fail)	;@TEST "$$write truncates an over-long HOST to the 80-char field width"
+	; Boundary: the HOST field (#999001,.03) is free text, max 80; $$write applies
+	; $extract(...,1,80) before filing. A 100-char host must store as its first 80.
+	new iens,rec,longhost,exp,x
+	do setup()
+	set longhost=$translate($justify("",100)," ","H")	; 100 'H' characters
+	set exp=$extract(longhost,1,80)
+	set iens=$$write^VSLLOG("ZZVSLLOG-TRUNC","d",1,longhost)
+	do true^STDASSERT(.pass,.fail,iens'="","over-long-host record written")
+	quit:iens=""
+	set x=$$read^VSLLOG(iens,.rec)
+	do eq^STDASSERT(.pass,.fail,$length($get(rec("host"))),80,"HOST stored at the 80-char field width (truncated from 100)")
+	do eq^STDASSERT(.pass,.fail,$get(rec("host")),exp,"HOST is the first 80 chars of the over-long input")
 	do teardown(iens)
 	quit
 	;

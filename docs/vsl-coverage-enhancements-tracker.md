@@ -59,8 +59,12 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
   (`$select(v="":default,...)`) → UNDEF on an unset param with no default. Guarded
   with `$get(default)`; `tGetOmittedDefaultIsEmpty` added (TDD red→green). KIDS
   patch **13→14**, artifacts regenerated.
+- **P1c boundary (2 of 3) DONE 2026-06-29:** VSLFS ambiguous-`$$find`
+  (`tFindAmbiguousIsEmpty`) + VSLLOG 80-char HOST truncation (`tHostTruncatedTo80`)
+  boundary tests added — existing-correct behavior confirmed, no src change. VSLCFG
+  empty-vs-unset deferred (XPAR `""` semantics need a live probe).
 - **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
-  VSLFS 17/17, VSLIO 11/11, VSLLOG 16/16, VSLSEC 19/19, VSLTASK 10/10.
+  VSLFS 19/19, VSLIO 11/11, VSLLOG 19/19, VSLSEC 19/19, VSLTASK 10/10.
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -85,8 +89,12 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   soft-skipped live queue) — no new test needed (R6). VSLSEC was already done
   (`tHasKeyDefaultsDuz` etc.). ("omitted-format for VSLCFG" was a misnomer — the
   real contract-shape gap was the omitted `default`.)
-- **Boundary / ambiguous / absent.** VSLLOG 80-char HOST truncation; VSLFS ambiguous
-  `$$find` (>1 match → ""); VSLCFG empty-stored vs unset.
+- **🔶 PARTIAL 2026-06-29 — Boundary / ambiguous / absent.** ✅ VSLFS ambiguous
+  `$$find` (>1 match → "", `tFindAmbiguousIsEmpty`); ✅ VSLLOG 80-char HOST
+  truncation (`tHostTruncatedTo80`, the `$extract(...,1,80)` path). ⏳ DEFERRED:
+  VSLCFG empty-stored vs unset — XPAR's `""` semantics (store-empty vs delete) are
+  engine/filer-dependent; needs a live probe to pin down before asserting (not
+  guessed).
 - **De-circularize** VSLCFG `tGetEffectiveResolvesSys` (it asserts `getEffective ==`
   the `$$GET^XPAR("ALL")` it wraps — a tautology; make it catch an ALL→SYS regression).
 - **Volume / residue** for the listers: VSLFS `$$list`/`$$find`, VSLLOG `$$query`

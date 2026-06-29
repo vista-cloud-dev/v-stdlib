@@ -21,6 +21,7 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	do tExistsThenKill(.pass,.fail)
 	do tDierrIsLoud(.pass,.fail)
 	do tFindByName(.pass,.fail)
+	do tFindAmbiguousIsEmpty(.pass,.fail)
 	do tListAllRecords(.pass,.fail)
 	do tInternalFilingRoundtrip(.pass,.fail)
 	;
@@ -68,6 +69,23 @@ tFindByName(pass,fail)	;@TEST "$$find returns the IENS of a uniquely-named recor
 	do eq^STDASSERT(.pass,.fail,found,iens,"$$find resolves the record's IENS by exact .01")
 	do eq^STDASSERT(.pass,.fail,$$find^VSLFS(file,"ZZVSLFS NOSUCH "_$job,"B"),"","$$find returns empty for an absent value")
 	do teardown(file,iens)
+	quit
+	;
+tFindAmbiguousIsEmpty(pass,fail)	;@TEST "$$find returns empty when the lookup value is ambiguous (>1 record shares the .01)"
+	; Boundary: $$FIND1^DIC resolves a UNIQUE match only; >1 match is ambiguous and
+	; yields "" (not the first IEN). File two records under the same .01 NAME, confirm
+	; both exist distinctly, then $$find by that name must be "".
+	new file,name,i1,i2,found
+	do setup(.file)
+	set name="ZZVSLFS "_$job_"DUP"
+	set i1=$$set^VSLFS(file,"+1,",".01",name)
+	set i2=$$set^VSLFS(file,"+1,",".01",name)
+	quit:(i1="")!(i2="")
+	do true^STDASSERT(.pass,.fail,i1'=i2,"two distinct records were filed under the same .01 NAME")
+	set found=$$find^VSLFS(file,name,"B")
+	do eq^STDASSERT(.pass,.fail,found,"","$$find returns empty for an ambiguous (multi-match) lookup")
+	do teardown(file,i1)
+	do teardown(file,i2)
 	quit
 	;
 tListAllRecords(pass,fail)	;@TEST "$$list returns the IENS of every record (the two just created are present)"
