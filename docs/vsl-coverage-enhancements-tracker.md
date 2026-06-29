@@ -12,40 +12,44 @@ scope: the post-baseline enhancement backlog for the 6 VSL* modules (missing wra
 
 Live tracker (Tier D) for the **enhancement** work that follows the
 [VistA library wrapping baseline](proposals/vista-library-wrapping-baseline.md). The
-baseline's four High defects are CLOSED, and as of **2026-06-29 P1
-(coverage-model backfill), P2 (missing wrapped-API verbs), and P4 (the
-`KILL^%ZTLOAD`-vs-persistent-task discrepancy) are all COMPLETE** — plus two more
-UNDEF defects fixed in passing (VSLCFG `$$get` default, VSLLOG `$$query`
-dates). All six suites are **121/121 dual-engine**, KIDS patch **20**. What remains is
-**P3** (provenance/corpus cleanup — the in-repo doc-accuracy items are doable here;
-the GOLD-corpus empty-anchor re-extraction is **cross-repo vdocs**, not this session),
-plus two deferred larger items (VSLFS `WP^DIE` write-support; entity-aware XPAR verbs →
+baseline's four High defects are CLOSED, and as of **2026-06-29 the entire in-repo
+backlog is COMPLETE** — P1 (coverage-model backfill), P2 (missing wrapped-API verbs),
+P3 in-repo doc-accuracy (VSLIO/VSLCFG/VSLFS, corpus-grounded), and P4 (the
+`KILL^%ZTLOAD`-vs-persistent-task discrepancy) — plus two more UNDEF defects fixed in
+passing (VSLCFG `$$get` default, VSLLOG `$$query` dates). Suites **121/121 dual-engine**
+(see the IRIS `VSLFS` fixture note in Working constraints), KIDS patch **21**. What
+remains is **out-of-repo / future**: the GOLD-corpus empty-anchor re-extraction is
+**cross-repo vdocs** (not this session), plus two deferred larger items (VSLFS `WP^DIE`
+write-support; entity-aware XPAR verbs →
 a future `VSLPARM`).
 
 ---
 
 ## ▶ Resume prompt (paste into a NEW session, cwd `~/vista-cloud-dev/v-stdlib`)
 
-> Resume the v-stdlib wrapping-baseline **enhancement** work. **P1 (coverage-model
-> backfill), P2 (missing verbs), and P4 (the `KILL^%ZTLOAD`-vs-persistent-task
-> discrepancy) are all DONE** — all six suites 121/121 dual-engine, KIDS 20. Read this
-> tracker + the baseline `docs/proposals/vista-library-wrapping-baseline.md` + the
-> memory `docs/memory/vsl-wrapping-baseline-audit.md` + the P4 verdict in
+> Resume the v-stdlib wrapping-baseline **enhancement** work. **The entire in-repo
+> backlog is DONE — P1, P2, P3-in-repo doc-accuracy, and P4** (six suites 121/121
+> dual-engine on a properly-fixtured env, KIDS **21**). Read this tracker + the baseline
+> `docs/proposals/vista-library-wrapping-baseline.md` + the memory
+> `docs/memory/vsl-wrapping-baseline-audit.md` + the P4 verdict in
 > `docs/memory/m5-vsltask-vslbld.md` (and `MEMORY.md`) first.
 >
-> Work the **remaining** backlog below, one increment per item, lightest-touch first:
-> only **P3** (provenance/corpus cleanup) is left for this session — the in-repo
-> doc-accuracy items (VSLIO `CALL^%ZISTCP` / TLS ICRs, VSLCFG `#^errortext` prose, VSLFS
-> ICR-note) are doable here; the GOLD-corpus empty-anchor re-extraction is **cross-repo
-> (vdocs)** — do that in the vdocs session, not here. The two deferred larger items
-> (VSLFS `WP^DIE` write-support; entity-aware XPAR → `VSLPARM`) are new-surface,
-> schedule separately. (P4 verdict: the live `KILL^%ZTLOAD` persistent-task guard is
-> vestigial — it tests `^%ZTSCH("ZTSK",…)` which no TaskMan routine sets, whereas PSET
-> writes `^%ZTSCH("TASK",…)`; the corpus's no-exemption contract was right. To re-read
-> live Kernel source: `m vista exec --engine ydb --transport docker -o text '<$text
-> scan>'` with `M_YDB_CONTAINER=vehu`/`_GBLDIR=/home/vehu/g/vehu.gld`/`_ROUTINES` set —
-> those YDB knobs are NOT in `auth.env`, only `M_IRIS_*` is; and use `-o text` or
-> `write` output is dropped.)
+> **Only out-of-repo / future work remains — nothing to do *in this repo* without a
+> deliberate new-surface decision:**
+> 1. **GOLD-corpus empty-anchor re-extraction** — **cross-repo (vdocs)**, do it in the
+>    vdocs session, not here.
+> 2. **VSLFS `WP^DIE` write-support** (word-processing field filing) — new verb + TDD;
+>    schedule as its own effort.
+> 3. **Entity-aware XPAR → a future `VSLPARM` module** — new surface; its own proposal.
+>
+> If you DO pick up #2/#3, follow the standard loop: TDD red→green dual-engine, KIDS
+> bump + `make icr manifest kids docs-bodies skill frontmatter examples`, `git add` the
+> artifacts, `make check-fast`, Increment Protocol. **IRIS `VSLFS` gotcha:** `VSLFSTST`
+> needs the `#999000 ZZVSLFS` test-file DD resident on foia-t12 (via `v pkg install`);
+> if it isn't, an IRIS `VSLFS` run aborts `0/0` at setup (NOT a code bug) — see Working
+> constraints. Engine knobs for ad-hoc live reads: `m vista exec --engine ydb
+> --transport docker -o text` with `M_YDB_CONTAINER=vehu`/`_GBLDIR=/home/vehu/g/vehu.gld`/`_ROUTINES`
+> set (NOT in `auth.env`; only `M_IRIS_*` is); use `-o text` or `write` output is dropped.
 >
 > For any NEW verb/test, TDD: write the test first; for a brand-new verb add a
 > **safe-default stub** (`quit ""`/`quit 0`/void) FIRST so red shows per-test counts —
