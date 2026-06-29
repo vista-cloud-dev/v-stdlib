@@ -181,11 +181,31 @@
       "status": "Supported"
     },
     {
+      "call": "STAT^%ZTLOAD",
+      "custodian": "XU",
+      "icr": 10063,
+      "source": {
+        "anchor": "statztload-task-status",
+        "doc_key": "XU/krn_8_0_dg_taskman_ug"
+      },
+      "status": "Supported"
+    },
+    {
       "call": "$$PSET^%ZTLOAD",
       "custodian": "XU",
       "icr": 10063,
       "source": {
         "anchor": "psetztload-set-task-as-persistent",
+        "doc_key": "XU/krn_8_0_dg_taskman_ug"
+      },
+      "status": "Supported"
+    },
+    {
+      "call": "PCLEAR^%ZTLOAD",
+      "custodian": "XU",
+      "icr": 10063,
+      "source": {
+        "anchor": "pclearztload-clear-persistent-flag-for-a-task",
         "doc_key": "XU/krn_8_0_dg_taskman_ug"
       },
       "status": "Supported"

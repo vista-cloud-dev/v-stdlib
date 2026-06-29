@@ -1,6 +1,6 @@
 # v-stdlib — manifest index
 
-v-stdlib unversioned; 6 modules; 36 public labels.
+v-stdlib unversioned; 6 modules; 38 public labels.
 
 Generated from `dist/vsl-manifest.json`. One entry per module
 with every public label: signature on the left, synopsis on the
@@ -77,10 +77,12 @@ VistA TaskMan persistent-listener adapter (the process seam).
 
 - `$$askStop^VSLTASK(ztsk)` — Request that queued/running task `ztsk` stop (cooperative-stop WRITE side).
 - `$$lastError^VSLTASK()` — The last VSLTASK error message (the composed malformed-call / fault detail).
+- `do pclear^VSLTASK(ztsk)` — Clear the persistent flag on task `ztsk` (inverse of $$persist) so TaskMan stops self-restarting it.
 - `$$persist^VSLTASK(ztsk)` — Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 - `$$queue^VSLTASK(entry, desc, when)` — (private) headless ^%ZTLOAD queue (no device); return the task number, else 0.
 - `$$running^VSLTASK()` — 1 iff the TaskMan scheduler is live (its ^%ZTSCH("RUN") heartbeat is fresh).
 - `$$schedule^VSLTASK(entry, desc, when)` — Headless-queue a persistent listener at `entry`; return its task number.
+- `$$stat^VSLTASK(ztsk)` — Report task `ztsk`'s TaskMan status code (0 Undefined .. 5 Interrupted) via STAT^%ZTLOAD.
 - `$$stop^VSLTASK()` — 1 iff a stop has been requested of the currently-running task (cooperative stop).
 
 _raises: `U-VSL-TASK-ARG`, `U-VSL-TASK-QUEUE`_

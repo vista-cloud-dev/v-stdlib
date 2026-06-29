@@ -49,7 +49,7 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
-  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **16** (P1b→14, P1d→15, P2-i→16).
+  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **17** (P1b→14, P1d→15, P2-i→16, P2-ii→17).
 - **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
   suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
   (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
@@ -75,8 +75,11 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
   (ICR 10063) — the WRITE side of the cooperative stop. Arg-gate raises `,U-VSL-TASK-ARG,`;
   live-callable smoke test on both engines; the ask-a-real-task success path is
   soft-skipped (side-effecting, same posture as `$$persist`/`$$schedule`). KIDS 15→16.
+- **P2-ii stat+pclear DONE 2026-06-29:** `$$stat^VSLTASK` over `STAT^%ZTLOAD`
+  (read-only, returns the 0..5 status code; absent task = 0) and `pclear^VSLTASK` over
+  `PCLEAR^%ZTLOAD` (void inverse of `$$persist`). VSLTASK P2 verbs complete. KIDS 16→17.
 - **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
-  VSLFS 22/22, VSLIO 11/11, VSLLOG 22/22, VSLSEC 19/19, VSLTASK 14/14 (100 total).
+  VSLFS 22/22, VSLIO 11/11, VSLLOG 22/22, VSLSEC 19/19, VSLTASK 21/21 (107 total).
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -120,14 +123,12 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   Found + fixed the `$$query` omitted-optional UNDEF (event/fromDt/toDt) in passing.
 
 ### P2 — In-scope missing wrapped-API verbs (each its own TDD increment)
-- **VSLTASK** (sharpest — the stop/retire/observe half is absent):
-  ✅ `$$askStop` over `$$ASKSTOP^%ZTLOAD` DONE 2026-06-29 (P2-i).
-  ⏳ `$$pclear`/`$$unpersist` over `PCLEAR^%ZTLOAD` (inverse of the wrapped `$$PSET`;
-  subroutine `DO PCLEAR^%ZTLOAD(ztsk)`, no return — corpus
-  `XU/krn_8_0_dg_taskman_ug#pclearztload-clear-persistent-flag-for-a-task`);
-  ⏳ `$$stat` over `STAT^%ZTLOAD` (listener liveness; subroutine with `ZTSK` in/out
-  array, READ-ONLY → safe to exercise live on any task# — corpus
-  `XU/krn_8_0_dg_taskman_ug#statztload-task-status`). All ICR 10063, Supported.
+- **✅ VSLTASK COMPLETE 2026-06-29** (the stop/retire/observe half is now bound):
+  ✅ `$$askStop` over `$$ASKSTOP^%ZTLOAD` (P2-i); ✅ `$$stat` over `STAT^%ZTLOAD`
+  (read-only status code 0..5; absent task → deterministic 0; P2-ii); ✅ `pclear`
+  over `PCLEAR^%ZTLOAD` (void inverse of `$$persist`; P2-ii). All ICR 10063, Supported.
+  Arg-gate raises tested for each; the live success paths (ask/clear a real task) are
+  soft-skipped (side-effecting); `$$stat` undefined-task probe is asserted live (read-only).
 - **VSLFS:** `$$gets` over `GETS^DIQ` (whole-record / multi-field read — reading a
   record currently costs N single-field round-trips); `$$setWp`/WP support over
   `WP^DIE` (word-processing fields can't be filed through the scalar signature today),

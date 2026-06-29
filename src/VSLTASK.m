@@ -14,7 +14,9 @@ VSLTASK	; v-stdlib — VistA TaskMan persistent-listener adapter (the process se
 	;   $$running^VSLTASK()            — 1 iff the TaskMan scheduler is live (=$$TM^%ZTLOAD)
 	;   $$stop^VSLTASK()              — 1 iff a stop has been requested (=$$S^%ZTLOAD)
 	;   $$askStop^VSLTASK(ztsk)      — ask task `ztsk` to stop (=$$ASKSTOP^%ZTLOAD; 0/1/2)
+	;   $$stat^VSLTASK(ztsk)         — task `ztsk` status code 0..5 (=STAT^%ZTLOAD; 0=Undefined)
 	;   $$persist^VSLTASK(ztsk)       — mark queued task `ztsk` self-restarting (=$$PSET^%ZTLOAD)
+	;   pclear^VSLTASK(ztsk)         — clear task `ztsk` persistent flag (=PCLEAR^%ZTLOAD; void)
 	;   $$schedule^VSLTASK(entry,desc,when) — headless-queue a persistent listener -> its task#
 	;   $$lastError^VSLTASK()         — last error detail, else ""
 	;
@@ -66,6 +68,21 @@ askStop(ztsk)	; Request that queued/running task `ztsk` stop (cooperative-stop W
 	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","askStop: a positive task number is required") quit ""
 	quit $$ASKSTOP^%ZTLOAD(ztsk)
 	;
+stat(ztsk)	; Report task `ztsk`'s TaskMan status code (0 Undefined .. 5 Interrupted) via STAT^%ZTLOAD.
+	; doc: @param   ztsk     numeric  the task number to look up
+	; doc: @returns          numeric  the TaskMan status code: 0 = Undefined (no such task on this
+	; doc:    volume set); 1 = Active/Pending (scheduled, waiting for device/link/partition);
+	; doc:    2 = Active/Running; 3 = Inactive/Finished (quit normally); 4 = Inactive/Available
+	; doc:    (created unscheduled, or edited without rescheduling); 5 = Inactive/Interrupted
+	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"set x=$$stat^VSLTASK("""")","U-VSL-TASK-ARG","$$stat with no task# raises U-VSL-TASK-ARG")
+	; doc: @icr 10063 @call STAT^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#statztload-task-status
+	new ZTSK
+	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","stat: a positive task number is required") quit ""
+	set ZTSK=ztsk
+	do STAT^%ZTLOAD
+	quit +$get(ZTSK(1))
+	;
 persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it on a lock drop.
 	; doc: @param   ztsk     numeric  the task number (from $$schedule / ^%ZTLOAD)
 	; doc: @returns          bool     1 iff the task was marked persistent, else 0 (task not queued)
@@ -75,6 +92,18 @@ persist(ztsk)	; Mark queued task `ztsk` persistent so TaskMan self-restarts it o
 	; doc: @icr 10063 @call $$PSET^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#psetztload-set-task-as-persistent
 	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","persist: a positive task number is required") quit ""
 	quit ''$$PSET^%ZTLOAD(ztsk)
+	;
+pclear(ztsk)	; Clear the persistent flag on task `ztsk` (inverse of $$persist) so TaskMan stops self-restarting it.
+	; doc: @param   ztsk     numeric  the task number whose persistent flag to clear
+	; doc: @returns          void     side-effecting; no return value (PCLEAR^%ZTLOAD reports no status)
+	; doc: @raises  U-VSL-TASK-ARG   the call is malformed (no positive task number)
+	; doc: @illustrative   the success path clears the persistent node on a REAL queued task — a live
+	; doc:    side effect not cleanly undone; only the malformed-call contract is safely shown
+	; doc: @example         do raises^STDASSERT(.pass,.fail,"do pclear^VSLTASK("""")","U-VSL-TASK-ARG","$$pclear with no task# raises U-VSL-TASK-ARG")
+	; doc: @icr 10063 @call PCLEAR^%ZTLOAD @status Supported @custodian XU @source XU/krn_8_0_dg_taskman_ug#pclearztload-clear-persistent-flag-for-a-task
+	if +$get(ztsk)'>0 do raise("U-VSL-TASK-ARG","pclear: a positive task number is required") quit
+	do PCLEAR^%ZTLOAD(ztsk)
+	quit
 	;
 schedule(entry,desc,when)	; Headless-queue a persistent listener at `entry`; return its task number.
 	; doc: @param   entry    string   the task entry reference (TAG^ROUTINE)

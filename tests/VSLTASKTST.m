@@ -37,6 +37,9 @@ VSLTASKTST	; v-stdlib — VSLTASK (TaskMan persistent-listener adapter) test sui
 	do tScheduleRejectsBadArg(.pass,.fail)
 	do tAskStopRejectsBadArg(.pass,.fail)
 	do tAskStopMissingTaskCallable(.pass,.fail)
+	do tStatRejectsBadArg(.pass,.fail)
+	do tStatUndefinedTaskIsZero(.pass,.fail)
+	do tPclearRejectsBadArg(.pass,.fail)
 	do tSelfRestartIsWiredSoftSkip(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
@@ -84,6 +87,32 @@ tAskStopMissingTaskCallable(pass,fail)	;@TEST "$$askStop on a non-existent task 
 	set DUZ=1,DUZ(0)="@",U="^"
 	set r=$$askStop^VSLTASK(999999999)
 	do true^STDASSERT(.pass,.fail,$data(r),"$$askStop is callable live for a non-existent task — returned without raising (no side effect)")
+	quit
+	;
+tStatRejectsBadArg(pass,fail)	;@TEST "$$stat on a missing task# raises a clean ,U-VSL-TASK-ARG, with detail in $$lastError"
+	do raises^STDASSERT(.pass,.fail,"set x=$$stat^VSLTASK("""")",",U-VSL-TASK-ARG,","$$stat with no task# raises exactly ,U-VSL-TASK-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped stat raise (clean unwind)")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
+	quit
+	;
+tStatUndefinedTaskIsZero(pass,fail)	;@TEST "$$stat on a non-existent task is a clean 0 (Undefined) — STAT^%ZTLOAD is read-only"
+	; STAT^%ZTLOAD is a READ-ONLY status lookup, so a non-existent task number is fully
+	; safe to exercise live: the corpus documents ZTSK(0)=0 / ZTSK(1)=0 / ZTSK(2)="Undefined"
+	; for an absent task (XU/krn_8_0_dg_taskman_ug#statztload-task-status). $$stat returns the
+	; numeric status code, so an absent task is a deterministic 0 on both engines.
+	new r
+	set DUZ=1,DUZ(0)="@",U="^"
+	set r=$$stat^VSLTASK(999999999)
+	do eq^STDASSERT(.pass,.fail,r,0,"$$stat on a non-existent task returns 0 (Undefined) — read-only, no side effect")
+	quit
+	;
+tPclearRejectsBadArg(pass,fail)	;@TEST "$$pclear on a missing task# raises a clean ,U-VSL-TASK-ARG, with detail in $$lastError"
+	; $$pclear is the inverse of $$persist (clears the persistent flag); clearing it on a
+	; REAL queued task mutates the task record (live side effect) — soft-skipped, same posture
+	; as $$persist. Only the malformed-call contract is safely shown.
+	do raises^STDASSERT(.pass,.fail,"do pclear^VSLTASK("""")",",U-VSL-TASK-ARG,","$$pclear with no task# raises exactly ,U-VSL-TASK-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped pclear raise (clean unwind)")
+	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
 	quit
 	;
 tSelfRestartIsWiredSoftSkip(pass,fail)	;@TEST "self-restart binding is wired + documented; the live restart observation is integration-gated (SOFT-SKIP)"

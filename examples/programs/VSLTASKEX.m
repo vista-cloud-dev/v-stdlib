@@ -6,9 +6,11 @@ VSLTASKEX ; Living examples for VSLTASK — generated from @example tags.
         do start^STDASSERT(.pass,.fail)
         ;
         do tExampleAskStop(.pass,.fail)
+        do tExamplePclear(.pass,.fail)
         do tExamplePersist(.pass,.fail)
         do tExampleRunning(.pass,.fail)
         do tExampleSchedule(.pass,.fail)
+        do tExampleStat(.pass,.fail)
         do tExampleStop(.pass,.fail)
         ;
         do report^STDASSERT(pass,fail)
@@ -16,6 +18,10 @@ VSLTASKEX ; Living examples for VSLTASK — generated from @example tags.
         ;
 tExampleAskStop(pass,fail)      ;@TEST "example: VSLTASK.askStop"
         do raises^STDASSERT(.pass,.fail,"set x=$$askStop^VSLTASK("""")","U-VSL-TASK-ARG","$$askStop with no task# raises U-VSL-TASK-ARG")
+        quit
+        ;
+tExamplePclear(pass,fail)       ;@TEST "example: VSLTASK.pclear"
+        do raises^STDASSERT(.pass,.fail,"do pclear^VSLTASK("""")","U-VSL-TASK-ARG","$$pclear with no task# raises U-VSL-TASK-ARG")
         quit
         ;
 tExamplePersist(pass,fail)      ;@TEST "example: VSLTASK.persist"
@@ -28,6 +34,10 @@ tExampleRunning(pass,fail)      ;@TEST "example: VSLTASK.running"
         ;
 tExampleSchedule(pass,fail)     ;@TEST "example: VSLTASK.schedule"
         do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK-ARG","$$schedule with no entry raises U-VSL-TASK-ARG")
+        quit
+        ;
+tExampleStat(pass,fail)         ;@TEST "example: VSLTASK.stat"
+        do raises^STDASSERT(.pass,.fail,"set x=$$stat^VSLTASK("""")","U-VSL-TASK-ARG","$$stat with no task# raises U-VSL-TASK-ARG")
         quit
         ;
 tExampleStop(pass,fail)         ;@TEST "example: VSLTASK.stop"

@@ -29,6 +29,6 @@ that needs to disambiguate sources, this is the lookup table.
 
 ## `VSLTASK`
 
-- **`U-VSL-TASK-ARG`** — raised by: `askStop`, `persist`, `schedule`
+- **`U-VSL-TASK-ARG`** — raised by: `askStop`, `stat`, `persist`, `pclear`, `schedule`
 - **`U-VSL-TASK-QUEUE`** — raised by: `schedule`
 
