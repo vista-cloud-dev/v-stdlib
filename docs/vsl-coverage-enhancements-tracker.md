@@ -68,6 +68,9 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
   test (dates omitted) **revealed a 3rd systemic UNDEF** — `query` referenced
   undefined `event`/`fromDt`/`toDt` formals; fixed by `set event=$get(event),...` on
   the first line. KIDS patch **14→15**.
+- **P1e de-circularize DONE 2026-06-29:** VSLCFG `tGetEffectiveResolvesSys` no longer
+  a tautology — asserts against known literals, with a real ALL→SYS regression branch.
+  **P1 now COMPLETE** (only VSLCFG empty-vs-unset deferred, needs a live XPAR probe).
 - **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
   VSLFS 22/22, VSLIO 11/11, VSLLOG 22/22, VSLSEC 19/19, VSLTASK 10/10 (96 total).
 - Gates: `make check-fast` green; lint 0 findings.
@@ -76,7 +79,7 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 ## Backlog (priority order)
 
-### P1 — Coverage-model test backfill (highest ROI; hardens existing surface)
+### P1 — Coverage-model test backfill (highest ROI; hardens existing surface) — ✅ COMPLETE 2026-06-29 (1 item deferred: VSLCFG empty-vs-unset)
 Apply the baseline's coverage model + stress policy to **all six** `VSL*TST.m`
 suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
 - **✅ DONE 2026-06-29 — Exact-ecode, not prefix.** Tightened every
@@ -100,8 +103,13 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   VSLCFG empty-stored vs unset — XPAR's `""` semantics (store-empty vs delete) are
   engine/filer-dependent; needs a live probe to pin down before asserting (not
   guessed).
-- **De-circularize** VSLCFG `tGetEffectiveResolvesSys` (it asserts `getEffective ==`
-  the `$$GET^XPAR("ALL")` it wraps — a tautology; make it catch an ALL→SYS regression).
+- **✅ DONE 2026-06-29 — De-circularize** VSLCFG `tGetEffectiveResolvesSys`. Was a
+  tautology (`getEffective == $$GET^XPAR("ALL")`, the very call it wraps). Now reads
+  `ALL` once and asserts `getEffective` against a KNOWN literal, branching on the
+  resolution: `seen="howdy"` (SYS participates), `seen=""` (SYS omitted → must be the
+  default, NOT the SYS value — the genuine ALL→SYS regression catcher), or a dominant
+  higher level. The regression branch only fires when setup picks a SYS-omitting
+  param (documented; engine/param-dependent).
 - **✅ DONE 2026-06-29 — Volume / residue** for the listers: VSLFS `$$list`
   (`tListVolumeNoResidue`) + VSLLOG `$$query` (`tQueryVolumeExactCount`) with 5
   throwaway records — count integrity + `^TMP("DILIST",$job)` zero-residue asserted.

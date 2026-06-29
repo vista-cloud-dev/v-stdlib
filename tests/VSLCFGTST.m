@@ -48,16 +48,20 @@ tGetOmittedDefaultIsEmpty(pass,fail)	;@TEST "$$get/$$getEffective with the defau
 	quit
 	;
 tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective returns the ALL-precedence resolution (+ default), distinct from $$get's SYS-only read"
-	new key,exp
+	new key,seen
 	do setup(.key)
 	quit:key=""
 	do set^VSLCFG(key,"howdy")
-	; getEffective wraps $$GET^XPAR("ALL") (entity-precedence resolution) + the default.
-	; When SYS is in this param's precedence (engine/param-dependent — some SYS-settable
-	; params, e.g. BPS USRSCR on foia, omit SYS from precedence so ALL returns "") the
-	; resolution is "howdy"; otherwise the default. Assert it matches that resolution.
-	set exp=$$GET^XPAR("ALL",key,1) set:exp="" exp="MISS"
-	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),exp,"effective read returns the ALL-precedence resolution (default when none)")
+	; De-circularized: read what ALL resolves to ONCE, then assert getEffective against a
+	; KNOWN value (not a second $$GET^XPAR("ALL") call — that was a tautology since
+	; getEffective literally wraps it). SYS may or may not be in this param's precedence
+	; (engine/param-dependent — e.g. BPS USRSCR on foia omits SYS, so ALL returns "").
+	; The seen="" branch is the regression catcher: if getEffective ever read "SYS"
+	; instead of "ALL", a SYS-omitting param would wrongly return "howdy" here.
+	set seen=$$GET^XPAR("ALL",key,1)
+	if seen="howdy" do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),"howdy","SYS participates in precedence: getEffective returns the SYS value we set")
+	if seen="" do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),"MISS","SYS omitted from precedence: getEffective is the default, NOT the SYS value (guards an ALL->SYS read)")
+	if seen'="howdy",seen'="" do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG(key,"MISS"),seen,"a higher-precedence level dominates: getEffective returns that level's value")
 	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH","fb"),"fb","effective read of an unset parameter returns the default")
 	do teardown(key)
 	quit
