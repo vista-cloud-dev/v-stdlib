@@ -13,6 +13,7 @@ VSLCFGTST	; v-stdlib — VSLCFG (XPAR config adapter) test suite.
 	;
 	do tSetGetSysPrecedence(.pass,.fail)
 	do tGetDefaultWhenUnset(.pass,.fail)
+	do tGetOmittedDefaultIsEmpty(.pass,.fail)
 	do tGetEffectiveResolvesSys(.pass,.fail)
 	do tSetFailureIsLoud(.pass,.fail)
 	;
@@ -35,6 +36,15 @@ tGetDefaultWhenUnset(pass,fail)	;@TEST "$$get returns the default for a paramete
 	quit:key=""
 	do eq^STDASSERT(.pass,.fail,$$get^VSLCFG(key,"fallback"),"fallback","unset returns default")
 	do teardown(key)
+	quit
+	;
+tGetOmittedDefaultIsEmpty(pass,fail)	;@TEST "$$get/$$getEffective with the default arg omitted return empty for an unset parameter (no UNDEF)"
+	; Contract-shape (the VSLSEC-class bug): an omitted optional `default` must not be
+	; evaluated raw. $$get of an unset parameter with no default must yield "" (empty),
+	; never UNDEF on the undefined formal.
+	set DUZ=1,DUZ(0)="@",U="^"
+	do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH"),"","$$get of an unset param with default omitted returns empty (not UNDEF)")
+	do eq^STDASSERT(.pass,.fail,$$getEffective^VSLCFG("ZZVSLCFGNOSUCH"),"","$$getEffective of an unset param with default omitted returns empty (not UNDEF)")
 	quit
 	;
 tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective returns the ALL-precedence resolution (+ default), distinct from $$get's SYS-only read"

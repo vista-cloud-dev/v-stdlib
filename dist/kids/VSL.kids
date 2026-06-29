@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*13^
+**KIDS**:VSL*1.0*14^
 
 **INSTALL NAME**
-VSL*1.0*13
+VSL*1.0*14
 "BLD",1,0)
-VSL*1.0*13^VSL^0^0
+VSL*1.0*14^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -113,7 +113,7 @@ get(key,default)	; Read parameter `key` at the SYS entity; return `default` when
 "RTN","VSLCFG",38,0)
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
 "RTN","VSLCFG",39,0)
-	; doc: @param default  string  value returned when the parameter is unset
+	; doc: @param default  string  value returned when the parameter is unset (optional; empty when omitted)
 "RTN","VSLCFG",40,0)
 	; doc: @returns        string  the SYS-level value, or `default` when unset
 "RTN","VSLCFG",41,0)
@@ -125,7 +125,7 @@ get(key,default)	; Read parameter `key` at the SYS entity; return `default` when
 "RTN","VSLCFG",44,0)
 	set v=$$GET^XPAR("SYS",key,1)
 "RTN","VSLCFG",45,0)
-	quit $select(v="":default,1:v)
+	quit $select(v="":$get(default),1:v)
 "RTN","VSLCFG",46,0)
 	;
 "RTN","VSLCFG",47,0)
@@ -133,7 +133,7 @@ getEffective(key,default)	; Read the effective value across the parameter's enti
 "RTN","VSLCFG",48,0)
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
 "RTN","VSLCFG",49,0)
-	; doc: @param default  string  value returned when the parameter is unset at every level
+	; doc: @param default  string  value returned when the parameter is unset at every level (optional; empty when omitted)
 "RTN","VSLCFG",50,0)
 	; doc: @returns        string  the first value found in the parameter's precedence chain, or `default`
 "RTN","VSLCFG",51,0)
@@ -151,7 +151,7 @@ getEffective(key,default)	; Read the effective value across the parameter's enti
 "RTN","VSLCFG",57,0)
 	set v=$$GET^XPAR("ALL",key,1)
 "RTN","VSLCFG",58,0)
-	quit $select(v="":default,1:v)
+	quit $select(v="":$get(default),1:v)
 "RTN","VSLCFG",59,0)
 	;
 "RTN","VSLCFG",60,0)

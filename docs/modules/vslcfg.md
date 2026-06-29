@@ -35,7 +35,7 @@ Read parameter `key` at the SYS entity; return `default` when unset.
 **Parameters**
 
 - `key` _(string)_ — XPAR parameter name (PARAMETER DEFINITION #8989.51)
-- `default` _(string)_ — value returned when the parameter is unset
+- `default` _(string)_ — value returned when the parameter is unset (optional; empty when omitted)
 
 **Returns** _string_ — the SYS-level value, or `default` when unset
 
@@ -52,7 +52,7 @@ Read the effective value across the parameter's entity precedence; else `default
 **Parameters**
 
 - `key` _(string)_ — XPAR parameter name (PARAMETER DEFINITION #8989.51)
-- `default` _(string)_ — value returned when the parameter is unset at every level
+- `default` _(string)_ — value returned when the parameter is unset at every level (optional; empty when omitted)
 
 **Returns** _string_ — the first value found in the parameter's precedence chain, or `default`
 

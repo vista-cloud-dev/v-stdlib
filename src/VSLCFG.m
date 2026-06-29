@@ -36,17 +36,17 @@ VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 	;
 get(key,default)	; Read parameter `key` at the SYS entity; return `default` when unset.
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
-	; doc: @param default  string  value returned when the parameter is unset
+	; doc: @param default  string  value returned when the parameter is unset (optional; empty when omitted)
 	; doc: @returns        string  the SYS-level value, or `default` when unset
 	; doc: @example        do eq^STDASSERT(.pass,.fail,$$get^VSLCFG("ZZVSLCFGNOSUCH","fallback"),"fallback","get: unset parameter returns the default")
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 	new v
 	set v=$$GET^XPAR("SYS",key,1)
-	quit $select(v="":default,1:v)
+	quit $select(v="":$get(default),1:v)
 	;
 getEffective(key,default)	; Read the effective value across the parameter's entity precedence; else `default`.
 	; doc: @param key      string  XPAR parameter name (PARAMETER DEFINITION #8989.51)
-	; doc: @param default  string  value returned when the parameter is unset at every level
+	; doc: @param default  string  value returned when the parameter is unset at every level (optional; empty when omitted)
 	; doc: @returns        string  the first value found in the parameter's precedence chain, or `default`
 	; doc: The "ALL" entity tells XPAR to walk the precedence multiple defined on the
 	; doc: parameter (#8989.51) and return the first level that has a value — what the
@@ -55,7 +55,7 @@ getEffective(key,default)	; Read the effective value across the parameter's enti
 	; doc: @icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter
 	new v
 	set v=$$GET^XPAR("ALL",key,1)
-	quit $select(v="":default,1:v)
+	quit $select(v="":$get(default),1:v)
 	;
 set(key,value)	; Set parameter `key` to `value` at the SYS entity; raise on a failed write.
 	; doc: @param key    string  XPAR parameter name (#8989.51)

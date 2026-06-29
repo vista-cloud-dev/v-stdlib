@@ -49,12 +49,17 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
-  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **13**.
+  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **14** (P1b bump).
 - **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
   suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
   (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
   (no hidden defect — each routine raises exactly its declared code).
-- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 8/8,
+- **P1b default-arg DONE 2026-06-29:** found + fixed a VSLSEC-class UNDEF — VSLCFG
+  `$$get`/`$$getEffective` evaluated an omitted `default` raw
+  (`$select(v="":default,...)`) → UNDEF on an unset param with no default. Guarded
+  with `$get(default)`; `tGetOmittedDefaultIsEmpty` added (TDD red→green). KIDS
+  patch **13→14**, artifacts regenerated.
+- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
   VSLFS 17/17, VSLIO 11/11, VSLLOG 16/16, VSLSEC 19/19, VSLTASK 10/10.
 - Gates: `make check-fast` green; lint 0 findings.
 
@@ -73,8 +78,13 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   (`,U-VSL-LOG-WRITE,`), VSLFS `tDierrIsLoud` (`,U-VSL-FS-DIERR,`), VSLIO
   `tTlsGapIsLoud` (`,U-VSLIO-NOTLS,`), VSLSEC hasKey+bySecid (`,U-VSL-SEC-ARG,`),
   VSLTASK persist+schedule (`,U-VSL-TASK-ARG,`). All green first run, dual-engine.
-- **Default-arg / contract-shape.** Already done for VSLSEC (`tHasKeyDefaultsDuz`
-  etc.); add the omitted-`when` path for VSLTASK and omitted-format for VSLCFG.
+- **✅ DONE 2026-06-29 — Default-arg / contract-shape.** VSLCFG omitted-`default`
+  was a real VSLSEC-class UNDEF (now fixed; `tGetOmittedDefaultIsEmpty`). VSLTASK
+  omitted-`when` arg-shape is already safe (`$get`-guarded in `schedule`/`queue`;
+  the omit path is exercised by `tScheduleRejectsBadArg`, and the success path is the
+  soft-skipped live queue) — no new test needed (R6). VSLSEC was already done
+  (`tHasKeyDefaultsDuz` etc.). ("omitted-format for VSLCFG" was a misnomer — the
+  real contract-shape gap was the omitted `default`.)
 - **Boundary / ambiguous / absent.** VSLLOG 80-char HOST truncation; VSLFS ambiguous
   `$$find` (>1 match → ""); VSLCFG empty-stored vs unset.
 - **De-circularize** VSLCFG `tGetEffectiveResolvesSys` (it asserts `getEffective ==`

@@ -21,7 +21,7 @@
             {
               "name": "default",
               "type": "string",
-              "doc": "value returned when the parameter is unset"
+              "doc": "value returned when the parameter is unset (optional; empty when omitted)"
             }
           ],
           "returns": {
@@ -57,7 +57,7 @@
             {
               "name": "default",
               "type": "string",
-              "doc": "value returned when the parameter is unset at every level"
+              "doc": "value returned when the parameter is unset at every level (optional; empty when omitted)"
             }
           ],
           "returns": {
