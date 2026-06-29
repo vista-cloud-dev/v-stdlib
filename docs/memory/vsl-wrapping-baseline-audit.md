@@ -95,8 +95,11 @@ engine-specific"), rather than enshrining the corpus's nominal codes.
 
 The audit deliverable was analysis-only; **all four High defects were then fixed as
 TDD increments (2026-06-28)** — VSLIO, VSLSEC, VSLFS, VSLTASK all green dual-engine.
-**Remaining (enhancement, not defects)** — tracked + prioritized with a paste-ready
-resume prompt in **`docs/vsl-coverage-enhancements-tracker.md`**: P1 coverage-model
-test backfill (exact-ecode, default-arg, boundary, volume/residue), P2 in-scope
-missing verbs, P3 corpus empty-anchor re-extraction + doc-accuracy, P4 the
-`KILL^%ZTLOAD`-vs-persistent discrepancy. New session: read that tracker first.
+**Enhancement backlog — COMPLETE 2026-06-29.** P1 coverage-model test backfill
+(exact-ecode, default-arg, boundary, volume/residue), P2 in-scope missing verbs,
+P3 in-repo doc-accuracy, and P4 (the `KILL^%ZTLOAD`-vs-persistent discrepancy, a
+vestigial-guard verdict — no code change) all landed; suites 121/121 dual-engine,
+KIDS patch 21. The closed tracker is archived at
+**`docs/archive/vsl-coverage-enhancements-tracker.md`**. Only out-of-repo / future
+work remains: the GOLD-corpus empty-anchor re-extraction (cross-repo vdocs), VSLFS
+`WP^DIE` write-support, and entity-aware XPAR → a future `VSLPARM` (its own proposal).

@@ -1,9 +1,9 @@
 ---
 title: "VSL* coverage & wrapping enhancements — resume tracker"
-status: proposed
+status: complete
 created: 2026-06-28
-last_modified: 2026-06-28
-revisions: 1
+last_modified: 2026-06-29
+revisions: 2
 doc_type: [PROPOSAL]
 scope: the post-baseline enhancement backlog for the 6 VSL* modules (missing wrapped-API verbs, coverage-model test categories, corpus re-extraction, residual doc-accuracy items)
 ---
