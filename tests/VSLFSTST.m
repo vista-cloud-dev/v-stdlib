@@ -211,8 +211,8 @@ tCaretSilentlyCorruptsSibling(pass,fail) ;@TEST "ADVERSARIAL (F1, severe): a ^-b
  ; node. Internal filing of "A^B^C" into .01 sets node 0 = "A^B^C", so "B" lands in the
  ; TIMESTAMP slot and "C" in USER, with NO DIERR. $$get(.01) truncates to "A"; the
  ; siblings read back the injected ^-pieces. This is the severe form of the F1 hazard:
- ; one field's ^ silently corrupts adjacent fields. Confirmed on the canonical VSL AUDIT
- ; build (vehu). Soft-skips if the VSL AUDIT DD (#999001) is not resident.
+ ; one field's ^ silently corrupts adjacent fields. Confirmed dual-engine on the
+ ; canonical VSL AUDIT build (vehu YDB + foia IRIS). Soft-skips if #999001 is absent.
  new file,iens,raised,ts,$etrap
  do setup(.file)
  if '$data(^DD(999001,0)) do true^STDASSERT(.pass,.fail,1,"VSL AUDIT (#999001) DD not resident here - sibling corruption verified on vehu") quit

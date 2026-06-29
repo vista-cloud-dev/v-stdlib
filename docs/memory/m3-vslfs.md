@@ -117,7 +117,11 @@ container AND a writable routine path via env:
 v-pkg uses does not yet — "Load staging lands in M2/M3", m-ydb session.go.) **Caution:**
 heavy adversarial `$$set`/`$$kill` on #999001 can leave/delete the file — a destructive
 run **wiped `^DD/^DIZ/^DIC(999001)` entirely**; restore with the install above, then the
-full vehu suite is green again (130/130). The #999001-dependent suite tests are
+full vehu suite is green again (130/130). **IRIS/foia install is cleaner** (no env
+incantation — the m-iris remote/Atelier transport self-stages): `v pkg install --engine
+iris --transport remote --allow-overwrite dist/kids/VSL.kids` (uses direnv `M_IRIS_*`,
+namespace VISTA). After it, VSLFSTST/VSLLOGTST/VSLCFGTST are 36/22/17 on foia too — so the
+F1 silent sibling-corruption is **confirmed dual-engine**, not vehu-only. The #999001-dependent suite tests are
 **unguarded** (abort 0/0 if the DD is absent), so #999001 must be RESIDENT to run
 VSLFSTST/VSLLOGTST. Read live globals for diagnosis via the sanctioned `m vista exec
 --engine ydb --transport docker` (needs `M_YDB_CONTAINER=vehu`; it DOES capture device
