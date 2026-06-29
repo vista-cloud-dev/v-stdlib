@@ -38,15 +38,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Clone m-cli + read its Go pin
+        id: mcli
+        run: |
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
+          echo "go-version=$(cat "$RUNNER_TEMP/m-cli/.go-version")" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26.x"
+          go-version: ${{ steps.mcli.outputs.go-version }}
           check-latest: true
 
       - name: Build the Go `m` toolchain from m-cli
         run: |
-          git clone --depth 1 --branch main \
-            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/m" version || true
@@ -94,15 +99,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Clone m-cli + read its Go pin
+        id: mcli
+        run: |
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
+          echo "go-version=$(cat "$RUNNER_TEMP/m-cli/.go-version")" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26.x"
+          go-version: ${{ steps.mcli.outputs.go-version }}
           check-latest: true
 
       - name: Build the Go `m` toolchain from m-cli
         run: |
-          git clone --depth 1 --branch main \
-            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
