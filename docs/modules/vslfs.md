@@ -124,7 +124,7 @@ File `value` into (file,iens,field); return the resolved IENS, else raise.
 - `file` _(numeric)_ — FileMan file number
 - `iens` _(string)_ — IENS; "+1," (etc.) adds a new record
 - `field` _(string)_ — field number within the file
-- `value` _(string)_ — external value to file
+- `value` _(string)_ — the FileMan-INTERNAL value to file (see note)
 
 **Returns** _string_ — the resolved IENS on success (the new IENS for an add)
 

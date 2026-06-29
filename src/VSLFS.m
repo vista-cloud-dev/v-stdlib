@@ -15,10 +15,10 @@ VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 	; MSL seam, called up (m/v waterline §9 no-duplication).
 	;
 	; Public API (the handle is a FileMan IENS; values are field values):
-	;   $$set^VSLFS(file,iens,field,value) — file a field (UPDATE^DIE); add a
-	;                                         record with iens "+1," -> resolved IENS
-	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ), else
-	;                                         default; flags "I" reads the internal value
+	;   $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no
+	;                                         transform); "+1," adds -> resolved IENS
+	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default
+	;                                         is the EXTERNAL value, flags "I" the internal
 	;   $$exists^VSLFS(file,iens)           — 1 iff the record exists
 	;   $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01="@")
 	;   $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)
@@ -47,9 +47,15 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 	; doc: @param   file     numeric  FileMan file number
 	; doc: @param   iens     string   IENS; "+1," (etc.) adds a new record
 	; doc: @param   field    string   field number within the file
-	; doc: @param   value    string   external value to file
+	; doc: @param   value    string   the FileMan-INTERNAL value to file (see note)
 	; doc: @returns          string   the resolved IENS on success (the new IENS for an add)
 	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	; doc: UPDATE^DIE is called with NO "E" flag, so `value` is filed as the FileMan
+	; doc: INTERNAL value and NO input transform runs. For transformed fields (DATE,
+	; doc: POINTER, SET OF CODES) pass the internal form (e.g. an $$NOW^XLFDT date),
+	; doc: not the external string; .01 free text is transform-invariant either way.
+	; doc: Asymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to
+	; doc: round-trip a transformed field, read it back with $$get(...,"I").
 	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
 	; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
 	new FDA,IEN,ERR
@@ -65,6 +71,9 @@ get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; retu
 	; doc: @param   default  string   value returned when the field/record is unset
 	; doc: @param   flags    string   $$GET1^DIQ flags: "" external (default), "I" internal
 	; doc: @returns          string   the field value (external, or internal if flags["I"]), or `default`
+	; doc: Default ("" flags) reads the EXTERNAL value; "I" reads the INTERNAL value.
+	; doc: Since $$set files INTERNAL, read a transformed field back with "I" to get
+	; doc: exactly what was filed (the external default applies the output transform).
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
 	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")

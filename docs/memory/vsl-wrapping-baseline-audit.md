@@ -36,9 +36,16 @@ the 7-category model in the doc — happy-path green is necessary, not sufficien
    stale [[m2-vslio]] "needs no $ZVERSION arm / IRIS soft-skips" claim
    (`$$available^STDNET()=1` on IRIS now). Lesson stands: an engine-divergent I/O arm
    that a stale soft-skip never runs on IRIS is exactly where a portability bug hides.
-3. **VSLFS E-flag** — `$$set` doc says "external value" but `UPDATE^DIE` has no `E`
-   flag → files INTERNAL (corpus + [[r3a-vsllog-audit-dd]]). Only free-text `.01`
-   round-trips; DATE/POINTER/SET would file wrong silently.
+3. **VSLFS E-flag — ✅ FIXED 2026-06-28 (doc, not code).** `$$set` doc said
+   "external value" but `UPDATE^DIE` has no `E` flag → files INTERNAL
+   ([[r3a-vsllog-audit-dd]]). The CODE is correct and VSLLOG depends on internal
+   filing, so the fix corrected the contract doc (value is INTERNAL; `$$set` files
+   internal while `$$get` defaults external — read transformed fields back with
+   `$$get(...,"I")`), plus a lock-in test (`tInternalFilingRoundtrip`) proving
+   internal≠external via the resident #999001 DATE field (#999000's `.01` is
+   transform-invariant). VSLFSTST 16/16 dual-engine. **"Pass E" would have broken
+   VSLLOG — the doc was the bug.** Deferred: a DATE field on #999000 (v-pkg testdata,
+   cross-repo).
 4. **VSLTASK schedule `@`** — docstring "`@` = ASAP" is backwards; corpus
    `XU/krn_8_0_dg_taskman_ug#example-7` = `ZTDTH="@"` means do-NOT-schedule. (This
    was wording R5a introduced — the audit caught its own house's error.)

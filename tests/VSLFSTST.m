@@ -22,6 +22,7 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	do tDierrIsLoud(.pass,.fail)
 	do tFindByName(.pass,.fail)
 	do tListAllRecords(.pass,.fail)
+	do tInternalFilingRoundtrip(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -81,6 +82,26 @@ tListAllRecords(pass,fail)	;@TEST "$$list returns the IENS of every record (the 
 	do true^STDASSERT(.pass,.fail,$data(out(i2)),"$$list includes the second record's IENS")
 	do teardown(file,i1)
 	do teardown(file,i2)
+	quit
+	;
+tInternalFilingRoundtrip(pass,fail)	;@TEST "$$set files the INTERNAL value (no transform): $$get ""I"" round-trips it; the external default differs (a transform applies)"
+	; Proves the internal-vs-external contract that the transform-invariant #999000
+	; .01 cannot. Uses the resident VSL AUDIT file (#999001) for its DATE field (#1).
+	; Self-restoring: the throwaway audit record is killed at the end.
+	new file,iens,fmdt,gi,ge,x
+	do setup(.file)
+	set file=999001
+	set iens=$$set^VSLFS(file,"+1,",".01","ZZVSLFS-ITEST "_$job)
+	do true^STDASSERT(.pass,.fail,iens'="","VSL AUDIT record created for the internal-filing probe")
+	quit:iens=""
+	set fmdt=3250115			; FileMan-internal date = 15 Jan 2025
+	set x=$$set^VSLFS(file,iens,"1",fmdt)
+	set gi=$$get^VSLFS(file,iens,"1","","I")
+	set ge=$$get^VSLFS(file,iens,"1","")
+	do eq^STDASSERT(.pass,.fail,gi,fmdt,"$$set filed the INTERNAL date verbatim; $$get ""I"" reads it back unchanged")
+	do true^STDASSERT(.pass,.fail,ge'="","$$get default returns the external form (non-empty)")
+	do true^STDASSERT(.pass,.fail,ge'=gi,"external read differs from internal — proves $$set ran NO transform (filed internal)")
+	set x=$$kill^VSLFS(file,iens)
 	quit
 	;
 	; ---------- fixtures ----------

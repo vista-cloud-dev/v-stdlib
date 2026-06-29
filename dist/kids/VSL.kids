@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*11^
+**KIDS**:VSL*1.0*12^
 
 **INSTALL NAME**
-VSL*1.0*11
+VSL*1.0*12
 "BLD",1,0)
-VSL*1.0*11^VSL^0^0
+VSL*1.0*12^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -209,7 +209,7 @@ raiseSet(key,detail)	; (private) stash the detail, then raise the clean ,U-VSL-C
 "RTN","VSLCFG",86,0)
 	quit
 "RTN","VSLFS")
-0^172^0^0
+0^181^0^0
 "RTN","VSLFS",1,0)
 VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 "RTN","VSLFS",2,0)
@@ -245,13 +245,13 @@ VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 "RTN","VSLFS",17,0)
 	; Public API (the handle is a FileMan IENS; values are field values):
 "RTN","VSLFS",18,0)
-	;   $$set^VSLFS(file,iens,field,value) — file a field (UPDATE^DIE); add a
+	;   $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no
 "RTN","VSLFS",19,0)
-	;                                         record with iens "+1," -> resolved IENS
+	;                                         transform); "+1," adds -> resolved IENS
 "RTN","VSLFS",20,0)
-	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ), else
+	;   $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default
 "RTN","VSLFS",21,0)
-	;                                         default; flags "I" reads the internal value
+	;                                         is the EXTERNAL value, flags "I" the internal
 "RTN","VSLFS",22,0)
 	;   $$exists^VSLFS(file,iens)           — 1 iff the record exists
 "RTN","VSLFS",23,0)
@@ -309,250 +309,268 @@ set(file,iens,field,value)	; File `value` into (file,iens,field); return the res
 "RTN","VSLFS",49,0)
 	; doc: @param   field    string   field number within the file
 "RTN","VSLFS",50,0)
-	; doc: @param   value    string   external value to file
+	; doc: @param   value    string   the FileMan-INTERNAL value to file (see note)
 "RTN","VSLFS",51,0)
 	; doc: @returns          string   the resolved IENS on success (the new IENS for an add)
 "RTN","VSLFS",52,0)
 	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 "RTN","VSLFS",53,0)
-	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
+	; doc: UPDATE^DIE is called with NO "E" flag, so `value` is filed as the FileMan
 "RTN","VSLFS",54,0)
-	; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
+	; doc: INTERNAL value and NO input transform runs. For transformed fields (DATE,
 "RTN","VSLFS",55,0)
-	new FDA,IEN,ERR
+	; doc: POINTER, SET OF CODES) pass the internal form (e.g. an $$NOW^XLFDT date),
 "RTN","VSLFS",56,0)
-	set FDA(file,iens,field)=value
+	; doc: not the external string; .01 free text is transform-invariant either way.
 "RTN","VSLFS",57,0)
-	do UPDATE^DIE("","FDA","IEN","ERR")
+	; doc: Asymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to
 "RTN","VSLFS",58,0)
-	if $data(ERR("DIERR")) do raiseDierr("set",.ERR) quit ""
+	; doc: round-trip a transformed field, read it back with $$get(...,"I").
 "RTN","VSLFS",59,0)
-	quit $$resolveIens(iens,.IEN)
+	; doc: @icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater
 "RTN","VSLFS",60,0)
-	;
+	; doc: @illustrative  a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner
 "RTN","VSLFS",61,0)
-get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
+	new FDA,IEN,ERR
 "RTN","VSLFS",62,0)
-	; doc: @param   file     numeric  FileMan file number
+	set FDA(file,iens,field)=value
 "RTN","VSLFS",63,0)
-	; doc: @param   iens     string   IENS of the record
+	do UPDATE^DIE("","FDA","IEN","ERR")
 "RTN","VSLFS",64,0)
-	; doc: @param   field    string   field number
+	if $data(ERR("DIERR")) do raiseDierr("set",.ERR) quit ""
 "RTN","VSLFS",65,0)
-	; doc: @param   default  string   value returned when the field/record is unset
+	quit $$resolveIens(iens,.IEN)
 "RTN","VSLFS",66,0)
-	; doc: @param   flags    string   $$GET1^DIQ flags: "" external (default), "I" internal
+	;
 "RTN","VSLFS",67,0)
-	; doc: @returns          string   the field value (external, or internal if flags["I"]), or `default`
+get(file,iens,field,default,flags)	; Read (file,iens,field) via $$GET1^DIQ; return value, else `default`.
 "RTN","VSLFS",68,0)
-	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",69,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
-"RTN","VSLFS",70,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
-"RTN","VSLFS",71,0)
-	new val,ERR
-"RTN","VSLFS",72,0)
-	set val=$$GET1^DIQ(file,iens,field,$get(flags),"","ERR")
-"RTN","VSLFS",73,0)
-	if $data(ERR("DIERR")) quit default
-"RTN","VSLFS",74,0)
-	quit $select(val="":default,1:val)
-"RTN","VSLFS",75,0)
-	;
-"RTN","VSLFS",76,0)
-exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
-"RTN","VSLFS",77,0)
-	; doc: @param   file     numeric  FileMan file number
-"RTN","VSLFS",78,0)
 	; doc: @param   iens     string   IENS of the record
-"RTN","VSLFS",79,0)
-	; doc: @returns          bool     1 iff the record exists; 0 otherwise
-"RTN","VSLFS",80,0)
+"RTN","VSLFS",70,0)
+	; doc: @param   field    string   field number
+"RTN","VSLFS",71,0)
+	; doc: @param   default  string   value returned when the field/record is unset
+"RTN","VSLFS",72,0)
+	; doc: @param   flags    string   $$GET1^DIQ flags: "" external (default), "I" internal
+"RTN","VSLFS",73,0)
+	; doc: @returns          string   the field value (external, or internal if flags["I"]), or `default`
+"RTN","VSLFS",74,0)
+	; doc: Default ("" flags) reads the EXTERNAL value; "I" reads the INTERNAL value.
+"RTN","VSLFS",75,0)
+	; doc: Since $$set files INTERNAL, read a transformed field back with "I" to get
+"RTN","VSLFS",76,0)
+	; doc: exactly what was filed (the external default applies the output transform).
+"RTN","VSLFS",77,0)
 	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
-"RTN","VSLFS",81,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"1,"),1,"exists: #200 IEN 1 (postmaster) exists")
-"RTN","VSLFS",82,0)
-	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"999999999,"),0,"exists: an absent record returns 0")
-"RTN","VSLFS",83,0)
+"RTN","VSLFS",78,0)
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do true^STDASSERT(.pass,.fail,$$get^VSLFS(200,"1,",".01","")'="","get: #200 IEN 1 (.01) reads a non-empty name")
+"RTN","VSLFS",79,0)
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$get^VSLFS(200,"999999999,",".01","MISS"),"MISS","get: an absent record returns the default")
+"RTN","VSLFS",80,0)
 	new val,ERR
+"RTN","VSLFS",81,0)
+	set val=$$GET1^DIQ(file,iens,field,$get(flags),"","ERR")
+"RTN","VSLFS",82,0)
+	if $data(ERR("DIERR")) quit default
+"RTN","VSLFS",83,0)
+	quit $select(val="":default,1:val)
 "RTN","VSLFS",84,0)
-	set val=$$GET1^DIQ(file,iens,".01","","","ERR")
+	;
 "RTN","VSLFS",85,0)
-	if $data(ERR("DIERR")) quit 0
+exists(file,iens)	; Return 1 iff record (file,iens) exists (its .01 reads without a DIERR).
 "RTN","VSLFS",86,0)
-	quit $select(val="":0,1:1)
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",87,0)
-	;
+	; doc: @param   iens     string   IENS of the record
 "RTN","VSLFS",88,0)
-kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
+	; doc: @returns          bool     1 iff the record exists; 0 otherwise
 "RTN","VSLFS",89,0)
-	; doc: @param   file     numeric  FileMan file number
+	; doc: @icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field
 "RTN","VSLFS",90,0)
-	; doc: @param   iens     string   IENS of the record to delete
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"1,"),1,"exists: #200 IEN 1 (postmaster) exists")
 "RTN","VSLFS",91,0)
-	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
+	; doc: @example   set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT do eq^STDASSERT(.pass,.fail,$$exists^VSLFS(200,"999999999,"),0,"exists: an absent record returns 0")
 "RTN","VSLFS",92,0)
-	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is
+	new val,ERR
 "RTN","VSLFS",93,0)
-	; doc: idempotent). A caller that needs delete-or-fail semantics must check
+	set val=$$GET1^DIQ(file,iens,".01","","","ERR")
 "RTN","VSLFS",94,0)
-	; doc: $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
+	if $data(ERR("DIERR")) quit 0
 "RTN","VSLFS",95,0)
-	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
+	quit $select(val="":0,1:1)
 "RTN","VSLFS",96,0)
-	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner
+	;
 "RTN","VSLFS",97,0)
-	new FDA,ERR
+kill(file,iens)	; Delete record (file,iens) via an FDA .01="@" through FILE^DIE; return 1.
 "RTN","VSLFS",98,0)
-	set FDA(file,iens,".01")="@"
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",99,0)
-	do FILE^DIE("","FDA","ERR")
+	; doc: @param   iens     string   IENS of the record to delete
 "RTN","VSLFS",100,0)
-	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
+	; doc: @returns          bool     1 always (idempotent — a failed delete records a DIERR, never raises, unlike $$set)
 "RTN","VSLFS",101,0)
-	quit 1
+	; doc: This swallow-vs-raise asymmetry with $$set is deliberate (a delete is
 "RTN","VSLFS",102,0)
-	;
+	; doc: idempotent). A caller that needs delete-or-fail semantics must check
 "RTN","VSLFS",103,0)
-find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+	; doc: $$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.
 "RTN","VSLFS",104,0)
-	; doc: @param   file     numeric  FileMan file number
+	; doc: @icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer
 "RTN","VSLFS",105,0)
-	; doc: @param   value    string   the lookup value to match (exact)
+	; doc: @illustrative  deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner
 "RTN","VSLFS",106,0)
-	; doc: @param   index    string   the cross-reference to search (default "B")
+	new FDA,ERR
 "RTN","VSLFS",107,0)
-	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
+	set FDA(file,iens,".01")="@"
 "RTN","VSLFS",108,0)
-	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
+	do FILE^DIE("","FDA","ERR")
 "RTN","VSLFS",109,0)
-	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
+	if $data(ERR("DIERR")) do stashDierr("kill",.ERR)
 "RTN","VSLFS",110,0)
-	new y,ERR
+	quit 1
 "RTN","VSLFS",111,0)
-	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
-"RTN","VSLFS",112,0)
-	quit $select(+y>0:y_",",1:"")
-"RTN","VSLFS",113,0)
 	;
-"RTN","VSLFS",114,0)
-list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
-"RTN","VSLFS",115,0)
+"RTN","VSLFS",112,0)
+find(file,value,index)	; The IENS of the UNIQUE record whose `index` lookup equals `value`, else "".
+"RTN","VSLFS",113,0)
 	; doc: @param   file     numeric  FileMan file number
+"RTN","VSLFS",114,0)
+	; doc: @param   value    string   the lookup value to match (exact)
+"RTN","VSLFS",115,0)
+	; doc: @param   index    string   the cross-reference to search (default "B")
 "RTN","VSLFS",116,0)
-	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
+	; doc: @returns          string   the IENS ("ien,") of the single match, else "" (absent or ambiguous)
 "RTN","VSLFS",117,0)
-	; doc: @param   index    string   traversal cross-reference (default "B")
+	; doc: @icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record
 "RTN","VSLFS",118,0)
-	; doc: @returns          numeric  the number of records listed
+	; doc: @illustrative  resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName
 "RTN","VSLFS",119,0)
-	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
+	new y,ERR
 "RTN","VSLFS",120,0)
-	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
+	set y=$$FIND1^DIC(file,"","X",value,$get(index,"B"),"","ERR")
 "RTN","VSLFS",121,0)
-	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
+	quit $select(+y>0:y_",",1:"")
 "RTN","VSLFS",122,0)
-	new ERR,cnt,seq,ien
+	;
 "RTN","VSLFS",123,0)
-	kill ^TMP("DILIST",$job)
+list(file,out,index)	; List the IENS of every record (via LIST^DIC) into out("ien,"); return the count.
 "RTN","VSLFS",124,0)
-	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
+	; doc: @param   file     numeric  FileMan file number
 "RTN","VSLFS",125,0)
-	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
+	; doc: @param   out      array    (by ref) set out("ien,")="" for each record found
 "RTN","VSLFS",126,0)
-	set cnt=+$get(^TMP("DILIST",$job,0))
+	; doc: @param   index    string   traversal cross-reference (default "B")
 "RTN","VSLFS",127,0)
-	set seq=$order(^TMP("DILIST",$job,2,""))
+	; doc: @returns          numeric  the number of records listed
 "RTN","VSLFS",128,0)
-	for  quit:seq=""  do
+	; doc: @raises  U-VSL-FS-DIERR  a FileMan DIERR (detail in $$lastError)
 "RTN","VSLFS",129,0)
-	. set ien=$get(^TMP("DILIST",$job,2,seq))
+	; doc: @icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister
 "RTN","VSLFS",130,0)
-	. if ien'="" set out(ien_",")=""
+	; doc: @illustrative  lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords
 "RTN","VSLFS",131,0)
-	. set seq=$order(^TMP("DILIST",$job,2,seq))
+	new ERR,cnt,seq,ien
 "RTN","VSLFS",132,0)
 	kill ^TMP("DILIST",$job)
 "RTN","VSLFS",133,0)
-	quit cnt
+	do LIST^DIC(file,"","@;.01","","*","","",$get(index,"B"),"","","","ERR")
 "RTN","VSLFS",134,0)
-	;
+	if $data(ERR("DIERR")) do raiseDierr("list",.ERR) quit 0
 "RTN","VSLFS",135,0)
-lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
+	set cnt=+$get(^TMP("DILIST",$job,0))
 "RTN","VSLFS",136,0)
-	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+	set seq=$order(^TMP("DILIST",$job,2,""))
 "RTN","VSLFS",137,0)
-	; doc: @illustrative  $$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check
-"RTN","VSLFS",138,0)
-	quit $get(^TMP($job,"vslfs","err"))
-"RTN","VSLFS",139,0)
-	;
-"RTN","VSLFS",140,0)
-	; ---------- internals ----------
-"RTN","VSLFS",141,0)
-	;
-"RTN","VSLFS",142,0)
-raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
-"RTN","VSLFS",143,0)
-	do stashDierr(who,.ERR)
-"RTN","VSLFS",144,0)
-	set $ecode=",U-VSL-FS-DIERR,"
-"RTN","VSLFS",145,0)
-	quit
-"RTN","VSLFS",146,0)
-	;
-"RTN","VSLFS",147,0)
-stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
-"RTN","VSLFS",148,0)
-	new m,nl,seq
-"RTN","VSLFS",149,0)
-	set nl=$char(10)
-"RTN","VSLFS",150,0)
-	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
-"RTN","VSLFS",151,0)
-	set seq=$order(ERR("DIERR",""))
-"RTN","VSLFS",152,0)
 	for  quit:seq=""  do
+"RTN","VSLFS",138,0)
+	. set ien=$get(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",139,0)
+	. if ien'="" set out(ien_",")=""
+"RTN","VSLFS",140,0)
+	. set seq=$order(^TMP("DILIST",$job,2,seq))
+"RTN","VSLFS",141,0)
+	kill ^TMP("DILIST",$job)
+"RTN","VSLFS",142,0)
+	quit cnt
+"RTN","VSLFS",143,0)
+	;
+"RTN","VSLFS",144,0)
+lastError()	; The last VSLFS error message (the composed FileMan DIERR detail).
+"RTN","VSLFS",145,0)
+	; doc: @returns          string   ^TMP($job,"vslfs","err"), or "" if none
+"RTN","VSLFS",146,0)
+	; doc: @illustrative  $$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check
+"RTN","VSLFS",147,0)
+	quit $get(^TMP($job,"vslfs","err"))
+"RTN","VSLFS",148,0)
+	;
+"RTN","VSLFS",149,0)
+	; ---------- internals ----------
+"RTN","VSLFS",150,0)
+	;
+"RTN","VSLFS",151,0)
+raiseDierr(who,ERR)	; Stash the DIERR detail, then raise the clean ,U-VSL-FS-DIERR,.
+"RTN","VSLFS",152,0)
+	do stashDierr(who,.ERR)
 "RTN","VSLFS",153,0)
-	. do:seq=+seq addText(seq,.ERR,.m,nl)
+	set $ecode=",U-VSL-FS-DIERR,"
 "RTN","VSLFS",154,0)
-	. set seq=$order(ERR("DIERR",seq))
+	quit
 "RTN","VSLFS",155,0)
-	set ^TMP($job,"vslfs","err")=m
+	;
 "RTN","VSLFS",156,0)
-	quit
+stashDierr(who,ERR)	; Compose the FileMan DIERR text into ^TMP($job,"vslfs","err").
 "RTN","VSLFS",157,0)
-	;
+	new m,nl,seq
 "RTN","VSLFS",158,0)
-addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
+	set nl=$char(10)
 "RTN","VSLFS",159,0)
-	new ln
+	set m=who_": FileMan DIERR ("_$get(ERR("DIERR"))_")"
 "RTN","VSLFS",160,0)
-	set ln=$order(ERR("DIERR",seq,"TEXT",""))
+	set seq=$order(ERR("DIERR",""))
 "RTN","VSLFS",161,0)
-	for  quit:ln=""  do
+	for  quit:seq=""  do
 "RTN","VSLFS",162,0)
-	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
+	. do:seq=+seq addText(seq,.ERR,.m,nl)
 "RTN","VSLFS",163,0)
-	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
+	. set seq=$order(ERR("DIERR",seq))
 "RTN","VSLFS",164,0)
-	quit
+	set ^TMP($job,"vslfs","err")=m
 "RTN","VSLFS",165,0)
-	;
+	quit
 "RTN","VSLFS",166,0)
-resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
+	;
 "RTN","VSLFS",167,0)
-	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
+addText(seq,ERR,m,nl)	; Append every TEXT line of DIERR `seq` to `m` (by ref).
 "RTN","VSLFS",168,0)
-	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
+	new ln
 "RTN","VSLFS",169,0)
-	new n
+	set ln=$order(ERR("DIERR",seq,"TEXT",""))
 "RTN","VSLFS",170,0)
-	if $extract(iens,1)'="+" quit iens
+	for  quit:ln=""  do
 "RTN","VSLFS",171,0)
-	set n=+$piece($extract(iens,2,$length(iens)),",")
+	. set m=m_nl_$get(ERR("DIERR",seq,"TEXT",ln))
 "RTN","VSLFS",172,0)
+	. set ln=$order(ERR("DIERR",seq,"TEXT",ln))
+"RTN","VSLFS",173,0)
+	quit
+"RTN","VSLFS",174,0)
+	;
+"RTN","VSLFS",175,0)
+resolveIens(iens,IEN)	; Resolve a "+n," add-node IENS to its real IENS; else echo iens.
+"RTN","VSLFS",176,0)
+	; UPDATE^DIE returns the new internal entry number for a "+n," placeholder in
+"RTN","VSLFS",177,0)
+	; IEN(n); a non-placeholder IENS files in place and is returned unchanged.
+"RTN","VSLFS",178,0)
+	new n
+"RTN","VSLFS",179,0)
+	if $extract(iens,1)'="+" quit iens
+"RTN","VSLFS",180,0)
+	set n=+$piece($extract(iens,2,$length(iens)),",")
+"RTN","VSLFS",181,0)
 	quit $get(IEN(n))_","
 "RTN","VSLIO")
 0^147^0^0

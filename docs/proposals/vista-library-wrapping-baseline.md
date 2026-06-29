@@ -48,8 +48,16 @@ straight over. Each is verified below.
 > R5a ("`@` for ASAP"). The audit caught its own house's error — exactly what an
 > adversarial, corpus-grounded pass is for.
 
-> **✅ UPDATE — defects (1) and (2) FIXED (2026-06-28).** Defects (3) VSLFS and
-> (4) VSLTASK remain open.
+> **✅ UPDATE — defects (1), (2), (3) FIXED (2026-06-28).** Defect (4) VSLTASK
+> remains open.
+> - **(3) VSLFS:** the contract was the doc, not the code — `$$set` files INTERNAL
+>   (VSLLOG depends on that; "pass `E`" would break it), so the docstring is
+>   corrected from "external value" to "internal value" with the
+>   set-internal/get-external asymmetry + round-trip guidance (`$$get(...,"I")`).
+>   Added `tInternalFilingRoundtrip` proving internal≠external via the resident
+>   `#999001` DATE field (the `#999000` `.01` is transform-invariant). `VSLFSTST`
+>   **16/16 on both engines**. (Extending `#999000` with a DATE field — the audit's
+>   other option — is deferred: it lives in v-pkg's testdata, a separate repo.)
 > - **(2) VSLIO:** `$$write^VSLIO` now flushes with `write *-3` on IRIS
 >   (`if $zversion["IRIS"`, mirroring `$$writeIris^STDNET`); `VSLIOTST` is **10/10 on
 >   BOTH engines** and the stale "STDNET is YDB-only / loopback soft-skips" suite
