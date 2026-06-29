@@ -54,7 +54,8 @@ tGetEffectiveResolvesSys(pass,fail)	;@TEST "$$getEffective returns the ALL-prece
 	;
 tSetFailureIsLoud(pass,fail)	;@TEST "a failed $$set maps to a clean ,U-VSL-CFG-..., $ECODE with the detail in $$lastError"
 	set DUZ=1,DUZ(0)="@",U="^",DT=$$DT^XLFDT
-	do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")","U-VSL-CFG","$$set into an undefined parameter raises U-VSL-CFG-...")
+	do raises^STDASSERT(.pass,.fail,"do set^VSLCFG(""ZZNOSUCHVSLCFGPARAM"",""x"")",",U-VSL-CFG-SET,","$$set into an undefined parameter raises exactly ,U-VSL-CFG-SET,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped set raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLCFG()'="","lastError carries the XPAR failure detail")
 	quit
 	;

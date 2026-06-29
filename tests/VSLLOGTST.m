@@ -61,7 +61,8 @@ tSystemContextWrites(pass,fail)	;@TEST "$$write files a system-context record (D
 tWriteFailureIsLoud(pass,fail)	;@TEST "a FileMan write failure maps to a clean ,U-VSL-LOG-..., $ECODE with detail in $$lastError"
 	do setup()
 	; an empty event (.01 is required on a new FileMan entry) -> DIERR -> loud
-	do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG("""",""d"",1,""h"")","U-VSL-LOG","$$write of a record with an empty .01 raises U-VSL-LOG-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$write^VSLLOG("""",""d"",1,""h"")",",U-VSL-LOG-WRITE,","$$write of a record with an empty .01 raises exactly ,U-VSL-LOG-WRITE,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped write raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLLOG()'="","lastError carries the underlying FileMan detail")
 	quit
 	;

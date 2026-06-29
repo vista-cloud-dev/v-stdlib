@@ -50,6 +50,7 @@ tLoopbackEcho(pass,fail)	;@TEST "VSLIO CALL^%ZISTCP connects (POP=0) and echoes 
 tTlsGapIsLoud(pass,fail)	;@TEST "TLS is a loud, documented gap — never a silent plaintext fallback (both engines)"
 	do true^STDASSERT(.pass,.fail,'$$tlsAvailable^VSLIO(),"tlsAvailable()=0 (TLS not wired)")
 	do contains^STDASSERT(.pass,.fail,$$tlsHelp^VSLIO(),"NOTLS","tlsHelp carries remediation")
-	do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")","U-VSLIO-NOTLS","connectTls raises U-VSLIO-NOTLS")
+	do raises^STDASSERT(.pass,.fail,"set x=$$connectTls^VSLIO(""h"",1,1,""cfg"")",",U-VSLIO-NOTLS,","connectTls raises exactly ,U-VSLIO-NOTLS,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped connectTls raise (clean unwind)")
 	do contains^STDASSERT(.pass,.fail,$$lastError^VSLIO(),"Remedy","lastError carries the remediation steps")
 	quit

@@ -54,12 +54,14 @@ tStopIsCleanOutsideTask(pass,fail)	;@TEST "$$stop is a clean 0 outside a queued 
 	quit
 	;
 tPersistRejectsBadArg(pass,fail)	;@TEST "$$persist on a missing task# raises a clean ,U-VSL-TASK-..., with detail in $$lastError"
-	do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")","U-VSL-TASK","$$persist with no task# raises U-VSL-TASK-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$persist^VSLTASK("""")",",U-VSL-TASK-ARG,","$$persist with no task# raises exactly ,U-VSL-TASK-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped persist raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
 	quit
 	;
 tScheduleRejectsBadArg(pass,fail)	;@TEST "$$schedule with an empty entry raises a clean ,U-VSL-TASK-..., (wired; live queue is soft-skipped)"
-	do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")","U-VSL-TASK","$$schedule with no entry raises U-VSL-TASK-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$schedule^VSLTASK("""",""ZZ"")",",U-VSL-TASK-ARG,","$$schedule with no entry raises exactly ,U-VSL-TASK-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped schedule raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLTASK()'="","lastError carries the malformed-call detail")
 	quit
 	;

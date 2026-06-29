@@ -53,7 +53,8 @@ tExistsThenKill(pass,fail)	;@TEST "$$exists is true after create; $$kill removes
 tDierrIsLoud(pass,fail)	;@TEST "a FileMan DIERR maps to a clean ,U-VSL-FS-..., $ECODE with the detail in $$lastError"
 	new file
 	do setup(.file)
-	do raises^STDASSERT(.pass,.fail,"set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")","U-VSL-FS","$$set into a bogus file raises U-VSL-FS-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$set^VSLFS(99999999,""+1,"","".01"",""ZZ"")",",U-VSL-FS-DIERR,","$$set into a bogus file raises exactly ,U-VSL-FS-DIERR,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped set raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLFS()'="","lastError carries the FileMan DIERR detail")
 	quit
 	;

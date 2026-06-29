@@ -89,7 +89,8 @@ tDuzAndUser(pass,fail)	;@TEST "$$duz returns the ambient principal and $$user re
 	;
 tMalformedIsLoud(pass,fail)	;@TEST "a malformed call (empty key) maps to a clean ,U-VSL-SEC-..., $ECODE with detail in $$lastError"
 	do setup
-	do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)","U-VSL-SEC","$$hasKey with an empty key raises U-VSL-SEC-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$hasKey^VSLSEC("""",1)",",U-VSL-SEC-ARG,","$$hasKey with an empty key raises exactly ,U-VSL-SEC-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped hasKey raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail")
 	quit
 	;
@@ -108,7 +109,8 @@ tParseQry(pass,fail)	;@TEST "$$parseQry extracts the #200 IEN from an XUPSQRY re
 	;
 tBySecidEmptyIsLoud(pass,fail)	;@TEST "$$bySecid with an empty SecID is a loud malformed call (U-VSL-SEC-...)"
 	do setup
-	do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")","U-VSL-SEC","$$bySecid("""") raises U-VSL-SEC-...")
+	do raises^STDASSERT(.pass,.fail,"set x=$$bySecid^VSLSEC("""")",",U-VSL-SEC-ARG,","$$bySecid("""") raises exactly ,U-VSL-SEC-ARG,")
+	do eq^STDASSERT(.pass,.fail,$ecode,"","$ECODE is clear after the trapped bySecid raise (clean unwind)")
 	do true^STDASSERT(.pass,.fail,$$lastError^VSLSEC()'="","lastError carries the malformed-call detail")
 	quit
 	;

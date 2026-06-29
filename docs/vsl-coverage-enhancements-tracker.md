@@ -50,8 +50,12 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
   `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **13**.
-- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 7/7,
-  VSLFS 16/16, VSLIO 10/10, VSLLOG 15/15, VSLSEC 17/17, VSLTASK 8/8.
+- **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
+  suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
+  (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
+  (no hidden defect — each routine raises exactly its declared code).
+- **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 8/8,
+  VSLFS 17/17, VSLIO 11/11, VSLLOG 16/16, VSLSEC 19/19, VSLTASK 10/10.
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -61,10 +65,14 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 ### P1 — Coverage-model test backfill (highest ROI; hardens existing surface)
 Apply the baseline's coverage model + stress policy to **all six** `VSL*TST.m`
 suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
-- **Exact-ecode, not prefix.** Tighten every `raises^STDASSERT(...,"U-VSL-<MOD>",...)`
-  to the full `,U-VSL-<MOD>-<OP>,` code, and assert `$ECODE` clears + execution
-  continues after the catch. (VSLCFG `tSetFailureIsLoud`, VSLLOG write-failure,
-  VSLFS `tDierrIsLoud`, VSLSEC/VSLTASK arg gates.)
+- **✅ DONE 2026-06-29 — Exact-ecode, not prefix.** Tightened every
+  `raises^STDASSERT(...,"U-VSL-<MOD>",...)` to the full `,U-VSL-<MOD>-<OP>,` code +
+  a `$ECODE`-clears post-condition (execution-continues was already covered by the
+  existing `$$lastError'=""` follow-ons, so not duplicated — R6). Sites: VSLCFG
+  `tSetFailureIsLoud` (`,U-VSL-CFG-SET,`), VSLLOG `tWriteFailureIsLoud`
+  (`,U-VSL-LOG-WRITE,`), VSLFS `tDierrIsLoud` (`,U-VSL-FS-DIERR,`), VSLIO
+  `tTlsGapIsLoud` (`,U-VSLIO-NOTLS,`), VSLSEC hasKey+bySecid (`,U-VSL-SEC-ARG,`),
+  VSLTASK persist+schedule (`,U-VSL-TASK-ARG,`). All green first run, dual-engine.
 - **Default-arg / contract-shape.** Already done for VSLSEC (`tHasKeyDefaultsDuz`
   etc.); add the omitted-`when` path for VSLTASK and omitted-format for VSLCFG.
 - **Boundary / ambiguous / absent.** VSLLOG 80-char HOST truncation; VSLFS ambiguous
