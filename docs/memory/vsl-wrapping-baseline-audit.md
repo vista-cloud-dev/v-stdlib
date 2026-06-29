@@ -19,13 +19,16 @@ explicit-arg / valid-input / transform-invariant / prefix-`$ECODE`-match paths a
 never reached the contract edges. "Comprehensive coverage" for a VistA wrapper is
 the 7-category model in the doc — happy-path green is necessary, not sufficient.
 
-**The omitted-optional-arg UNDEF is a SYSTEMIC class, not a one-off.** It bit VSLSEC
-(`duz`, 2026-06-28) and then VSLCFG (`default` in `$$get`/`$$getEffective`,
-2026-06-29 — `$select(v="":default,...)` evaluates the undefined formal). The
+**The omitted-optional-arg UNDEF is a SYSTEMIC class, not a one-off.** Three instances
+so far: VSLSEC (`duz`, 2026-06-28), VSLCFG (`default` in `$$get`/`$$getEffective`,
+2026-06-29 — `$select(v="":default,...)`), and VSLLOG (`$$query` `event`/`fromDt`/`toDt`,
+2026-06-29 — `quit:(fromDt'="")&...` references the undefined formal). The
 contract-shape coverage category (P1) exists to catch exactly this: **every optional
 formal in a VSL routine must be `$get`-guarded** before use (raw read, `$select`
-branch, or `$data`-less reference). When adding any VSL verb, test the
-omit-the-optional path, not just the all-args-supplied path.
+branch, or `$data`-less reference). When a verb has SEVERAL optionals, normalize them
+all on the first line (`set a=$get(a),b=$get(b),c=$get(c)`) rather than guarding each
+use site. When adding any VSL verb, test the omit-the-optional path, not just the
+all-args-supplied path.
 
 ## Four defects (verified) — ✅ ALL FIXED 2026-06-28 (commits 0acedb0, c56df66, f0df013, + this)
 1. **VSLSEC default-duz UNDEF — ✅ FIXED 2026-06-28.** single-arg

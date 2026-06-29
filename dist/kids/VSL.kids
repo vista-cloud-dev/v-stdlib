@@ -1,11 +1,11 @@
 KIDS Distribution saved by v-pkg
 m-kids reassembled output
-**KIDS**:VSL*1.0*14^
+**KIDS**:VSL*1.0*15^
 
 **INSTALL NAME**
-VSL*1.0*14
+VSL*1.0*15
 "BLD",1,0)
-VSL*1.0*14^VSL^0^0
+VSL*1.0*15^VSL^0^0
 "BLD",1,"KRN",0)
 ^9.67PA^8989.51^1
 "BLD",1,"KRN",8989.51,0)
@@ -869,7 +869,7 @@ raiseNoTls(who)	; Stash remediation, then raise the known-gap error (loud, not s
 "RTN","VSLIO",147,0)
 	quit
 "RTN","VSLLOG")
-0^132^0^0
+0^133^0^0
 "RTN","VSLLOG",1,0)
 VSLLOG	; v-stdlib — VistA FileMan audit sink (the dedicated VSL AUDIT file).
 "RTN","VSLLOG",2,0)
@@ -1089,11 +1089,11 @@ query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date
 "RTN","VSLLOG",109,0)
 	; doc: @param   out      array    (by ref) set out("ien,")=event for each matching record
 "RTN","VSLLOG",110,0)
-	; doc: @param   event    string   exact event (.01) to match; "" = any event
+	; doc: @param   event    string   exact event (.01) to match; "" or omitted = any event
 "RTN","VSLLOG",111,0)
-	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
+	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" or omitted = no lower bound
 "RTN","VSLLOG",112,0)
-	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
+	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" or omitted = no upper bound
 "RTN","VSLLOG",113,0)
 	; doc: @returns          numeric  the number of matching records
 "RTN","VSLLOG",114,0)
@@ -1101,38 +1101,40 @@ query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date
 "RTN","VSLLOG",115,0)
 	new file,all,iens,cur,n,ev,ts,junk
 "RTN","VSLLOG",116,0)
-	set file=$$auditFile()
+	set event=$get(event),fromDt=$get(fromDt),toDt=$get(toDt)
 "RTN","VSLLOG",117,0)
-	set junk=$$list^VSLFS(file,.all,"B")
+	set file=$$auditFile()
 "RTN","VSLLOG",118,0)
-	set n=0,iens=$order(all(""))
+	set junk=$$list^VSLFS(file,.all,"B")
 "RTN","VSLLOG",119,0)
-	for  quit:iens=""  do
+	set n=0,iens=$order(all(""))
 "RTN","VSLLOG",120,0)
-	. set cur=iens,iens=$order(all(iens))
+	for  quit:iens=""  do
 "RTN","VSLLOG",121,0)
-	. set ev=$$get^VSLFS(file,cur,".01","")
+	. set cur=iens,iens=$order(all(iens))
 "RTN","VSLLOG",122,0)
-	. quit:(event'="")&(ev'=event)
+	. set ev=$$get^VSLFS(file,cur,".01","")
 "RTN","VSLLOG",123,0)
-	. set ts=$$get^VSLFS(file,cur,"1","","I")
+	. quit:(event'="")&(ev'=event)
 "RTN","VSLLOG",124,0)
-	. quit:(fromDt'="")&(ts<fromDt)
+	. set ts=$$get^VSLFS(file,cur,"1","","I")
 "RTN","VSLLOG",125,0)
-	. quit:(toDt'="")&(ts>toDt)
+	. quit:(fromDt'="")&(ts<fromDt)
 "RTN","VSLLOG",126,0)
-	. set out(cur)=ev,n=n+1
+	. quit:(toDt'="")&(ts>toDt)
 "RTN","VSLLOG",127,0)
-	quit n
+	. set out(cur)=ev,n=n+1
 "RTN","VSLLOG",128,0)
-	;
+	quit n
 "RTN","VSLLOG",129,0)
-lastError()	; The last VSLLOG error message (the composed FileMan detail).
+	;
 "RTN","VSLLOG",130,0)
-	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
+lastError()	; The last VSLLOG error message (the composed FileMan detail).
 "RTN","VSLLOG",131,0)
-	; doc: @illustrative  $$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check
+	; doc: @returns          string   ^TMP($job,"vsllog","err"), or "" if none
 "RTN","VSLLOG",132,0)
+	; doc: @illustrative  $$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check
+"RTN","VSLLOG",133,0)
 	quit $get(^TMP($job,"vsllog","err"))
 "RTN","VSLSEC")
 0^113^0^0

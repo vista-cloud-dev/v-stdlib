@@ -27,6 +27,7 @@ VSLLOGTST	; v-stdlib — VSLLOG (dedicated VistA FileMan audit-sink) test suite.
 	do tSystemContextWrites(.pass,.fail)
 	do tWriteFailureIsLoud(.pass,.fail)
 	do tQueryFilters(.pass,.fail)
+	do tQueryVolumeExactCount(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
 	quit
@@ -101,6 +102,24 @@ tQueryFilters(pass,fail)	;@TEST "$$query filters audit records by exact event an
 	do teardown(i1)
 	do teardown(i2)
 	do teardown(i3)
+	quit
+	;
+tQueryVolumeExactCount(pass,fail)	;@TEST "$$query returns the exact count across many matching records, no DILIST residue (volume)"
+	; Volume + residue: file several records under one unique event, confirm $$query
+	; returns exactly that many and (via $$list) leaves no ^TMP(DILIST) scratch.
+	new i,event,ids,out,out2,n,nany
+	do setup()
+	kill ^TMP("DILIST",$job)
+	set event="ZZVSLLOG-VOL"_$job
+	for i=1:1:5 set ids(i)=$$write^VSLLOG(event,"d"_i,1,"H")
+	; date bounds omitted -> the optional fromDt/toDt formals must not UNDEF
+	set n=$$query^VSLLOG(.out,event)
+	do eq^STDASSERT(.pass,.fail,n,5,"$$query returns the exact count (5) for the unique event (fromDt/toDt omitted)")
+	; all optional args omitted -> "any event", must include the 5 filed (no UNDEF)
+	set nany=$$query^VSLLOG(.out2)
+	do true^STDASSERT(.pass,.fail,nany'<5,"$$query with all optional args omitted (any event) returns >= the 5 filed")
+	do true^STDASSERT(.pass,.fail,'$data(^TMP("DILIST",$job)),"$$query (via $$list) leaves no ^TMP(DILIST,$job) residue")
+	for i=1:1:5 do teardown(ids(i))
 	quit
 	;
 	; ---------- fixtures ----------

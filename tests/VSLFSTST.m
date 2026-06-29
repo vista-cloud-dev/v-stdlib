@@ -23,6 +23,7 @@ VSLFSTST	; v-stdlib — VSLFS (FileMan DBS storage adapter) test suite.
 	do tFindByName(.pass,.fail)
 	do tFindAmbiguousIsEmpty(.pass,.fail)
 	do tListAllRecords(.pass,.fail)
+	do tListVolumeNoResidue(.pass,.fail)
 	do tInternalFilingRoundtrip(.pass,.fail)
 	;
 	do report^STDASSERT(pass,fail)
@@ -101,6 +102,21 @@ tListAllRecords(pass,fail)	;@TEST "$$list returns the IENS of every record (the 
 	do true^STDASSERT(.pass,.fail,$data(out(i2)),"$$list includes the second record's IENS")
 	do teardown(file,i1)
 	do teardown(file,i2)
+	quit
+	;
+tListVolumeNoResidue(pass,fail)	;@TEST "$$list counts every record and leaves no ^TMP(DILIST) scratch residue (volume)"
+	; Volume + residue: file several throwaway records, confirm $$list returns them
+	; all (count integrity) and kills its ^TMP("DILIST",$job) scratch on the way out.
+	new file,i,nm,ids,out,cnt,missing
+	do setup(.file)
+	kill ^TMP("DILIST",$job)
+	for i=1:1:5 set nm="ZZVSLFS "_$job_"V"_i,ids(i)=$$set^VSLFS(file,"+1,",".01",nm)
+	set cnt=$$list^VSLFS(file,.out,"B")
+	set missing=0 for i=1:1:5 if '$data(out(ids(i))) set missing=missing+1
+	do eq^STDASSERT(.pass,.fail,missing,0,"every filed record appears in $$list output (count integrity)")
+	do true^STDASSERT(.pass,.fail,cnt>=5,"$$list count covers at least the 5 filed records")
+	do true^STDASSERT(.pass,.fail,'$data(^TMP("DILIST",$job)),"$$list leaves no ^TMP(DILIST,$job) scratch residue")
+	for i=1:1:5 do teardown(file,ids(i))
 	quit
 	;
 tInternalFilingRoundtrip(pass,fail)	;@TEST "$$set files the INTERNAL value (no transform): $$get ""I"" round-trips it; the external default differs (a transform applies)"

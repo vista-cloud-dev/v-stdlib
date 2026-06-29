@@ -874,17 +874,17 @@
             {
               "name": "event",
               "type": "string",
-              "doc": "exact event (.01) to match; \"\" = any event"
+              "doc": "exact event (.01) to match; \"\" or omitted = any event"
             },
             {
               "name": "fromDt",
               "type": "numeric",
-              "doc": "inclusive lower bound on TIMESTAMP (FileMan internal date); \"\" = no lower bound"
+              "doc": "inclusive lower bound on TIMESTAMP (FileMan internal date); \"\" or omitted = no lower bound"
             },
             {
               "name": "toDt",
               "type": "numeric",
-              "doc": "inclusive upper bound on TIMESTAMP (FileMan internal date); \"\" = no upper bound"
+              "doc": "inclusive upper bound on TIMESTAMP (FileMan internal date); \"\" or omitted = no upper bound"
             }
           ],
           "returns": {
@@ -926,7 +926,7 @@
           "description": "",
           "source": {
             "file": "src/VSLLOG.m",
-            "line": 129
+            "line": 130
           },
           "illustrative": "$$lastError is exercised by the write-failure assertions in tests/VSLLOGTST.m; the inline ^TMP round-trip duplicated that canonical check"
         }

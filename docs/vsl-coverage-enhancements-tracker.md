@@ -49,7 +49,7 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
 
 - **Audit + 4 High fixes DONE:** VSLIO IRIS write flush (`0acedb0`), VSLSEC
   default-duz (`c56df66`), VSLFS internal-doc + lock-in test (`f0df013`), VSLTASK
-  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **14** (P1b bump).
+  `when="@"` + un-KILLable wording (`c258fca`). KIDS patch at **15** (P1b→14, P1d→15).
 - **P1a exact-ecode DONE 2026-06-29:** every `raises^STDASSERT` across all six
   suites tightened from loose prefix (`"U-VSL-<MOD>"`) to the full delimited code
   (`",U-VSL-<MOD>-<OP>,"`) + a `$ECODE`-clears post-condition. All passed first run
@@ -63,8 +63,13 @@ surface, raise test coverage to the baseline's model, and clean up provenance.
   (`tFindAmbiguousIsEmpty`) + VSLLOG 80-char HOST truncation (`tHostTruncatedTo80`)
   boundary tests added — existing-correct behavior confirmed, no src change. VSLCFG
   empty-vs-unset deferred (XPAR `""` semantics need a live probe).
+- **P1d volume/residue DONE 2026-06-29:** VSLFS `$$list` + VSLLOG `$$query` volume
+  tests (count integrity + `^TMP("DILIST",$job)` zero-residue). The `$$query` volume
+  test (dates omitted) **revealed a 3rd systemic UNDEF** — `query` referenced
+  undefined `event`/`fromDt`/`toDt` formals; fixed by `set event=$get(event),...` on
+  the first line. KIDS patch **14→15**.
 - **All six suites green dual-engine** (vehu YDB + foia-t12 IRIS): VSLCFG 10/10,
-  VSLFS 19/19, VSLIO 11/11, VSLLOG 19/19, VSLSEC 19/19, VSLTASK 10/10.
+  VSLFS 22/22, VSLIO 11/11, VSLLOG 22/22, VSLSEC 19/19, VSLTASK 10/10 (96 total).
 - Gates: `make check-fast` green; lint 0 findings.
 
 ---
@@ -97,8 +102,10 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   guessed).
 - **De-circularize** VSLCFG `tGetEffectiveResolvesSys` (it asserts `getEffective ==`
   the `$$GET^XPAR("ALL")` it wraps — a tautology; make it catch an ALL→SYS regression).
-- **Volume / residue** for the listers: VSLFS `$$list`/`$$find`, VSLLOG `$$query`
-  with N≫1 throwaway records; assert count integrity + `^TMP("DILIST",$job)` cleanup.
+- **✅ DONE 2026-06-29 — Volume / residue** for the listers: VSLFS `$$list`
+  (`tListVolumeNoResidue`) + VSLLOG `$$query` (`tQueryVolumeExactCount`) with 5
+  throwaway records — count integrity + `^TMP("DILIST",$job)` zero-residue asserted.
+  Found + fixed the `$$query` omitted-optional UNDEF (event/fromDt/toDt) in passing.
 
 ### P2 — In-scope missing wrapped-API verbs (each its own TDD increment)
 - **VSLTASK** (sharpest — the stop/retire/observe half is absent):

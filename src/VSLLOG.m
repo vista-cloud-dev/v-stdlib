@@ -107,12 +107,13 @@ read(iens,rec)	; Read the audit record's typed fields into rec(); return the EVE
 	;
 query(out,event,fromDt,toDt)	; Filter audit records by event and/or FileMan date range into out("ien,")=event; return the count.
 	; doc: @param   out      array    (by ref) set out("ien,")=event for each matching record
-	; doc: @param   event    string   exact event (.01) to match; "" = any event
-	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
-	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
+	; doc: @param   event    string   exact event (.01) to match; "" or omitted = any event
+	; doc: @param   fromDt   numeric  inclusive lower bound on TIMESTAMP (FileMan internal date); "" or omitted = no lower bound
+	; doc: @param   toDt     numeric  inclusive upper bound on TIMESTAMP (FileMan internal date); "" or omitted = no upper bound
 	; doc: @returns          numeric  the number of matching records
 	; doc: @illustrative  filters real audit records in VSL AUDIT (#999001) via the VSLFS finder; needs records present; exercised on live VistA by tests/VSLLOGTST.m tQueryFilters
 	new file,all,iens,cur,n,ev,ts,junk
+	set event=$get(event),fromDt=$get(fromDt),toDt=$get(toDt)
 	set file=$$auditFile()
 	set junk=$$list^VSLFS(file,.all,"B")
 	set n=0,iens=$order(all(""))

@@ -54,9 +54,9 @@ Filter audit records by event and/or FileMan date range into out("ien,")=event; 
 **Parameters**
 
 - `out` _(array)_ — (by ref) set out("ien,")=event for each matching record
-- `event` _(string)_ — exact event (.01) to match; "" = any event
-- `fromDt` _(numeric)_ — inclusive lower bound on TIMESTAMP (FileMan internal date); "" = no lower bound
-- `toDt` _(numeric)_ — inclusive upper bound on TIMESTAMP (FileMan internal date); "" = no upper bound
+- `event` _(string)_ — exact event (.01) to match; "" or omitted = any event
+- `fromDt` _(numeric)_ — inclusive lower bound on TIMESTAMP (FileMan internal date); "" or omitted = no lower bound
+- `toDt` _(numeric)_ — inclusive upper bound on TIMESTAMP (FileMan internal date); "" or omitted = no upper bound
 
 **Returns** _numeric_ — the number of matching records
 
