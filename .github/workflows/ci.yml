@@ -45,24 +45,16 @@ jobs:
 
       - name: Build the Go `m` toolchain from m-cli
         run: |
-          for i in 1 2 3; do
-            git clone --depth 1 --branch main \
-              https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli" && break
-            echo "::warning::m-cli clone attempt $i failed; retrying in 5s"
-            rm -rf "$RUNNER_TEMP/m-cli"; sleep 5
-          done
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/m" version || true
 
       - name: Check out m-stdlib (STD* routines staged via --routines)
         run: |
-          for i in 1 2 3; do
-            git clone --depth 1 --branch master \
-              https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib" && break
-            echo "::warning::m-stdlib clone attempt $i failed; retrying in 5s"
-            rm -rf "$RUNNER_TEMP/m-stdlib"; sleep 5
-          done
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib"
           echo "MSTDLIB=$RUNNER_TEMP/m-stdlib" >> "$GITHUB_ENV"
 
       - name: Start the YDB engine (m-test-engine 0.2.0)
@@ -109,23 +101,15 @@ jobs:
 
       - name: Build the Go `m` toolchain from m-cli
         run: |
-          for i in 1 2 3; do
-            git clone --depth 1 --branch main \
-              https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli" && break
-            echo "::warning::m-cli clone attempt $i failed; retrying in 5s"
-            rm -rf "$RUNNER_TEMP/m-cli"; sleep 5
-          done
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-cli "$RUNNER_TEMP/m-cli"
           ( cd "$RUNNER_TEMP/m-cli" && CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/m" . )
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
       - name: Check out m-stdlib (STD* routines staged via --routines)
         run: |
-          for i in 1 2 3; do
-            git clone --depth 1 --branch master \
-              https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib" && break
-            echo "::warning::m-stdlib clone attempt $i failed; retrying in 5s"
-            rm -rf "$RUNNER_TEMP/m-stdlib"; sleep 5
-          done
+          git clone --depth 1 --branch main \
+            https://github.com/vista-cloud-dev/m-stdlib "$RUNNER_TEMP/m-stdlib"
           echo "MSTDLIB=$RUNNER_TEMP/m-stdlib" >> "$GITHUB_ENV"
 
       - name: Start the IRIS engine (community)
