@@ -12,36 +12,60 @@ scope: the post-baseline enhancement backlog for the 6 VSL* modules (missing wra
 
 Live tracker (Tier D) for the **enhancement** work that follows the
 [VistA library wrapping baseline](proposals/vista-library-wrapping-baseline.md). The
-baseline's four **High defects are all CLOSED** (VSLSEC, VSLIO, VSLFS, VSLTASK —
-green dual-engine). What remains is enhancement, not defect: complete the wrapped-API
-surface, raise test coverage to the baseline's model, and clean up provenance.
+baseline's four High defects are CLOSED, and as of **2026-06-29 both P1
+(coverage-model backfill) and P2 (missing wrapped-API verbs) are COMPLETE** — plus
+two more UNDEF defects fixed in passing (VSLCFG `$$get` default, VSLLOG `$$query`
+dates). All six suites are **121/121 dual-engine**, KIDS patch **20**. What remains is
+**P3** (provenance/corpus cleanup — mostly doc-accuracy + a cross-repo vdocs
+re-extraction) and **P4** (settle the `KILL^%ZTLOAD`-vs-persistent-task discrepancy),
+plus two deferred larger items (VSLFS `WP^DIE` write-support; entity-aware XPAR verbs →
+a future `VSLPARM`).
 
 ---
 
 ## ▶ Resume prompt (paste into a NEW session, cwd `~/vista-cloud-dev/v-stdlib`)
 
-> Resume the v-stdlib wrapping-baseline **enhancement** work. The four High defects
-> are already fixed (see `docs/vsl-coverage-enhancements-tracker.md` + the baseline
-> `docs/proposals/vista-library-wrapping-baseline.md`). Read those two docs and the
-> memories `docs/memory/vsl-wrapping-baseline-audit.md` + `MEMORY.md` first.
+> Resume the v-stdlib wrapping-baseline **enhancement** work. **P1 (coverage-model
+> backfill) and P2 (missing verbs) are DONE** — all six suites 121/121 dual-engine,
+> KIDS 20. Read this tracker + the baseline
+> `docs/proposals/vista-library-wrapping-baseline.md` + the memory
+> `docs/memory/vsl-wrapping-baseline-audit.md` (and `MEMORY.md`) first.
 >
-> Then work the backlog below **in priority order, one increment per item, TDD**:
-> write the test first (confirm red), implement, confirm green on **both** engines,
-> regenerate artifacts, bump the KIDS patch, `make check-fast`, then run the
-> Increment Protocol (memory + this tracker + commit/push to `main`). Start with
-> **P1 (coverage-model test backfill)** unless I say otherwise — it hardens what
-> exists before adding new surface.
+> Work the **remaining** backlog below, one increment per item, lightest-touch first:
+> **P4** (settle the `KILL^%ZTLOAD`-vs-persistent-task discrepancy) is a self-contained
+> READ-ONLY verification — do it here: read the live `^%ZTLOAD` routine via
+> `m vista exec --engine ydb --transport docker "..."` (note: it does NOT layer local
+> `--routines`, so inspect resident Kernel code, not VSL), reconcile
+> `docs/memory/m5-vsltask-vslbld.md` ⇄ corpus ⇄ the `VSLTASK.m` neutral wording, and
+> record the verdict. Then **P3** (provenance/corpus cleanup): the doc-accuracy items
+> (VSLIO `CALL^%ZISTCP` / TLS ICRs, VSLCFG `#^errortext` prose, VSLFS ICR-note) are
+> in-repo; the GOLD-corpus empty-anchor re-extraction is **cross-repo (vdocs)** — do
+> that in the vdocs session, not here. The two deferred larger items (VSLFS `WP^DIE`
+> write-support; entity-aware XPAR → `VSLPARM`) are new-surface, schedule separately.
 >
-> Hard constraints (all verified-working this session): engine access ONLY via the
-> driver stack — `m test --engine ydb --docker vehu --chset m --routines src
-> --routines ../m-stdlib/src tests/<SUITE>` and `m test --engine iris --docker
-> foia-t12 --namespace VISTA --routines src --routines ../m-stdlib/src tests/<SUITE>`
-> (never raw `docker exec`). No redundancy (R6): suite = sole assertions, `@example`
-> = call-shape one-liner, `@illustrative` = non-demonstrable. To assert a call does
-> NOT raise, use the engine-split `$$safeRun` helper already in `VSLSECTST.m` (plain
-> `eq^STDASSERT` of a raising call aborts the whole suite 0/0). Stay off
-> `.github/workflows/ci.yml` (owned by another session). `m` = `../m-cli/dist/m`,
-> `v-pkg` = `../v-pkg/dist/v-pkg`.
+> For any NEW verb/test, TDD: write the test first; for a brand-new verb add a
+> **safe-default stub** (`quit ""`/`quit 0`/void) FIRST so red shows per-test counts —
+> a missing label aborts the suite 0/0. Confirm red, implement, confirm green on
+> **both** engines. On any `src/*.m` change, bump the KIDS patch and regenerate the
+> WHOLE cascade — `make icr manifest kids docs-bodies skill frontmatter examples` —
+> then `git add` the artifacts (drift gates diff against the INDEX), then
+> `make check-fast`, then the Increment Protocol (memory + this tracker + commit/push
+> to `main`).
+>
+> Hard constraints (all verified-working): engine access ONLY via the driver stack —
+> `m test --engine ydb --docker vehu --chset m --routines src --routines
+> ../m-stdlib/src tests/<SUITE>` and `m test --engine iris --docker foia-t12
+> --namespace VISTA --routines src --routines ../m-stdlib/src tests/<SUITE>` (never raw
+> `docker exec`). New `@icr`/`@source` tags MUST cite a GOLD-corpus anchor (the
+> `check-citations` gate verifies them) — use the `corpus-researcher` agent to get
+> exact contracts + anchors before writing them. **Verify API edge cases LIVE** —
+> Supported VistA APIs have undocumented edge behavior (e.g. ASKSTOP's absent-task
+> value, DEL^XPAR non-idempotency); don't enshrine the corpus's nominal codes. No
+> redundancy (R6): suite = sole assertions, `@example` = call-shape one-liner,
+> `@illustrative` = non-demonstrable. To assert a call does NOT raise, use the
+> engine-split `$$safeRun` helper in `VSLSECTST.m` (plain `eq^STDASSERT` of a raising
+> call aborts the suite 0/0). Stay off `.github/workflows/ci.yml` (owned by another
+> session). `m` = `../m-cli/dist/m`, `v-pkg` = `../v-pkg/dist/v-pkg`.
 
 ---
 
