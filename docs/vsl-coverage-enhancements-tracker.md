@@ -186,21 +186,36 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
   param reads exactly like a never-set one (`$$get` → default); XPAR has no distinct
   stored-empty. (Entity-aware verbs stay deferred to a future `VSLPARM`.)
 
-### P3 — Provenance / corpus cleanup
-- **GOLD-corpus empty-body anchors** (systematic): all five VSLFS DBS anchors
-  (`updatedie-updater`, `get1diq…`, `filedie-filer`, `find1dic…`, `listdic-lister`),
-  `VSLCFG set()` (`enxpar-add-change-delete-parameters`), `VSLLOG $$NOW^XLFDT`,
-  `VSLTASK queue()` resolve but return empty text → `@status Supported` not
-  corpus-confirmable. One **vdocs pipeline re-extraction** task (cross-repo: vdocs),
-  or repoint each to a citable sibling (e.g. a `#example-N`).
-- **VSLIO doc-accuracy:** reconcile `CALL^%ZISTCP` positional `(host,port,timeout)`
-  call vs the cited input-variable (`IPADDRESS/SOCKET/TIMEOUT`) convention; mark TLS
-  ICRs **#7616/#7617** unverified (routines exist in corpus; numbers don't) or back
-  from an ICR registry.
-- **VSLCFG doc-accuracy:** soften the `#^errortext` / DIALOG #.84 prose (corpus backs
-  only "by-reference, >0 = failure").
-- **VSLFS ICR-note:** FileMan DBS calls DO have real published ICRs (e.g. 10150) —
-  the "notional" wording understates it.
+### P3 — Provenance / corpus cleanup — in-repo doc-accuracy ✅ DONE 2026-06-29 (corpus re-extraction still cross-repo vdocs)
+The three in-repo doc-accuracy items are DONE (one increment, KIDS 20→21, all
+corpus-grounded via the `corpus-researcher` agent). The GOLD-corpus empty-anchor
+re-extraction stays the only open P3 item, and it's **cross-repo (vdocs)**.
+- **GOLD-corpus empty-body anchors** ⏳ (cross-repo vdocs, NOT this session): all five
+  VSLFS DBS anchors (`updatedie-updater`, `get1diq…`, `filedie-filer`, `find1dic…`,
+  `listdic-lister`), `VSLCFG set()` (`enxpar-add-change-delete-parameters`), `VSLLOG
+  $$NOW^XLFDT`, `VSLTASK queue()` resolve but return empty text → `@status Supported`
+  not corpus-confirmable. One **vdocs pipeline re-extraction** task, or repoint each to
+  a citable sibling (e.g. a `#example-N`). (Corpus-researcher confirmed these bodies are
+  still header-only as of 2026-06-29.)
+- **✅ VSLIO doc-accuracy DONE 2026-06-29:** Q1 — corpus DOES document the input-variable
+  convention (`IPADDRESS/SOCKET/TIMEOUT`, bare `CALL^%ZISTCP`), but the LIVE routine is a
+  procedure `CALL(IP,SOCK,TO)` invoked positionally (re-verified live: `$text(CALL^%ZISTCP)`
+  = `CALL(IP,SOCK,TO)`) — our code is right, the corpus device-handler guide is stale. Header
+  M-MOD-024 rationale corrected (the real lint-suppressed I/O vars are `IO`/`POP`, not the
+  input vars) + a corpus-vs-live note added. Q2 — TLS ICRs **#7616/#7617 do NOT exist** in
+  the corpus; the real documented TLS agreement is **RPC "XU START TLS" / `INITRPC^XUTLS` =
+  ICR #7615** (XU*8*787); routine-level `INIT^XUTLS`/`ISTLSSERVERCONF^XUSUDO` carry no
+  published ICR. Header + `noTlsMsg` remediation text corrected.
+- **✅ VSLCFG doc-accuracy DONE 2026-06-29:** corpus supports NEITHER the `#^errortext` /
+  DIALOG-#.84 form NOR even ">0 = failure" (the `.error` body is header-only). Reworded to
+  the OBSERVED contract: scalar by-reference, `0`/empty success, positive = failure (what
+  `$$set` enforces), explicitly noting the code-provenance is not corpus-cited.
+- **✅ VSLFS ICR-note DONE 2026-06-29:** "notional" understated it — real published DBIA
+  numbers exist (ROR Tech-Manual DBIA table): **LIST^DIC/FIND1^DIC = 2051, UPDATE^DIE/
+  FILE^DIE = 2053, $$GET1^DIQ/GETS^DIQ = 2056**. (NOTE: **#10150 is ScreenMan `DDSUTL`,
+  NOT DBS** — the earlier "e.g. 10150" guess was wrong.) Kept the `@icr DBS` marker (our
+  `@source` `DI/fm22_2dg` carries the API contract, not the per-call number) but the prose
+  now lists the real ROR numbers so "DBS" means "no number in the cited doc," not "no real ICR."
 - **VSLTASK ASKSTOP return (corpus vs live):** the corpus documents `$$ASKSTOP^%ZTLOAD`
   as returning 0/1/2 (incl. 1 = "task missing"), but on BOTH live engines an
   absent/never-scheduled task returns a different, undocumented multi-char value (found
@@ -244,3 +259,10 @@ suites. Each is an orthogonal NEW assertion (R6: do not restate happy-path):
 - **One session ↔ one repo:** P3's corpus re-extraction and the v-pkg `#999000`
   DATE-field option are **cross-repo** (vdocs / v-pkg) — do them in those repos'
   sessions, not here.
+- **IRIS (foia-t12) VSLFS fixture prerequisite:** `VSLFSTST` needs the throwaway
+  **`#999000 ZZVSLFS` test-file DD resident** (installed via `v pkg install`, then
+  backed out). As of **2026-06-29 that DD is NOT resident on foia-t12**, so an IRIS
+  `VSLFSTST` run aborts **0/0 ok:false** at setup (confirmed pre-existing — HEAD `VSLFS`
+  reproduces it; YDB/vehu is 29/29 because its DD persists). A `VSLFS` IRIS `0/0` while
+  `VSLCFG`/`VSLIO` pass = the test DD is missing, NOT a code regression. Re-install the
+  `#999000` DD on foia-t12 before relying on a dual-engine `VSLFS` run.

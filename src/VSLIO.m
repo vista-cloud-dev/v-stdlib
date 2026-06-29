@@ -2,9 +2,13 @@ VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 	; doc: @exrun live
 	; m-lint: disable-file=M-MOD-024
 	; M-MOD-024 false positives: the analyser reads the Kernel device-handler
-	; input variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ
-	; targets as locals-before-def; they are the documented ^%ZISTCP I/O
-	; convention. Same suppression as STDJSON/STDHTTP/STDNET.
+	; output variables (IO/POP) and the device USE/READ targets as
+	; locals-before-def; they are genuine ^%ZISTCP I/O. Same suppression as
+	; STDJSON/STDHTTP/STDNET. (Note: CALL^%ZISTCP is a procedure CALL(IP,SOCK,TO)
+	; invoked positionally — $$connect passes (host,port,timeout) as arguments —
+	; NOT the bare-call-plus-IPADDRESS/SOCKET/TIMEOUT input-variable convention the
+	; corpus device-handler guide describes; that guide is stale vs the live
+	; routine. See docs/memory/m2-vslio.md.)
 	;
 	; Binds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:
 	; outbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It
@@ -24,8 +28,8 @@ VSLIO	; v-stdlib — VistA TCP transport adapter over the Kernel device handler.
 	;   $$lastError^VSLIO()                  — last error message, else ""
 	;
 	; *** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***
-	; This adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,
-	; using a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)
+	; This adapter opens RAW PLAINTEXT TCP. TLS (Kernel INIT-XUTLS, using a named
+	; config defaulting to the DEFAULT TLS SERVER CONFIG parameter)
 	; is NOT wired: it requires engine TLS infrastructure absent on the test
 	; engines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs
 	; entry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and
@@ -136,8 +140,8 @@ noTlsMsg()	; The TLS-gap remediation message (one source for help + lastError).
 	set m=m_nl_"Remedy (GATING — must close before the MSL/VSL stack is complete):"
 	set m=m_nl_" 1. Provision engine TLS: a server cert + Kernel patch XU*8.0*787 (DEFAULT TLS SERVER CONFIG)"
 	set m=m_nl_"    + an IRIS Security.SSLConfigs entry (IRIS-only per the corpus), or the GT.M $gtmtls path."
-	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS, ICR #7616) with the named config"
-	set m=m_nl_"    + the ISTLSSERVERCONF-XUSUDO validator (#7617), then flip $$tlsAvailable to 1."
+	set m=m_nl_" 2. Wire $$connectTls over the Kernel TLS init API (INIT-XUTLS) + the ISTLSSERVERCONF-XUSUDO config validator"
+	set m=m_nl_"    (no published routine ICR; the documented TLS agreement is the RPC XU START TLS / INITRPC-XUTLS = ICR #7615, XU*8*787), then flip $$tlsAvailable to 1."
 	set m=m_nl_" 3. Tracked with STDNET's TLS gap (m-stdlib docs/tracking/discoveries.md, 2026-06-16)."
 	quit m
 	;

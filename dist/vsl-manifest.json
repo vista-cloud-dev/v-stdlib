@@ -3,7 +3,7 @@
   "modules": {
     "VSLCFG": {
       "synopsis": "v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic API:\n  $$get^VSLCFG(key,default)          — read the SYS-level instance, else default\n  $$getEffective^VSLCFG(key,default) — read the effective value across the\n                                       parameter's entity precedence (GET^XPAR\n                                       \"ALL\"), else default\n  $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)\n  $$delete^VSLCFG(key)               — clear the SYS instance (DEL^XPAR; loud on failure)\n  $$lastError^VSLCFG()               — last XPAR failure detail, else \"\"\n\n$$get reads ONLY the SYS instance ($$GET^XPAR(\"SYS\",...)) — the faithful flat\nSTDENV analog. $$getEffective resolves the value XPAR would actually use in\ncontext (first-found across the parameter's own precedence chain via the \"ALL\"\nentity). Use $$getEffective when you want \"what value applies here?\", $$get\nwhen you specifically want the SYS-level setting.\n\n*** ERROR CONTRACT — loud on a failed write, never a silent lost set ***\nEN^XPAR returns its error by reference as a scalar `0` (no error) or\n`#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a\nnon-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,\n$ECODE, with the detail in ^TMP($job,\"vslcfg\",\"err\") for $$lastError. Reads of\nan unset parameter are NOT errors ($$get/$$getEffective return the default).\nThe flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR\nalike.",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\n\nBinds the MSL config-read seam ($$get^STDENV) to VistA's XPAR parameter\nstore at the SYS (system) entity — the faithful analog of STDENV's flat\nkey->value config read. The adapter contains ONLY the VistA binding; no\nparsing or formatting (that stays in STD*, called up; m/v waterline).\n\nPublic API:\n  $$get^VSLCFG(key,default)          — read the SYS-level instance, else default\n  $$getEffective^VSLCFG(key,default) — read the effective value across the\n                                       parameter's entity precedence (GET^XPAR\n                                       \"ALL\"), else default\n  $$set^VSLCFG(key,value)            — set a value at the SYS entity (loud on failure)\n  $$delete^VSLCFG(key)               — clear the SYS instance (DEL^XPAR; loud on failure)\n  $$lastError^VSLCFG()               — last XPAR failure detail, else \"\"\n\n$$get reads ONLY the SYS instance ($$GET^XPAR(\"SYS\",...)) — the faithful flat\nSTDENV analog. $$getEffective resolves the value XPAR would actually use in\ncontext (first-found across the parameter's own precedence chain via the \"ALL\"\nentity). Use $$getEffective when you want \"what value applies here?\", $$get\nwhen you specifically want the SYS-level setting.\n\n*** ERROR CONTRACT — loud on a failed write, never a silent lost set ***\nEN^XPAR returns its status by reference as a scalar: 0 (or empty) on success,\na positive value (a `#^text` code) on failure. (The corpus documents the\n`.error` parameter only as \"by reference\" — body header-only — so >0 = failure\nis the observed contract $$set enforces, not a cited code provenance.) $$set\nsurfaces a positive return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,\n$ECODE, with the detail in ^TMP($job,\"vslcfg\",\"err\") for $$lastError. Reads of\nan unset parameter are NOT errors ($$get/$$getEffective return the default).\nThe flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).\n\nXPAR is a Supported API (Kernel Toolkit, ICR #2263) — EN^XPAR and $$GET^XPAR\nalike.",
       "errors": [
         "U-VSL-CFG-SET",
         "U-VSL-CFG-DEL"
@@ -42,7 +42,7 @@
           "description": "@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 38
+            "line": 40
           }
         },
         "getEffective": {
@@ -78,7 +78,7 @@
           "description": "The \"ALL\" entity tells XPAR to walk the precedence multiple defined on the\nparameter (#8989.51) and return the first level that has a value — what the\nvalue would actually resolve to in context. Contrast $$get, which reads only SYS.\n@icr 2263 @call $$GET^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#getxpar-return-an-instance-of-a-parameter",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 48
+            "line": 50
           }
         },
         "set": {
@@ -117,7 +117,7 @@
           "description": "@icr 2263 @call EN^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#enxpar-add-change-delete-parameters",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 61
+            "line": 63
           },
           "illustrative": "the loud-on-failure $$set contract (raises U-VSL-CFG-SET) is exercised by tests/VSLCFGTST.m tSetFailureIsLoud; the inline raises-demo duplicated that canonical assertion"
         },
@@ -152,7 +152,7 @@
           "description": "Clears the SYS instance via DEL^XPAR (which files the FileMan \"@\" delete sentinel).\nA deleted parameter then reads exactly like a never-set one ($$get returns the\ndefault). NOTE: DEL^XPAR is NOT idempotent — deleting a non-existent SYS instance\nraises U-VSL-CFG-DEL; guard with $$get if you need an idempotent clear.\n@icr 2263 @call DEL^XPAR @status Supported @custodian XU @source XU/krn_8_0_dg_toolkit_ug#delxpar-delete-parameter-value",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 77
+            "line": 79
           },
           "illustrative": "the success path clears a real SYS parameter instance — a live config mutation; exercised on live VistA by tests/VSLCFGTST.m tDeleteClears"
         },
@@ -176,7 +176,7 @@
           "description": "",
           "source": {
             "file": "src/VSLCFG.m",
-            "line": 96
+            "line": 98
           },
           "illustrative": "$$lastError is exercised by the loud-failure assertion in tests/VSLCFGTST.m tSetFailureIsLoud; the inline ^TMP round-trip duplicated that canonical check"
         }
@@ -191,7 +191,7 @@
     },
     "VSLFS": {
       "synopsis": "v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).",
-      "description": "doc: @exrun live\ndoc: @exsafe transactional\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays\n(FDA / IEN / ERR, written by the called DBS routine by-reference) as\nlocals-before-def; they are the documented GETS/UPDATE/FILE convention.\nSame suppression as VSLIO/STDNET.\n\nBinds the MSL storage seam (STDKV, S1) to VistA's FileMan Database Server\n(DBS) API: a record store addressed by (file, iens, field). It exposes the\nsame four-verb signature as STDKV — $$set/$$get/$$exists/$$kill — backed by\nFileMan DBS calls, never direct global access (architecture §3.2). The\nadapter contains ONLY the VistA binding; any non-FileMan logic stays in the\nMSL seam, called up (m/v waterline §9 no-duplication).\n\nPublic API (the handle is a FileMan IENS; values are field values):\n  $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no\n                                        transform); \"+1,\" adds -> resolved IENS\n  $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default\n                                        is the EXTERNAL value, flags \"I\" the internal\n  $$gets^VSLFS(file,iens,fields,.out,flags)— read many fields in one call (GETS^DIQ)\n                                        -> out(field)=value; returns the count\n  $$exists^VSLFS(file,iens)           — 1 iff the record exists\n  $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01=\"@\")\n  $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)\n  $$list^VSLFS(file,.out,index)       — list every record's IENS into out (LIST^DIC)\n  $$lastError^VSLFS()                 — last FileMan DIERR detail, else \"\"\n\n*** ERROR CONTRACT — loud, never a silent wrong value ***\nA FileMan DIERR on a write maps to a clean ,U-VSL-FS-DIERR, $ECODE, with the\nDIERR text composed into ^TMP($job,\"vslfs\",\"err\") for $$lastError. Reads of\nan absent record/field are NOT errors — $$get returns the default and\n$$exists returns 0 (the STDKV \"absent -> default\" semantics). Every DBS call\npasses an explicit MSG_ROOT (\"ERR\") so errors land in this adapter's own\narray, never the shared ^TMP(\"DIERR\",$J).\n\nICR note: the FileMan DBS API is the public DBS programmer API (FileMan\nDeveloper's Guide, custodian DI). The DBIA/ICR *number* is notional — a\nmanually-curated FORUM list, not enforced programmatically — so each call is\ntagged `@icr DBS` (the notional marker), with a real @status/@custodian/\n@source. See docs/memory notional-dbia-not-a-blocker + plan §5.4.",
+      "description": "doc: @exrun live\ndoc: @exsafe transactional\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the FileMan DBS I/O arrays\n(FDA / IEN / ERR, written by the called DBS routine by-reference) as\nlocals-before-def; they are the documented GETS/UPDATE/FILE convention.\nSame suppression as VSLIO/STDNET.\n\nBinds the MSL storage seam (STDKV, S1) to VistA's FileMan Database Server\n(DBS) API: a record store addressed by (file, iens, field). It exposes the\nsame four-verb signature as STDKV — $$set/$$get/$$exists/$$kill — backed by\nFileMan DBS calls, never direct global access (architecture §3.2). The\nadapter contains ONLY the VistA binding; any non-FileMan logic stays in the\nMSL seam, called up (m/v waterline §9 no-duplication).\n\nPublic API (the handle is a FileMan IENS; values are field values):\n  $$set^VSLFS(file,iens,field,value) — file a field INTERNAL (UPDATE^DIE, no\n                                        transform); \"+1,\" adds -> resolved IENS\n  $$get^VSLFS(file,iens,field,default,flags)— read a field ($$GET1^DIQ); default\n                                        is the EXTERNAL value, flags \"I\" the internal\n  $$gets^VSLFS(file,iens,fields,.out,flags)— read many fields in one call (GETS^DIQ)\n                                        -> out(field)=value; returns the count\n  $$exists^VSLFS(file,iens)           — 1 iff the record exists\n  $$kill^VSLFS(file,iens)             — delete the record (FILE^DIE, .01=\"@\")\n  $$find^VSLFS(file,value,index)      — IENS of the unique `index` match ($$FIND1^DIC)\n  $$list^VSLFS(file,.out,index)       — list every record's IENS into out (LIST^DIC)\n  $$lastError^VSLFS()                 — last FileMan DIERR detail, else \"\"\n\n*** ERROR CONTRACT — loud, never a silent wrong value ***\nA FileMan DIERR on a write maps to a clean ,U-VSL-FS-DIERR, $ECODE, with the\nDIERR text composed into ^TMP($job,\"vslfs\",\"err\") for $$lastError. Reads of\nan absent record/field are NOT errors — $$get returns the default and\n$$exists returns 0 (the STDKV \"absent -> default\" semantics). Every DBS call\npasses an explicit MSG_ROOT (\"ERR\") so errors land in this adapter's own\narray, never the shared ^TMP(\"DIERR\",$J).\n\nICR note: the FileMan DBS API is the public DBS programmer API (FileMan\nDeveloper's Guide, custodian DI). Real published DBIA numbers DO exist (the\nROR Technical Manual DBIA table: LIST^DIC / FIND1^DIC = 2051, UPDATE^DIE /\nFILE^DIE = 2053, $$GET1^DIQ / GETS^DIQ = 2056) — but our @source doc\n(DI/fm22_2dg) carries the API contract, not the per-call number, so each call\nis tagged `@icr DBS` (a marker meaning \"no number in the cited doc,\" NOT \"no\nreal ICR\"), with a real @status/@custodian/@source. See docs/memory\nnotional-dbia-not-a-blocker + plan §5.4.",
       "errors": [
         "U-VSL-FS-DIERR"
       ],
@@ -242,7 +242,7 @@
           "description": "UPDATE^DIE is called with NO \"E\" flag, so `value` is filed as the FileMan\nINTERNAL value and NO input transform runs. For transformed fields (DATE,\nPOINTER, SET OF CODES) pass the internal form (e.g. an $$NOW^XLFDT date),\nnot the external string; .01 free text is transform-invariant either way.\nAsymmetry to know: $$set files INTERNAL but $$get defaults to EXTERNAL — to\nround-trip a transformed field, read it back with $$get(...,\"I\").\n@icr DBS @call UPDATE^DIE @status Supported @custodian DI @source DI/fm22_2dg#updatedie-updater",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 48
+            "line": 51
           },
           "illustrative": "a successful add (and its DIERR-raise path) is a live FileMan mutation; exercised by tests/VSLFSTST.m tCreateGetRoundtrip, not a safe read-only one-liner"
         },
@@ -295,7 +295,7 @@
           "description": "Default (\"\" flags) reads the EXTERNAL value; \"I\" reads the INTERNAL value.\nSince $$set files INTERNAL, read a transformed field back with \"I\" to get\nexactly what was filed (the external default applies the output transform).\n@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 69
+            "line": 72
           }
         },
         "gets": {
@@ -349,7 +349,7 @@
           "description": "One round-trip for a whole record vs N $$get calls. Reads SCALAR top-level fields;\nword-processing and sub-multiple fields are out of scope (scalar flatten only).\n@icr 2056 @call GETS^DIQ @status Supported @custodian DI @source DI/fm22_2dg#getsdiq-data-retriever-multiple-fields",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 87
+            "line": 90
           },
           "illustrative": "reads real FileMan records; needs a throwaway test DD with records — exercised on live VistA by tests/VSLFSTST.m tGetsMultiField"
         },
@@ -387,7 +387,7 @@
           "description": "@icr DBS @call $$GET1^DIQ @status Supported @custodian DI @source DI/fm22_2dg#get1diq-data-retriever-single-field",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 110
+            "line": 113
           }
         },
         "kill": {
@@ -421,7 +421,7 @@
           "description": "This swallow-vs-raise asymmetry with $$set is deliberate (a delete is\nidempotent). A caller that needs delete-or-fail semantics must check\n$$lastError^VSLFS() after $$kill — a non-empty result means the FILE^DIE hit a DIERR.\n@icr DBS @call FILE^DIE @status Supported @custodian DI @source DI/fm22_2dg#filedie-filer",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 122
+            "line": 125
           },
           "illustrative": "deletes a real FileMan record (a persistent mutation); exercised by tests/VSLFSTST.m tExistsThenKill, not a safe read-only one-liner"
         },
@@ -461,7 +461,7 @@
           "description": "@icr DBS @call $$FIND1^DIC @status Supported @custodian DI @source DI/fm22_2dg#find1dic-finder-single-record",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 137
+            "line": 140
           },
           "illustrative": "resolves a record by an indexed value; a meaningful match needs known live data (or a throwaway test DD) — exercised on live VistA by tests/VSLFSTST.m tFindByName"
         },
@@ -506,7 +506,7 @@
           "description": "@icr DBS @call LIST^DIC @status Supported @custodian DI @source DI/fm22_2dg#listdic-lister",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 148
+            "line": 151
           },
           "illustrative": "lists real FileMan records; demonstrating it needs a throwaway test DD (#999000 ZZVSLFS) with records, not a safe read-only one-liner — see tests/VSLFSTST.m tListAllRecords"
         },
@@ -530,7 +530,7 @@
           "description": "",
           "source": {
             "file": "src/VSLFS.m",
-            "line": 169
+            "line": 172
           },
           "illustrative": "$$lastError is exercised by the DIERR-path assertions in tests/VSLFSTST.m; the inline ^TMP round-trip duplicated that canonical check"
         }
@@ -545,7 +545,7 @@
     },
     "VSLIO": {
       "synopsis": "v-stdlib — VistA TCP transport adapter over the Kernel device handler.",
-      "description": "doc: @exrun live\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the Kernel device-handler\ninput variables (IPADDRESS/SOCKET/TIMEOUT/IO/POP) and the device USE/READ\ntargets as locals-before-def; they are the documented ^%ZISTCP I/O\nconvention. Same suppression as STDJSON/STDHTTP/STDNET.\n\nBinds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:\noutbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It\nexposes the CLIENT subset of STDNET's signature (connect/read/write/close)\n— VistA has NO Supported Kernel listen/accept (server) API (Kernel Device\nHandler DG; inbound is the listener-process/JOB pattern), so the SERVER side\nof a connection stays in the portable STDNET seam, never duplicated here.\nThe adapter contains ONLY the VistA binding; framing/buffering stays in\nSTD* and is called up (m/v waterline).\n\nPublic API (raw bytes; the handle is the opened device, $$connect's return):\n  $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0\n                                         (timeout in seconds; default 30)\n  $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count\n  $$write^VSLIO(id,buf)                — raw write -> 1/0\n  $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1\n  $$lastError^VSLIO()                  — last error message, else \"\"\n\n*** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***\nThis adapter opens RAW PLAINTEXT TCP. TLS (Kernel $$INIT^XUTLS, ICR #7616,\nusing a named config defaulting to the DEFAULT TLS SERVER CONFIG parameter)\nis NOT wired: it requires engine TLS infrastructure absent on the test\nengines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs\nentry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and\n$$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError\ncarrying remediation) rather than fall back to plaintext. This is a GATING\ncleanup before the MSL/VSL stack is complete — see STDNET's TLS gap\n(m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.\n\nThe last error message is stashed at ^TMP($job,\"vslio\",\"err\") for $$lastError.\nErrors set $ECODE to one of:\n  ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)",
+      "description": "doc: @exrun live\nm-lint: disable-file=M-MOD-024\nM-MOD-024 false positives: the analyser reads the Kernel device-handler\noutput variables (IO/POP) and the device USE/READ targets as\nlocals-before-def; they are genuine ^%ZISTCP I/O. Same suppression as\nSTDJSON/STDHTTP/STDNET. (Note: CALL^%ZISTCP is a procedure CALL(IP,SOCK,TO)\ninvoked positionally — $$connect passes (host,port,timeout) as arguments —\nNOT the bare-call-plus-IPADDRESS/SOCKET/TIMEOUT input-variable convention the\ncorpus device-handler guide describes; that guide is stale vs the live\nroutine. See docs/memory/m2-vslio.md.)\n\nBinds the MSL socket seam (STDNET, S4) to VistA's Kernel device handler:\noutbound TCP via CALL^%ZISTCP / CLOSE^%ZISTCP (ICR #2118, Supported). It\nexposes the CLIENT subset of STDNET's signature (connect/read/write/close)\n— VistA has NO Supported Kernel listen/accept (server) API (Kernel Device\nHandler DG; inbound is the listener-process/JOB pattern), so the SERVER side\nof a connection stays in the portable STDNET seam, never duplicated here.\nThe adapter contains ONLY the VistA binding; framing/buffering stays in\nSTD* and is called up (m/v waterline).\n\nPublic API (raw bytes; the handle is the opened device, $$connect's return):\n  $$connect^VSLIO(host,port,timeout)   — CALL^%ZISTCP outbound -> handle or 0\n                                         (timeout in seconds; default 30)\n  $$read^VSLIO(id,maxlen,timeout,.buf) — raw read up to maxlen bytes -> count\n  $$write^VSLIO(id,buf)                — raw write -> 1/0\n  $$close^VSLIO(id)                    — CLOSE^%ZISTCP -> 1\n  $$lastError^VSLIO()                  — last error message, else \"\"\n\n*** SECURITY / TLS GAP — same posture as STDNET (loud, never silent) ***\nThis adapter opens RAW PLAINTEXT TCP. TLS (Kernel INIT-XUTLS, using a named\nconfig defaulting to the DEFAULT TLS SERVER CONFIG parameter)\nis NOT wired: it requires engine TLS infrastructure absent on the test\nengines (a cert + Kernel patch XU*8.0*787 / an IRIS Security.SSLConfigs\nentry; IRIS-only per the gold corpus). So $$tlsAvailable^VSLIO()=0 and\n$$connectTls^VSLIO RAISES ,U-VSLIO-NOTLS, (with $$tlsHelp/$$lastError\ncarrying remediation) rather than fall back to plaintext. This is a GATING\ncleanup before the MSL/VSL stack is complete — see STDNET's TLS gap\n(m-stdlib docs/tracking/discoveries.md, 2026-06-16) and VSLIO tier-3.\n\nThe last error message is stashed at ^TMP($job,\"vslio\",\"err\") for $$lastError.\nErrors set $ECODE to one of:\n  ,U-VSLIO-NOTLS,    TLS requested but not wired (see $$tlsHelp)",
       "errors": [
         "U-VSLIO-NOTLS"
       ],
@@ -588,7 +588,7 @@
           "description": "@icr 2118 @call CALL^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#callzistcp-make-tcpip-connection-remote-system\nWARNING: PLAINTEXT — no TLS (see $$tlsAvailable / $$connectTls; known gap).",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 45
+            "line": 49
           }
         },
         "read": {
@@ -632,7 +632,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 61
+            "line": 65
           },
           "illustrative": "needs a live connected handle ($$connect + a peer writing bytes); see tests/VSLIOTST.m tLoopbackEcho (STDNET loopback server)."
         },
@@ -667,7 +667,7 @@
           "description": "On IRIS the TCP device buffers in default wait mode; flush with WRITE *-3\n(mirrors $$writeIris^STDNET). YDB/GT.M flushes on WRITE, so it needs no arm.",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 75
+            "line": 79
           },
           "illustrative": "needs a live connected handle from $$connect to USE/WRITE; see tests/VSLIOTST.m tLoopbackEcho."
         },
@@ -697,7 +697,7 @@
           "description": "@icr 2118 @call CLOSE^%ZISTCP @status Supported @custodian XU @source XU/krn_8_0_dg_device_handler_ug#closezistcp-close-tcpip-connection-remote-system",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 89
+            "line": 93
           },
           "illustrative": "needs a live handle from $$connect to CLOSE^%ZISTCP; see tests/VSLIOTST.m tLoopbackEcho."
         },
@@ -721,7 +721,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 100
+            "line": 104
           },
           "illustrative": "$$lastError is exercised by the TLS-gap (connectTls) assertions in tests/VSLIOTST.m; the inline ^TMP round-trip duplicated that canonical check"
         },
@@ -747,7 +747,7 @@
           "description": "Check before any secure use; $$tlsHelp has remediation.",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 107
+            "line": 111
           }
         },
         "tlsHelp": {
@@ -772,7 +772,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 113
+            "line": 117
           }
         },
         "connectTls": {
@@ -823,7 +823,7 @@
           "description": "",
           "source": {
             "file": "src/VSLIO.m",
-            "line": 118
+            "line": 122
           }
         }
       },

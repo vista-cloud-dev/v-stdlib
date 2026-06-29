@@ -72,8 +72,12 @@ branches by OS internally (CGTM/CONT), so VSLIO needs no `$ZVERSION` arm.
 `$$tlsAvailable^VSLIO()`=0; `$$connectTls^VSLIO` **raises `,U-VSLIO-NOTLS,`** (via
 `raiseNoTls`, stashing `^TMP($job,"vslio","err")`) — never silent plaintext;
 `$$tlsHelp`/`$$lastError` carry remediation (cert + `XU*8.0*787` / IRIS
-`Security.SSLConfigs`; wire over the Kernel `INIT-XUTLS` #7616 + `ISTLSSERVERCONF-
-XUSUDO` #7617). **Gotcha:** the remediation string must NOT contain literal
+`Security.SSLConfigs`; wire over the Kernel `INIT-XUTLS` + `ISTLSSERVERCONF-XUSUDO`).
+**ICR correction (2026-06-29 corpus check):** the earlier `#7616`/`#7617` numbers are
+**NOT in the corpus** — those routine entries are documented only as code examples with
+no ICR. The one real published TLS agreement is **RPC "XU START TLS" / `INITRPC-XUTLS` =
+ICR #7615** (XU*8*787); the routine-level init APIs have no published number. **Gotcha:**
+the remediation string must NOT contain literal
 `^XUTLS`/`^XUSUDO` — `check-icr` scans code strings for `^XU*` and flags them as
 undeclared L4 calls (write `INIT-XUTLS`/`ISTLSSERVERCONF-XUSUDO` with hyphens).
 `m-lint disable-file=M-MOD-024` (device-handler input vars read as locals, like

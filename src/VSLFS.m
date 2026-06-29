@@ -36,10 +36,13 @@ VSLFS	; v-stdlib — VistA FileMan storage adapter (FileMan DBS record store).
 	; array, never the shared ^TMP("DIERR",$J).
 	;
 	; ICR note: the FileMan DBS API is the public DBS programmer API (FileMan
-	; Developer's Guide, custodian DI). The DBIA/ICR *number* is notional — a
-	; manually-curated FORUM list, not enforced programmatically — so each call is
-	; tagged `@icr DBS` (the notional marker), with a real @status/@custodian/
-	; @source. See docs/memory notional-dbia-not-a-blocker + plan §5.4.
+	; Developer's Guide, custodian DI). Real published DBIA numbers DO exist (the
+	; ROR Technical Manual DBIA table: LIST^DIC / FIND1^DIC = 2051, UPDATE^DIE /
+	; FILE^DIE = 2053, $$GET1^DIQ / GETS^DIQ = 2056) — but our @source doc
+	; (DI/fm22_2dg) carries the API contract, not the per-call number, so each call
+	; is tagged `@icr DBS` (a marker meaning "no number in the cited doc," NOT "no
+	; real ICR"), with a real @status/@custodian/@source. See docs/memory
+	; notional-dbia-not-a-blocker + plan §5.4.
 	;
 	quit
 	;

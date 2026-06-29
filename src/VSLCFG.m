@@ -23,9 +23,11 @@ VSLCFG	; v-stdlib — VistA configuration adapter over XPAR (Parameter Tools).
 	; when you specifically want the SYS-level setting.
 	;
 	; *** ERROR CONTRACT — loud on a failed write, never a silent lost set ***
-	; EN^XPAR returns its error by reference as a scalar `0` (no error) or
-	; `#^errortext` (# = the VA FileMan DIALOG #.84 entry). $$set surfaces a
-	; non-zero return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,
+	; EN^XPAR returns its status by reference as a scalar: 0 (or empty) on success,
+	; a positive value (a `#^text` code) on failure. (The corpus documents the
+	; `.error` parameter only as "by reference" — body header-only — so >0 = failure
+	; is the observed contract $$set enforces, not a cited code provenance.) $$set
+	; surfaces a positive return — or a hard M fault in EN^XPAR — as a clean ,U-VSL-CFG-SET,
 	; $ECODE, with the detail in ^TMP($job,"vslcfg","err") for $$lastError. Reads of
 	; an unset parameter are NOT errors ($$get/$$getEffective return the default).
 	; The flag-based $ETRAP pattern is used (never zgoto — the M4 VSLLOG gotcha).
